@@ -1,0 +1,161 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="./output.css" rel="stylesheet">
+    <title>Contact-NETPONG</title>
+</head>
+
+<body class="antialiased w-full min-h-screen bg-slate-900 text-white">
+
+    <header
+        class="w-full bg-slate-900 py-4 relative flex flex-col md:flex-row items-center justify-between px-4 md:px-6 z-20 shadow-md gap-4 md:gap-0">
+
+        <a href="index.html" class="flex items-center">
+            <img src="/images/netpong.svg" alt="NETPONG Logo" class="h-8 md:h-10 w-auto">
+        </a>
+
+        <nav
+            class="md:absolute md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 flex flex-wrap justify-center items-center gap-4 md:gap-8 text-sm md:text-base">
+            <a href="index.html" class="text-white font-bold hover:text-orange-400">Home</a>
+            <a href="exclusive.html" class="text-white font-bold hover:text-orange-400">Exclusive</a>
+
+            <div class="relative">
+                <input type="checkbox" id="gm-toggle" class="hidden peer" />
+
+                <label for="gm-toggle"
+                    class="text-white font-bold hover:text-orange-400 cursor-pointer peer-checked:text-orange-400">
+                    Game Modes ▼
+                </label>
+
+                <div class="hidden peer-checked:flex flex-col absolute bg-slate-800 text-white 
+           mt-2 w-40 rounded-lg shadow-lg left-1/2 -translate-x-1/2 md:left-0 md:translate-x-0 z-30">
+                    <a href="saulSociety.html" class="px-4 py-2 hover:bg-gray-400 hover:text-black">Saul Society</a>
+                    <a href="barbiePink.html" class="px-4 py-2 hover:bg-pink-400 hover:text-black">Pink Barbie</a>
+                    <a href="zombie_land.html" class="px-4 py-2 hover:bg-green-800 hover:text-black">Zombie Land</a>
+                    <a href="joker.html" class="px-4 py-2 hover:bg-red-900 hover:text-black">Jocker</a>
+                </div>
+            </div>
+
+            <a href="contact.html" class="text-white font-bold hover:text-orange-400">Contact</a>
+        </nav>
+
+        <a href="chat.html"
+            class="bg-red-700 hover:bg-red-300 text-white py-2 px-4 md:px-5 font-bold rounded-lg shadow-xl transition text-sm md:text-base">
+            START CHAT
+        </a>
+
+    </header>
+
+    <div class="flex flex-col md:flex-row flex-1 overflow-hidden">
+        <div
+            class="relative w-full min-h-64 md:min-h-96 overflow-hidden bg-[url('/images/beautiful.webp')] bg-no-repeat bg-center bg-cover">
+
+            <div class="absolute inset-0 bg-slate-900/20"></div>
+
+            <div class="relative z-10 flex flex-col items-center justify-center h-full px-4 py-12 md:py-16">
+
+                <div
+                    class="bg-slate-900/70 backdrop-blur-lg rounded-3xl px-6 md:px-12 py-8 md:py-10 shadow-2xl border border-white/30 max-w-3xl text-center">
+
+                    <h1 class="text-3xl md:text-4xl lg:text-5xl font-extrabold text-white mb-4 relative inline-block
+                        before:content-[''] before:absolute before:-bottom-2 before:left-1/2
+                        before:-translate-x-1/2 before:w-24 md:before:w-32 before:h-1 before:bg-red-700
+                        before:rounded-full">
+                        CONTACT US
+                    </h1>
+
+                    <div class="flex items-center justify-center gap-2 my-6">
+                        <div class="h-px w-12 bg-white/30"></div>
+                        <div class="w-2 h-2 rounded-full bg-red-700"></div>
+                        <div class="h-px w-12 bg-white/30"></div>
+                    </div>
+
+                    <p class="text-base md:text-lg lg:text-xl text-white font-bold leading-relaxed">
+                        <span class="font-extrabold text-red-700 text-xl md:text-2xl">Need Help?</span>
+                        <br>
+                        <span class="text-gray-200">Feel free to ask or contact us on the following emails below</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mx-auto px-4 py-12 md:py-16">
+
+        <div class="text-center mb-10">
+            <h2 class="text-2xl md:text-3xl font-extrabold text-white mb-2">Our Team</h2>
+            <p class="text-gray-400">Reach out to the right person for your needs don't be shy</p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-6xl mx-auto justify-center">
+
+            <div
+                class="bg-slate-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-white/10 hover:border-red-700/50 transition-all duration-300 hover:scale-105">
+                <div class="w-16 h-16 bg-red-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span class="text-2xl font-extrabold text-white">A</span>
+                </div>
+                <h3 class="text-xl font-bold text-white text-center mb-2">Ahmed</h3>
+                <p class="text-sm text-gray-400 text-center mb-4">Frontend Developer</p>
+                <a href="#"
+                    class="block bg-red-700 hover:bg-red-600 text-white text-sm font-bold py-2 px-4 rounded-lg text-center transition duration-150">
+                    Contact
+                </a>
+            </div>
+
+            <div
+                class="bg-slate-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-white/10 hover:border-orange-500/50 transition-all duration-300 hover:scale-105">
+                <div class="w-16 h-16 bg-orange-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span class="text-2xl font-extrabold text-white">H</span>
+                </div>
+                <h3 class="text-xl font-bold text-white text-center mb-2">Houdaifa</h3>
+                <p class="text-sm text-gray-400 text-center mb-4">Backend Developer</p>
+                <a href="#"
+                    class="block bg-orange-500 hover:bg-orange-400 text-white text-sm font-bold py-2 px-4 rounded-lg text-center transition duration-150">
+                    Contact
+                </a>
+            </div>
+
+            <div
+                class="bg-slate-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-white/10 hover:border-violet-500/50 transition-all duration-300 hover:scale-105">
+                <div class="w-16 h-16 bg-violet-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span class="text-2xl font-extrabold text-white">M</span>
+                </div>
+                <h3 class="text-xl font-bold text-white text-center mb-2">Mohammed</h3>
+                <p class="text-sm text-gray-400 text-center mb-4">Devops</p>
+                <a href="#"
+                    class="block bg-violet-500 hover:bg-violet-400 text-white text-sm font-bold py-2 px-4 rounded-lg text-center transition duration-150">
+                    Contact
+                </a>
+            </div>
+
+            <div
+                class="bg-slate-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-white/10 hover:border-green-500/50 transition-all duration-300 hover:scale-105">
+                <div class="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span class="text-2xl font-extrabold text-white">Y</span>
+                </div>
+                <h3 class="text-xl font-bold text-white text-center mb-2">Youssef</h3>
+                <p class="text-sm text-gray-400 text-center mb-4">Security Part</p>
+                <a href="#"
+                    class="block bg-green-500 hover:bg-green-400 text-white text-sm font-bold py-2 px-4 rounded-lg text-center transition duration-150">
+                    Contact
+                </a>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="container mx-auto px-4 py-8 text-center border-t border-white/10">
+        <p class="text-gray-400 text-sm">
+            Thank you for your patience | We always here for you
+        </p>
+        <p class="text-gray-400 text-sm">
+            ft_transcendence Team
+        </p>
+    </div>
+
+</body>
+
+</html>

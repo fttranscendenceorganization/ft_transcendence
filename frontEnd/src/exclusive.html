@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="./output.css" rel="stylesheet">
+    <title>Exclusive-NETPONG</title>
+</head>
+
+<body
+    class="antialiased bg-[url('/images/test.webp')] w-full min-h-screen bg-cover bg-center bg-no-repeat bg-fixed text-whiter">
+
+    <header
+        class="w-full bg-slate-900 py-4 relative flex flex-col md:flex-row items-center justify-between px-4 md:px-6 z-20 shadow-md gap-4 md:gap-0">
+
+        <a href="index.html" class="flex items-center">
+            <img src="/images/netpong.svg" alt="NETPONG Logo" class="h-8 md:h-10 w-auto">
+        </a>
+
+        <nav
+            class="md:absolute md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 flex flex-wrap justify-center items-center gap-4 md:gap-8 text-sm md:text-base">
+            <a href="index.html" class="text-white font-bold hover:text-orange-400">Home</a>
+            <a href="exclusive.html" class="text-white font-bold hover:text-orange-400">Exclusive</a>
+
+            <div class="relative">
+                <input type="checkbox" id="gm-toggle" class="hidden peer" />
+
+                <label for="gm-toggle"
+                    class="text-white font-bold hover:text-orange-400 cursor-pointer peer-checked:text-orange-400">
+                    Game Modes ▼
+                </label>
+
+                <div class="hidden peer-checked:flex flex-col absolute bg-slate-800 text-white 
+           mt-2 w-40 rounded-lg shadow-lg left-1/2 -translate-x-1/2 md:left-0 md:translate-x-0 z-30">
+                    <a href="saulSociety.html" class="px-4 py-2 hover:bg-gray-400 hover:text-black">Saul Society</a>
+                    <a href="barbiePink.html" class="px-4 py-2 hover:bg-pink-400 hover:text-black">Pink Barbie</a>
+                    <a href="zombie_land.html" class="px-4 py-2 hover:bg-green-800 hover:text-black">Zombie Land</a>
+                    <a href="joker.html" class="px-4 py-2 hover:bg-red-900 hover:text-black">Jocker</a>
+                </div>
+            </div>
+
+            <a href="contact.html" class="text-white font-bold hover:text-orange-400">Contact</a>
+        </nav>
+
+        <a href="chat.html"
+            class="bg-red-700 hover:bg-red-300 text-white py-2 px-4 md:px-5 font-bold rounded-lg shadow-xl transition text-sm md:text-base">
+            START CHAT
+        </a>
+
+    </header>
+
+    <div class="relative w-full h-screen overflow-hidden">
+
+        <div class="relative z-10 flex flex-col items-center justify-center h-full 
+                text-white px-4 md:px-6 text-center">
+
+            <div
+                class="bg-slate-900/10 backdrop-blur-md rounded-3xl px-6 md:px-12 py-8 md:py-12 shadow-2xl border border-white/30 max-w-4xl">
+
+                <p class="text-2xl md:text-3xl lg:text-4xl font-extrabold tracking-wide
+                relative inline-block text-red-500
+                before:content-[''] before:absolute before:-bottom-2 before:left-1/2
+                before:-translate-x-1/2 before:w-20 md:before:w-24 before:h-1 before:bg-white
+                before:rounded-full mb-6">
+                    ENJOY THE GAMES
+                </p>
+
+                <p class="font-bold text-xl md:text-2xl lg:text-3xl mt-6 md:mt-8 tracking-wider text-white">
+                    <a href="index.html"
+                        class="font-extrabold text-red-500 text-xl md:text-2xl lg:text-3xl hover:text-red-400 transition">NETPONG</a>
+                    — PLAY TWO EXCLUSIVE GAMES MADE JUST FOR YOU
+                </p>
+
+                <div class="mt-8 md:mt-10">
+                    <a href="login.html" class="border-4 border-double bg-violet-500 hover:bg-violet-400 
+                    text-white py-3 px-6 md:px-8 text-lg md:text-xl font-bold rounded-xl shadow-lg
+                    transition-all duration-200 inline-flex items-center gap-2 md:gap-3">
+                        START PLAYING
+                        <span class="text-xl md:text-2xl">➜</span>
+                    </a>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+</body>
+
+</html>

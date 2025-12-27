@@ -1,0 +1,189 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="./output.css" rel="stylesheet">
+    <title>Game Modes - NETPONG</title>
+</head>
+
+<body class="antialiased bg-slate-900 w-full min-h-screen text-white overflow-x-hidden">
+
+    <header
+        class="w-full bg-slate-900 py-4 relative flex flex-col md:flex-row items-center justify-between px-4 md:px-6 z-20 shadow-md gap-4 md:gap-0">
+        <a href="index.html" class="flex items-center">
+            <img src="/images/netpong.svg" alt="NETPONG Logo" class="h-8 md:h-10 w-auto">
+        </a>
+        <nav
+            class="md:absolute md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 flex flex-wrap justify-center items-center gap-4 md:gap-8 text-sm md:text-base">
+            <a href="index.html" class="text-white font-bold hover:text-orange-400 transition">Home</a>
+            <a href="exclusive.html" class="text-white font-bold hover:text-orange-400 transition">Exclusive</a>
+            <div class="relative">
+                <input type="checkbox" id="gm-toggle" class="hidden peer" />
+                <label for="gm-toggle"
+                    class="text-white font-bold hover:text-orange-400 cursor-pointer peer-checked:text-orange-400 transition">
+                    Game Modes ▼
+                </label>
+                <div class="hidden peer-checked:flex flex-col absolute bg-slate-800 text-white 
+                    mt-2 w-40 rounded-lg shadow-lg left-1/2 -translate-x-1/2 md:left-0 md:translate-x-0 z-30">
+                    <a href="saulSociety.html" class="px-4 py-2 hover:bg-gray-400 hover:text-black transition">Saul
+                        Society</a>
+                    <a href="barbiePink.html" class="px-4 py-2 hover:bg-pink-400 hover:text-black transition">Pink
+                        Barbie</a>
+                    <a href="zombie_land.html" class="px-4 py-2 hover:bg-green-800 hover:text-black transition">Zombie
+                        Land</a>
+                    <a href="joker.html" class="px-4 py-2 hover:bg-red-900 hover:text-black transition">Jocker</a>
+                </div>
+            </div>
+            <a href="contact.html" class="text-white font-bold hover:text-orange-400 transition">Contact</a>
+        </nav>
+        <a href="chat.html"
+            class="bg-red-700 hover:bg-red-600 text-white py-2 px-4 md:px-5 font-bold rounded-lg shadow-xl transition text-sm md:text-base">
+            START CHAT
+        </a>
+    </header>
+
+    <div class="container mx-auto px-4 py-12 md:py-16">
+
+        <div class="text-center mb-12">
+            <h1 class="text-3xl md:text-5xl font-extrabold text-white mb-4">
+                Choose Your <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-orange-500">Game
+                    Mode</span>
+            </h1>
+            <p class="text-gray-400 text-base md:text-lg">Select your adventure and start playing</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 md:gap-8 max-w-7xl mx-auto">
+
+            <a href="saulSociety.html"
+                class="group relative overflow-hidden rounded-3xl h-80 md:h-96 shadow-2xl transition-all duration-500 hover:scale-105">
+                <div class="absolute inset-0 bg-[url('/images/sword.jpg')] bg-cover bg-center"></div>
+                <div
+                    class="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/60 to-slate-900/20 group-hover:from-slate-900/90 transition-all duration-500">
+                </div>
+
+                <div class="relative h-full flex flex-col justify-end p-6 md:p-8">
+                    <div class="mb-4">
+                        <span
+                            class="inline-block bg-gray-700/70 text-gray-300 px-3 py-1 rounded-full text-xs md:text-sm font-bold border border-gray-600/50">Adventure</span>
+                    </div>
+                    <h2
+                        class="text-3xl md:text-4xl font-extrabold text-white mb-3 group-hover:text-gray-300 transition">
+                        Saul Society
+                    </h2>
+                    <p class="text-gray-300 text-sm md:text-base mb-4">
+                        Save souls from evil and become the legendary hero. Master air hockey combat to defeat darkness.
+                    </p>
+                    <div class="flex items-center gap-2 text-gray-400 group-hover:text-white transition">
+                        <span class="text-sm md:text-base font-bold">Play Now</span>
+                        <svg class="w-5 h-5 transition-transform group-hover:translate-x-2"
+                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                        </svg>
+                    </div>
+                </div>
+            </a>
+
+            <a href="zombie_land.html"
+                class="group relative overflow-hidden rounded-3xl h-80 md:h-96 shadow-2xl transition-all duration-500 hover:scale-105">
+                <div class="absolute inset-0 bg-[url('/images/zombie.jpg')] bg-cover bg-center"></div>
+                <div
+                    class="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/60 to-slate-900/20 group-hover:from-slate-900/90 transition-all duration-500">
+                </div>
+
+                <div class="relative h-full flex flex-col justify-end p-6 md:p-8">
+                    <div class="mb-4">
+                        <span
+                            class="inline-block bg-green-900/70 text-green-300 px-3 py-1 rounded-full text-xs md:text-sm font-bold border border-green-700/50">Horror</span>
+                    </div>
+                    <h2
+                        class="text-3xl md:text-4xl font-extrabold text-white mb-3 group-hover:text-green-400 transition">
+                        Zombie Land
+                    </h2>
+                    <p class="text-gray-300 text-sm md:text-base mb-4">
+                        Survive the apocalypse where air hockey is your only weapon against the undead hordes.
+                    </p>
+                    <div class="flex items-center gap-2 text-green-400 group-hover:text-green-300 transition">
+                        <span class="text-sm md:text-base font-bold">Play Now</span>
+                        <svg class="w-5 h-5 transition-transform group-hover:translate-x-2"
+                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                        </svg>
+                    </div>
+                </div>
+            </a>
+
+            <a href="barbiePink.html"
+                class="group relative overflow-hidden rounded-3xl h-80 md:h-96 shadow-2xl transition-all duration-500 hover:scale-105">
+                <div class="absolute inset-0 bg-[url('/images/barbie.jpg')] bg-cover bg-center"></div>
+                <div
+                    class="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/60 to-slate-900/20 group-hover:from-slate-900/90 transition-all duration-500">
+                </div>
+
+                <div class="relative h-full flex flex-col justify-end p-6 md:p-8">
+                    <div class="mb-4">
+                        <span
+                            class="inline-block bg-pink-900/70 text-pink-300 px-3 py-1 rounded-full text-xs md:text-sm font-bold border border-pink-700/50">Lovely</span>
+                    </div>
+                    <h2
+                        class="text-3xl md:text-4xl font-extrabold text-white mb-3 group-hover:text-pink-400 transition">
+                        Barbie Pink
+                    </h2>
+                    <p class="text-gray-300 text-sm md:text-base mb-4">
+                        Enter a magical world of friendship and fun. Collect pointes and play in colorful dream
+                        environments.
+                    </p>
+                    <div class="flex items-center gap-2 text-pink-400 group-hover:text-pink-300 transition">
+                        <span class="text-sm md:text-base font-bold">Play Now</span>
+                        <svg class="w-5 h-5 transition-transform group-hover:translate-x-2"
+                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                        </svg>
+                    </div>
+                </div>
+            </a>
+
+            <a href="joker.html"
+                class="group relative overflow-hidden rounded-3xl h-80 md:h-96 shadow-2xl transition-all duration-500 hover:scale-105">
+                <div class="absolute inset-0 bg-[url('/images/joker.jpg')] bg-cover bg-center"></div>
+                <div
+                    class="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/60 to-slate-900/20 group-hover:from-slate-900/90 transition-all duration-500">
+                </div>
+
+                <div class="relative h-full flex flex-col justify-end p-6 md:p-8">
+                    <div class="mb-4">
+                        <span
+                            class="inline-block bg-red-900/70 text-red-300 px-3 py-1 rounded-full text-xs md:text-sm font-bold border border-red-700/50">Psycho</span>
+                    </div>
+                    <h2 class="text-3xl md:text-4xl font-extrabold text-white mb-3 group-hover:text-red-400 transition">
+                        Joker
+                    </h2>
+                    <p class="text-gray-300 text-sm md:text-base mb-4">
+                        Face the ultimate psychopath in a twisted game. Claim the crown and become the new game maker.
+                    </p>
+                    <div class="flex items-center gap-2 text-red-400 group-hover:text-red-300 transition">
+                        <span class="text-sm md:text-base font-bold">Play Now</span>
+                        <svg class="w-5 h-5 transition-transform group-hover:translate-x-2"
+                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                        </svg>
+                    </div>
+                </div>
+            </a>
+
+        </div>
+
+    </div>
+
+</body>
+
+</html>
