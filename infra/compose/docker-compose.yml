@@ -1,0 +1,71 @@
+services:
+  nginx:
+    build: ../nginx
+    container_name: nginx
+    image: ft_nginx
+    ports:
+      - "443:443"
+    networks:
+      - public_net
+      - internal_net
+    restart: always
+
+  front_end:
+    build:
+      context: ../../frontEnd
+      dockerfile: ../frontend/Dockerfile
+    container_name: front_end
+    image: ft_frontend
+    networks:
+      - internal_net
+    depends_on:
+      - backend_api
+    restart: always
+
+  backend_api:
+    build:
+      context: ../../backend_srcs
+      dockerfile: ../backend/Dockerfile
+    container_name: backend_api
+    image: ft_backend_api
+    env_file:
+      - ../env/backend.env 
+    networks:
+      - internal_net
+    depends_on:
+      - database
+    restart: always
+
+  game:
+    build:
+      context: ../../game_srcs
+      dockerfile: ../game/Dockerfile
+    container_name: game
+    image: ft_game
+    env_file:
+      - ../env/game.env
+    networks:
+      - internal_net
+    depends_on:
+      - database
+    restart: always
+
+  database:
+    image: postgres:18.1-alpine
+    container_name: database
+    env_file:
+      - ../env/database.env
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - internal_net
+    restart: always
+
+volumes:
+  db_data:
+
+networks:
+  public_net:
+    driver: bridge
+  internal_net:
+    driver: bridge
