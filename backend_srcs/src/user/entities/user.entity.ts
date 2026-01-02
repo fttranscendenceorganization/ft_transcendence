@@ -54,10 +54,21 @@ export class User
         }
     }
 
+    @BeforeInsert()
+    @BeforeUpdate()
+    normalizeFields()
+    {
+        if (this.email)
+            this.email = this.email.toLowerCase().trim();
+        if (this.username)
+            this.username = this.username.toLowerCase().trim();
+    }
+
     async validatePassword(password: string): Promise<boolean>
     {
         return bcrypt.compare(password, this.password);
     }
+
 
 
 }
