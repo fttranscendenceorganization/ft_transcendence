@@ -21,7 +21,7 @@ services:
     container_name: backend_api
     image: ft_backend_api
     env_file:
-      - /home/momazouz/Desktop/ft_transcendence/infra/env/backend.env
+      - ../env/backend.env
     networks:
       - internal_net
     depends_on:
@@ -34,7 +34,7 @@ services:
     image: postgres:17
     container_name: database
     env_file:
-      - /home/momazouz/Desktop/ft_transcendence/infra/env/database.env
+      - ../env/database.env
     volumes:
       - db_data:/var/lib/postgresql/data
     networks:
