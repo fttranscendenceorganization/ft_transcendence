@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UserService } from './user.service';
 
@@ -15,16 +15,38 @@ export class UserController
     }
 
     @Get()
-    showalluser()
+    showallusers()
     {
         return this.UserService.findAll();
     }
-
-
-
-    @Post()
-    showUsers(@Query('id') id: string)
+    @Get()
+    async showUserById(@Query('id') id: string)
     {
-        return this.UserService.findById(id);
+        try 
+        {
+            const user = await this.UserService.findById(id);
+            return user;
+        }
+        catch (error)
+        {
+            return error.message;
+        }
+        
     }
-};
+
+    @Get()
+    async showUserByUsername(@Query('username') username: string)
+    {
+        try 
+        {
+            const user = await this.UserService.findByUsername(username);
+            return user;
+        }
+        catch (error)
+        {
+            return error.message;
+        }
+    }
+
+   
+}

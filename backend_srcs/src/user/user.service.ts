@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
 import { Repository } from "typeorm";
 import { User } from "./entities/user.entity";
 import { CreateUserDto } from "./dto/create-user.dto";
@@ -15,26 +15,48 @@ export class UserService
     {
         return this.userrepo.find({
             where : {isActive : true },
-            select : ['id', 'username', 'firstname', 'lastname' ,'email'],
+            select : ['id', 'email', 'username', 'firstname', 'lastname', 'isActive', 'losses', 'wins', 'password'],
+        });
+    }
+
+    async findByUsername(username: string): Promise <User | null>
+    {
+        return await this.userrepo.findOne({ 
+            where : {username , isActive: true},
+            select : ['id'],
         });
     }
 
     async findById(id: string) : Promise<User | null>
     {
-        const user = this.userrepo.findOne({
+        return await this.userrepo.findOne({
             where : {id, isActive : true},
-            select : ['id', 'username', 'firstname', 'lastname' ,'email'],
+            select : ['id'],
         });
-
-        if (!user)
-            throw new NotFoundException('User with id ${id} not found');
-        return user;
     }
+
+    async findByEmail(email: string) : Promise<User | null>
+    {
+        return await this.userrepo.findOne({
+            where : {email, isActive : true},
+            select : ['id'],
+        });
+    }
+
 
     async createUser(createUserDto: CreateUserDto)
     {
-        const user = await this.userrepo.create(createUserDto);
-        return await this.userrepo.save(user);
+       
+        const existusername = await this.findByUsername(createUserDto.username);
+        if (existusername)
+            throw new ConflictException(`Username ${createUserDto.username} already exists`);
+
+        const existemail = await this.findByEmail(createUserDto.email);
+        if (existemail)
+            throw new ConflictException(`Email ${createUserDto.email} already exists`);
+        
+        const user =  this.userrepo.create(createUserDto);
+        return  this.userrepo.save(user);
     }
 
 };
