@@ -13,6 +13,17 @@ services:
         condition: service_started
     restart: always
 
+  front_end:
+    build:
+      context: ../../netpong-app
+      dockerfile: ../infra/frontend/Dockerfile
+    container_name: front_end
+    image: ft_frontend
+    networks:
+      - internal_net
+    depends_on:
+      - backend_api
+    restart: always
 
   backend_api:
     build:
