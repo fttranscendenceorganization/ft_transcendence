@@ -8,12 +8,15 @@ services:
     networks:
       - public_net
       - internal_net
+    depends_on:
+      backend_api:
+        condition: service_started
     restart: always
 
   front_end:
     build:
-      context: ../../frontEnd
-      dockerfile: ../frontend/Dockerfile
+      context: ../../netpong-app
+      dockerfile: ../infra/frontend/Dockerfile
     container_name: front_end
     image: ft_frontend
     networks:
@@ -25,33 +28,21 @@ services:
   backend_api:
     build:
       context: ../../backend_srcs
-      dockerfile: ../backend/Dockerfile
+      dockerfile: ../infra/backend/Dockerfile
     container_name: backend_api
     image: ft_backend_api
     env_file:
-      - ../env/backend.env 
+      - ../env/backend.env
     networks:
       - internal_net
     depends_on:
-      - database
+      database:
+        condition: service_healthy
     restart: always
 
-  game:
-    build:
-      context: ../../game_srcs
-      dockerfile: ../game/Dockerfile
-    container_name: game
-    image: ft_game
-    env_file:
-      - ../env/game.env
-    networks:
-      - internal_net
-    depends_on:
-      - database
-    restart: always
 
   database:
-    image: postgres:18.1-alpine
+    image: postgres:17
     container_name: database
     env_file:
       - ../env/database.env
@@ -59,7 +50,11 @@ services:
       - db_data:/var/lib/postgresql/data
     networks:
       - internal_net
-    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 volumes:
   db_data:
