@@ -15,7 +15,7 @@ export class UserService
     {
         return this.userrepo.find({
             where : {isActive : true },
-            select : ['id', 'email', 'username', 'firstname', 'lastname', 'isActive', 'losses', 'wins'],
+            select : ['id', 'email', 'username', 'firstName', 'lastName', 'isActive', 'losses', 'wins'],
         });
     }
 
