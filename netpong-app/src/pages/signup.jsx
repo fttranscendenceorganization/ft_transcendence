@@ -22,7 +22,7 @@ export default function SignUp() {
         e.preventDefault();
 
         try {
-            const res = await fetch('http://backend_api:3000/users', {
+            const res = await fetch('/api/users', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

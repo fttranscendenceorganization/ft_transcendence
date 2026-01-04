@@ -12,7 +12,7 @@ async function bootstrap() {
   }));
   
   app.enableCors({
-    origin: ['http://localhost:5173', 'https://localhost', 'http://front_end', 'https://nginx'],
+    origin: ['https://ft_transcendence.1337.game'],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
   });
