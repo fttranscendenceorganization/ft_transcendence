@@ -16,10 +16,10 @@ export class User
     username: string;
 
     @Column({nullable: true})
-    firstname: string;
+    firstName: string;
 
     @Column({nullable: true})
-    lastname: string;
+    lastName: string;
 
     @Column()
     @Exclude()

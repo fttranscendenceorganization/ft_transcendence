@@ -7,12 +7,12 @@ export class CreateUserDto
     @IsString()
     @MinLength(1)
     @MaxLength(30)
-    firstname: string;
+    firstName: string;
     
     @IsString()
     @MinLength(1)
     @MaxLength(30)
-    lastname: string;
+    lastName: string;
 
     @IsEmail()
     email: string;

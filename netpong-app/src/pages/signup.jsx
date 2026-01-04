@@ -18,12 +18,40 @@ export default function SignUp() {
         });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log('Form submitted:', formData);
-        alert('Account Created Successfully!');
-        // here we will add our backend API call here -------------------------------------------------
+
+        try {
+            const res = await fetch('http://backend_api:3000/users', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            });
+
+            if (!res.ok) {
+                const errorData = await res.json();
+                throw new Error(errorData.message || 'Failed to create account');
+            }
+
+            const data = await res.json();
+            console.log('User created:', data);
+            alert('Account Created Successfully!');
+        } catch (err) {
+            console.error('Signup error:', err);
+            alert(`Signup failed: ${err.message}`);
+        }
     };
+
+
+
+    // const handleSubmit = (e) => {
+    //     e.preventDefault();
+    //     console.log('Form submitted:', formData);
+    //     alert('Account Created Successfully!');
+    //     // here we will add our backend API call here -------------------------------------------------
+    // };
 
     const handleSocialSignUp = (provider) => {
         alert(`Sign up with ${provider}`);
@@ -34,7 +62,7 @@ export default function SignUp() {
         <div className="antialiased w-full min-h-screen overflow-x-hidden absolute bg-[url('/images/hockey.jpg')] bg-center bg-no-repeat bg-cover">
 
             <LoginHeader />
-            
+
             <div className="container mx-auto px-4 py-8 max-w-4xl">
                 <div className="bg-slate-900/50 backdrop-blur-xl rounded-3xl px-6 md:px-10 py-8 md:py-12 shadow-2xl border border-purple-500/30">
 
