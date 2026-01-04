@@ -15,7 +15,7 @@ export class UserService
     {
         return this.userrepo.find({
             where : {isActive : true },
-            select : ['id', 'email', 'username', 'firstname', 'lastname', 'isActive', 'losses', 'wins'],
+            select : ['id', 'email', 'username', 'firstName', 'lastName', 'isActive', 'losses', 'wins'],
         });
     }
 
@@ -49,14 +49,25 @@ export class UserService
        
         const existusername = await this.findByUsername(createUserDto.username.toLowerCase().trim());
         if (existusername)
-            throw new ConflictException(`Username ${createUserDto.username.toLowerCase().trim()} already exists`);
+            throw new ConflictException(`Username ${createUserDto.username} already exists`);
 
-        const existemail = await this.findByEmail(createUserDto.email);
+        const existemail = await this.findByEmail(createUserDto.email.toLowerCase().trim());
         if (existemail)
             throw new ConflictException(`Email ${createUserDto.email} already exists`);
         
-        const user =  this.userrepo.create(createUserDto);
-        return  this.userrepo.save(user);
-    }
+        const user = this.userrepo.create(createUserDto);
 
+        try
+        {
+            return await this.userrepo.save(user);
+        }
+        catch (error)
+        {
+            if (error.code === '23505')
+            {
+                throw new ConflictException('Username or email already exists');
+            }
+            throw error;
+        }
+    }
 };
