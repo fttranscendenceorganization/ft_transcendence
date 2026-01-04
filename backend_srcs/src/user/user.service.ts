@@ -15,7 +15,7 @@ export class UserService
     {
         return this.userrepo.find({
             where : {isActive : true },
-            select : ['id', 'email', 'username', 'firstName', 'lastName', 'isActive', 'losses', 'wins'],
+            select : ['id', 'email', 'username', 'firstName', 'lastName', 'isActive', 'losses', 'wins', 'password'],
         });
     }
 
@@ -46,7 +46,6 @@ export class UserService
 
     async createUser(createUserDto: CreateUserDto)
     {
-       
         const existusername = await this.findByUsername(createUserDto.username.toLowerCase().trim());
         if (existusername)
             throw new ConflictException(`Username ${createUserDto.username} already exists`);
