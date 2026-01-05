@@ -1,6 +1,8 @@
 import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UserService } from './user.service';
+import { UserResponseDto } from './dto/user-response.dto';
+import { plainToInstance } from 'class-transformer';
 
 @Controller('users')
 
@@ -9,15 +11,21 @@ export class UserController
     constructor(private readonly UserService:UserService){}
 
     @Post()
-    createUser(@Body() createUserDto: CreateUserDto)
+    async createUser(@Body() createUserDto: CreateUserDto) : Promise <UserResponseDto>
     {
-        return this.UserService.createUser(createUserDto);
+        const user = await this.UserService.createUser(createUserDto);
+        return plainToInstance(UserResponseDto, user, {
+            excludeExtraneousValues : true,
+        });
     }
 
     @Get()
-    showallusers()
+    async cshowallusers()
     {
-        return this.UserService.findAll();
+        const user = await this.UserService.findAll();
+        return plainToInstance(UserResponseDto, user, {
+            excludeExtraneousValues : true,
+        });
     }
     @Get()
     async showUserById(@Query('id') id: string)

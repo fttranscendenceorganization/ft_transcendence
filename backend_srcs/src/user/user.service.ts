@@ -15,7 +15,6 @@ export class UserService
     {
         return this.userrepo.find({
             where : {isActive : true },
-            select : ['id', 'email', 'username', 'firstName', 'lastName', 'isActive', 'losses', 'wins', 'password'],
         });
     }
 
@@ -23,7 +22,6 @@ export class UserService
     {
         return await this.userrepo.findOne({ 
             where : {username , isActive: true},
-            select : ['id'],
         });
     }
 
@@ -31,7 +29,6 @@ export class UserService
     {
         return await this.userrepo.findOne({
             where : {id, isActive : true},
-            select : ['id'],
         });
     }
 
@@ -39,7 +36,6 @@ export class UserService
     {
         return await this.userrepo.findOne({
             where : {email, isActive : true},
-            select : ['id'],
         });
     }
 
