@@ -1,36 +1,32 @@
 services:
   nginx:
     build: ../nginx
-    container_name: nginx
-    image: ft_nginx
+    image: nginx
     ports:
       - "443:443"
+      - "80:80"
     networks:
       - public_net
       - internal_net
     depends_on:
-      backend_api:
-        condition: service_started
+      - backend_api
+      - front_end
     restart: always
 
   front_end:
     build:
       context: ../../netpong-app
       dockerfile: ../infra/frontend/Dockerfile
-    container_name: front_end
-    image: ft_frontend
+    image: frontend
     networks:
       - internal_net
-    depends_on:
-      - backend_api
     restart: always
 
   backend_api:
     build:
       context: ../../backend_srcs
       dockerfile: ../infra/backend/Dockerfile
-    container_name: backend_api
-    image: ft_backend_api
+    image: backend_api
     env_file:
       - ../env/backend.env
     networks:
@@ -43,7 +39,6 @@ services:
 
   database:
     image: postgres:17
-    container_name: database
     env_file:
       - ../env/database.env
     volumes:
@@ -55,6 +50,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    restart: always
 
 volumes:
   db_data:
@@ -62,5 +58,7 @@ volumes:
 networks:
   public_net:
     driver: bridge
+    name: public_net
   internal_net:
     driver: bridge
+    name: internal_net
