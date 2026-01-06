@@ -6,6 +6,7 @@ import { User } from 'src/user/entities/user.entity';
 import { JwtService } from '@nestjs/jwt';
 import { UserResponseDto } from 'src/user/dto/user-response.dto';
 import { plainToInstance } from 'class-transformer';
+import { JwtPayload } from './types/jwtpayload';
 
 
 @Injectable()
@@ -30,9 +31,14 @@ export class AuthService
         return user;
     }
 
+    async validateUserById(userId: string) : Promise<User | null>
+    {
+        return await this.userService.findById(userId);
+    }
+    
     async login(user: User) : Promise<AuthResponseDto>
     {
-        const payload = {sub: user.id, username: user.username};
+        const payload : JwtPayload = {sub: user.id, username: user.username}; 
         const accessToken = this.jwtService.sign(payload);
 
         const  userResponseDto = plainToInstance(UserResponseDto, user, {
