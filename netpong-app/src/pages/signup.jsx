@@ -34,8 +34,6 @@ export default function SignUp() {
                 const errorData = await res.json();
                 throw new Error(errorData.message || 'Failed to create account');
             }
-
-            const data = await res.json();
             console.log('User created:', data);
             alert('Account Created Successfully!');
         } catch (err) {
