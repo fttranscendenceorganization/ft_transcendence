@@ -2,9 +2,7 @@ name: CI – Build & Validate
 
 on:
   push:
-    branches:
-      - main
-      - master
+    branches: [main, master]
   pull_request:
 
 jobs:
@@ -24,3 +22,15 @@ jobs:
 
       - name: Build services
         run: docker compose -f infra/compose/docker-compose.yml build
+
+      - name: Notify Discord (CI Status)
+        if: always()
+        uses: rjstone/discord-webhook-notify@v1
+        with:
+          webhookUrl: ${{ secrets.DISCORD_CI_WEBHOOK }}
+          severity: ${{ job.status == 'success' && 'info' || 'error' }}
+          details: |
+            Repository: ${{ github.repository }}
+            Branch: ${{ github.ref_name }}
+            Status: ${{ job.status }}
+            Commit: ${{ github.sha }}
