@@ -3,12 +3,12 @@ import { useState } from 'react';
 import LoginHeader from '../components/loginHeader';
 
 export default function Login() {
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('Login:', { email, password });
+    console.log('Login:', { identifier, password });
     alert('Login functionality - connect to backend here!');
   };
 
@@ -42,9 +42,9 @@ export default function Login() {
           <form onSubmit={handleSubmit}>
             <div className="relative mb-6">
               <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                type="text"
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
                 required
                 placeholder=" "
                 className="w-full bg-white/10 text-zinc-100 p-2 pl-10 md:pl-12 rounded-xl border-2 border-violet-500/50 backdrop-blur-sm shadow-xl h-14 md:h-16 hover:bg-white/15 hover:border-violet-400 focus:outline-none focus:border-violet-400 focus:bg-white/15 peer transition-all"
