@@ -1,104 +1,102 @@
 import { useState } from 'react';
-import SaulHeader from '../components/SaulHeader';
+import BarbiePinkHeader from "../components/BarbiePinkHeader";
 
-
-export default function SaulSociety() {
+export default function BarbiePink() {
     const [isHovering, setIsHovering] = useState(false);
 
     const handleStartGame = () => {
-        alert('Starting Saul Society!');
+        alert('Starting Barbie Pink!');
     };
 
     return (
         <div className="antialiased bg-slate-900 w-full min-h-screen text-white overflow-x-hidden relative">
-            <div className="absolute inset-0 bg-[url('/images/sword.jpg')] bg-center bg-no-repeat bg-cover"></div>
-            <div className="absolute inset-0 bg-gradient-to-b from-slate-900/70 via-slate-900/50 to-slate-900/90"></div>
+            <div className="absolute inset-0 bg-[url('/images/barbie.jpg')] bg-center bg-no-repeat bg-cover"></div>
+            <div className="absolute inset-0 bg-gradient-to-b from-pink-950/40 via-rose-950/20 to-slate-900/60"></div>
 
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 {[...Array(15)].map((_, i) => (
                     <div
                         key={i}
-                        className="absolute w-px h-32 bg-gradient-to-b from-transparent via-gray-400/20 to-transparent"
+                        className="absolute w-1 h-1 bg-pink-400/30 rounded-full blur-sm"
                         style={{
                             left: `${Math.random() * 100}%`,
                             top: `${Math.random() * 100}%`,
-                            transform: `rotate(${Math.random() * 360}deg)`,
-                            animation: `pulse ${3 + Math.random() * 4}s ease-in-out infinite`,
-                            animationDelay: `${Math.random() * 3}s`
+                            animation: `pulse ${4 + Math.random() * 4}s ease-in-out infinite`,
+                            animationDelay: `${Math.random() * 2}s`
                         }}
                     ></div>
                 ))}
             </div>
 
-            <SaulHeader />
+            <BarbiePinkHeader />
 
             <div className="container mx-auto px-4 py-8 md:py-16 relative z-10">
                 <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-center max-w-7xl mx-auto">
 
                     <div className="order-2 md:order-1">
-                        <div className="bg-slate-900/80 backdrop-blur-2xl rounded-3xl p-6 md:p-10 shadow-2xl border border-gray-500/30 hover:border-gray-400/50 transition-all duration-500 hover:shadow-gray-500/20">
-                            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-gray-800/70 to-gray-700/70 border border-gray-600/50 rounded-full px-4 py-2 mb-6 hover:scale-105 transition-transform">
-                                <svg className="w-4 h-4 text-gray-400 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <div className="bg-slate-900/70 backdrop-blur-2xl rounded-3xl p-6 md:p-10 shadow-2xl border border-pink-500/30 hover:border-pink-400/50 transition-all duration-500 hover:shadow-pink-500/20">
+                            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-pink-900/40 to-rose-800/40 border border-pink-600/50 rounded-full px-4 py-2 mb-6 hover:scale-105 transition-transform">
+                                <svg className="w-4 h-4 text-pink-400 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456Z" />
                                 </svg>
-                                <span className="text-xs md:text-sm font-bold text-gray-300">A <span className="text-red-400">NETPONG</span> Original Game</span>
+                                <span className="text-xs md:text-sm font-bold text-pink-200">A <span className="text-pink-400">NETPONG</span> Original Game</span>
                             </div>
 
                             <h1 className="text-4xl md:text-6xl lg:text-7xl font-extrabold mb-6 leading-tight">
-                                <span className="block text-gray-300 drop-shadow-[0_0_25px_rgba(209,213,219,0.8)] hover:drop-shadow-[0_0_35px_rgba(209,213,219,1)] transition-all duration-300">HONOR</span>
-                                <span className="block text-white drop-shadow-lg my-1">FIGHT</span>
-                                <span className="block text-gray-500 drop-shadow-[0_0_25px_rgba(107,114,128,0.8)] hover:drop-shadow-[0_0_35px_rgba(107,114,128,1)] transition-all duration-300">SAUL</span>
+                                <span className="block text-pink-300 drop-shadow-[0_0_25px_rgba(244,114,182,0.8)] hover:drop-shadow-[0_0_35px_rgba(244,114,182,1)] transition-all duration-300">BEAUTIFUL</span>
+                                <span className="block text-white drop-shadow-lg my-1">PINK</span>
+                                <span className="block text-rose-400 drop-shadow-[0_0_25px_rgba(251,113,133,0.8)] hover:drop-shadow-[0_0_35px_rgba(251,113,133,1)] transition-all duration-300">ROSE</span>
                             </h1>
 
                             <div className="flex items-center gap-3 mb-8">
-                                <div className="h-1 w-16 bg-gradient-to-r from-gray-400 via-gray-300 to-transparent rounded-full animate-pulse"></div>
-                                <div className="w-2 h-2 bg-gray-400 rounded-full animate-ping"></div>
-                                <div className="h-1 flex-1 bg-gradient-to-r from-gray-400/50 to-transparent rounded-full"></div>
+                                <div className="h-1 w-16 bg-gradient-to-r from-pink-400 via-rose-300 to-transparent rounded-full animate-pulse"></div>
+                                <div className="w-2 h-2 bg-pink-400 rounded-full animate-ping"></div>
+                                <div className="h-1 flex-1 bg-gradient-to-r from-pink-400/50 to-transparent rounded-full"></div>
                             </div>
 
-                            <p className="text-xl md:text-2xl font-bold text-gray-300 mb-4 animate-pulse">A Life To Save</p>
+                            <p className="text-xl md:text-2xl font-bold text-pink-300 mb-4 animate-pulse">A World To Love</p>
 
                             <div className="grid grid-cols-3 gap-4 mt-8">
-                                <div className="bg-gray-800/40 rounded-lg p-3 text-center border border-gray-500/30">
-                                    <div className="text-2xl font-bold text-gray-300">99+</div>
-                                    <div className="text-xs text-gray-400">Players</div>
+                                <div className="bg-pink-900/20 rounded-lg p-3 text-center border border-pink-500/30">
+                                    <div className="text-2xl font-bold text-pink-300">P_I_N_K</div>
+                                    <div className="text-xs text-pink-400">Outfits</div>
                                 </div>
-                                <div className="bg-red-900/30 rounded-lg p-3 text-center border border-red-500/30">
-                                    <div className="text-2xl font-bold text-red-400">999K</div>
-                                    <div className="text-xs text-gray-400">Souls</div>
+                                <div className="bg-rose-900/30 rounded-lg p-3 text-center border border-rose-500/30">
+                                    <div className="text-2xl font-bold text-rose-400">10k+</div>
+                                    <div className="text-xs text-pink-400">Friends</div>
                                 </div>
-                                <div className="bg-slate-800/50 rounded-lg p-3 text-center border border-gray-500/30">
-                                    <div className="text-2xl font-bold text-yellow-400">5.0</div>
-                                    <div className="text-xs text-gray-400">Rating</div>
+                                <div className="bg-slate-800/50 rounded-lg p-3 text-center border border-pink-500/30">
+                                    <div className="text-2xl font-bold text-white">4.9</div>
+                                    <div className="text-xs text-pink-400">Rating</div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <div className="order-1 md:order-2">
-                        <div className="bg-slate-900/80 backdrop-blur-2xl rounded-3xl p-6 md:p-10 shadow-2xl border border-gray-500/30 hover:border-gray-400/50 transition-all duration-500 hover:shadow-gray-500/20">
+                        <div className="bg-slate-900/70 backdrop-blur-2xl rounded-3xl p-6 md:p-10 shadow-2xl border border-pink-500/30 hover:border-pink-400/50 transition-all duration-500 hover:shadow-pink-500/20">
                             <div className="flex flex-wrap items-center gap-3 md:gap-4 mb-6 text-sm md:text-base">
-                                <span className="bg-gradient-to-r from-gray-700/70 to-gray-600/70 text-gray-300 px-3 py-1 rounded-lg font-bold border border-gray-600/50 hover:scale-105 transition-transform">2026</span>
-                                <span className="bg-gradient-to-r from-red-900/70 to-red-800/70 text-red-300 px-3 py-1 rounded-lg font-bold border border-red-500/50 hover:scale-105 transition-transform">1337</span>
-                                <span className="bg-slate-800/70 text-gray-300 px-3 py-1 rounded-lg font-bold hover:bg-slate-700/70 transition-colors">Adventure</span>
-                                <span className="bg-slate-800/70 text-gray-300 px-3 py-1 rounded-lg font-bold hover:bg-slate-700/70 transition-colors">Action</span>
+                                <span className="bg-gradient-to-r from-pink-800/70 to-rose-700/70 text-pink-200 px-3 py-1 rounded-lg font-bold border border-pink-600/50 hover:scale-105 transition-transform">2026</span>
+                                <span className="bg-gradient-to-r from-rose-900/70 to-rose-800/70 text-rose-300 px-3 py-1 rounded-lg font-bold border border-rose-500/50 hover:scale-105 transition-transform">1337</span>
+                                <span className="bg-slate-800/70 text-pink-200 px-3 py-1 rounded-lg font-bold hover:bg-slate-700/70 transition-colors">Girls</span>
+                                <span className="bg-slate-800/70 text-pink-200 px-3 py-1 rounded-lg font-bold hover:bg-slate-700/70 transition-colors">Lovely</span>
                             </div>
 
-                            <h2 className="text-2xl md:text-3xl font-extrabold text-white mb-4">A Life To Save</h2>
+                            <h2 className="text-2xl md:text-3xl font-extrabold text-white mb-4">A World To Love</h2>
 
                             <p className="text-gray-300 text-base md:text-lg leading-relaxed mb-8">
-                                The chosen hero that the world needs to save them from a massive evil that wants to consume people's souls. Air Hockey becomes the legendary weapon needed to defeat this ancient darkness and restore light to humanity.
+                                Welcome to Barbie Pink, a magical world designed especially for girls. Play, create friendships, and make the world a better place through the power of air hockey and love.
                             </p>
 
                             <div className="space-y-3 mb-8">
                                 {[
-                                    { text: 'Save as many souls as you can' },
-                                    { text: 'Master legendary air hockey combat' },
-                                    { text: 'Epic fantasy environments' }
+                                    { text: 'Collect beautiful outfits and accessories' },
+                                    { text: 'Fun and friendly air hockey matches' },
+                                    { text: 'Colorful dreamlike environments' }
                                 ].map((item, index) => (
                                     <div key={index} className="flex items-start gap-3 group hover:translate-x-2 transition-transform">
-                                        <div className="flex items-center justify-center w-6 h-6 bg-gray-500/20 rounded-full flex-shrink-0 mt-1 group-hover:bg-gray-500/30 transition-colors">
-                                            <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <div className="flex items-center justify-center w-6 h-6 bg-pink-500/20 rounded-full flex-shrink-0 mt-1 group-hover:bg-pink-500/30 transition-colors">
+                                            <svg className="w-4 h-4 text-pink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                                             </svg>
                                         </div>
@@ -111,7 +109,7 @@ export default function SaulSociety() {
                                 onClick={handleStartGame}
                                 onMouseEnter={() => setIsHovering(true)}
                                 onMouseLeave={() => setIsHovering(false)}
-                                className="group relative w-full bg-gradient-to-r from-gray-700 via-gray-600 to-gray-700 hover:from-gray-600 hover:via-gray-500 hover:to-gray-600 text-white py-4 px-8 font-bold rounded-xl shadow-2xl shadow-gray-700/50 transition-all duration-300 text-base md:text-lg hover:scale-105 hover:shadow-gray-600/70 border-2 border-gray-500/50 flex items-center justify-center gap-3 overflow-hidden"
+                                className="group relative w-full bg-gradient-to-r from-pink-600 via-rose-500 to-pink-600 hover:from-pink-500 hover:via-rose-400 hover:to-pink-500 text-white py-4 px-8 font-bold rounded-xl shadow-2xl shadow-pink-500/50 transition-all duration-300 text-base md:text-lg hover:scale-105 hover:shadow-pink-600/70 border-2 border-pink-400/50 flex items-center justify-center gap-3 overflow-hidden"
                             >
                                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
                                 <svg className={`w-6 h-6 transition-transform ${isHovering ? 'scale-110 rotate-12' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
