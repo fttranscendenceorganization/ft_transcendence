@@ -42,7 +42,8 @@ export default function Login() {
           <form onSubmit={handleSubmit}>
             <div className="relative mb-6">
               <input
-                value={email}
+                type="text"
+                value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
                 required
                 placeholder=" "
