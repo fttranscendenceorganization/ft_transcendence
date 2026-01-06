@@ -1,0 +1,26 @@
+name: CI – Build & Validate
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+
+jobs:
+  build:
+    name: Build Docker Images
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Validate docker-compose
+        run: docker compose -f infra/compose/docker-compose.yml config
+
+      - name: Build services
+        run: docker compose -f infra/compose/docker-compose.yml build
