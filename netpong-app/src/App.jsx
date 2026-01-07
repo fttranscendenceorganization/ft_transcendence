@@ -36,6 +36,8 @@ function App() {
             <Route path="/joker" element={<Joker />} />
             <Route path="/barbie-pink" element={<BarbiePink />} />
             <Route path="/exclusive" element={<Exclusive />} />
+
+            <Route path="*" element={<Home />} />
           </Routes>
         </main>
       </div>
