@@ -1,6 +1,6 @@
 import { Injectable, UnauthorizedException} from "@nestjs/common";
 import { PassportStrategy } from "@nestjs/passport";
-import { Strategy } from "passport-local";
+const { Strategy } = require("passport-local");
 import { AuthService } from "../auth.service";
 import { User } from "src/user/entities/user.entity";
 
