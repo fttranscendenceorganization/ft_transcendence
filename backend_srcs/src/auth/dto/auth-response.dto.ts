@@ -8,6 +8,8 @@ export class AuthResponseDto
     user: UserResponseDto;
 
     @Expose()
-    accessToken: string;
-
+    tokens:{
+        AccessToken: string,
+        RefreshToken: string,
+    }
 }
