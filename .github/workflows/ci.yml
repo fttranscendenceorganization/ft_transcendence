@@ -5,10 +5,25 @@ on:
     branches: [main, master]
   pull_request:
 
+env:
+  DOCKER_BUILDKIT: 1
+
 jobs:
-  build:
-    name: Build Docker Images
+  validate:
+    name: Validate Docker Compose
     runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate docker-compose
+        run: docker compose -f infra/compose/docker-compose.yml config
+
+  frontend:
+    name: Frontend Build
+    runs-on: ubuntu-latest
+    needs: validate
 
     steps:
       - name: Checkout repository
@@ -17,21 +32,75 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Validate docker-compose
-        run: docker compose -f infra/compose/docker-compose.yml config
+      - name: Cache Docker layers (frontend)
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache-frontend
+          key: frontend-${{ github.sha }}
+          restore-keys: frontend-
 
-      - name: Build services
-        run: docker compose -f infra/compose/docker-compose.yml build
+      - name: Build frontend image
+        run: |
+          docker buildx build \
+            --cache-from=type=local,src=/tmp/.buildx-cache-frontend \
+            --cache-to=type=local,dest=/tmp/.buildx-cache-frontend-new,mode=max \
+            -f infra/frontend/Dockerfile \
+            netpong-app
 
-      - name: Notify Discord (CI Status)
-        if: always()
+      - name: Move cache
+        run: |
+          rm -rf /tmp/.buildx-cache-frontend
+          mv /tmp/.buildx-cache-frontend-new /tmp/.buildx-cache-frontend
+
+  backend:
+    name: Backend Build
+    runs-on: ubuntu-latest
+    needs: validate
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Cache Docker layers (backend)
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache-backend
+          key: backend-${{ github.sha }}
+          restore-keys: backend-
+
+      - name: Build backend image
+        run: |
+          docker buildx build \
+            --cache-from=type=local,src=/tmp/.buildx-cache-backend \
+            --cache-to=type=local,dest=/tmp/.buildx-cache-backend-new,mode=max \
+            -f infra/backend/Dockerfile \
+            backend_srcs
+
+      - name: Move cache
+        run: |
+          rm -rf /tmp/.buildx-cache-backend
+          mv /tmp/.buildx-cache-backend-new /tmp/.buildx-cache-backend
+
+  notify:
+    name: Notify Discord
+    runs-on: ubuntu-latest
+    needs: [validate, frontend, backend]
+    if: always()
+
+    steps:
+      - name: Send CI status to Discord
         uses: rjstone/discord-webhook-notify@v1
         with:
           webhookUrl: ${{ secrets.DISCORD_CI_WEBHOOK }}
-          severity: ${{ job.status == 'success' && 'info' || 'error' }}
+          severity: ${{ contains(needs.*.result, 'failure') && 'error' || 'info' }}
           details: |
             <@&${{ secrets.DISCORD_CI_ROLE_ID }}>
             **Repository:** ${{ github.repository }}
             **Branch:** ${{ github.ref_name }}
-            **Status:** ${{ job.status }}
+            **Workflow:** ${{ github.workflow }}
+            **Author:** ${{ github.event.pull_request.user.login || github.actor }}
+            **Status:** ${{ contains(needs.*.result, 'failure') && 'FAILED ❌' || 'SUCCESS ✅' }}
             **Commit:** ${{ github.sha }}
