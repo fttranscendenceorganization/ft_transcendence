@@ -26,6 +26,9 @@ export class User
     password: string;
 
     @Column({nullable: true})
+    refreshTokenHash: string;
+
+    @Column({nullable: true})
     avatarUrl: string;
 
     @Column({default: 0})

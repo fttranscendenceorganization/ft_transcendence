@@ -39,7 +39,15 @@ export class UserService
         });
     }
 
-
+    async updateRefreshToken(userId: string , refreshTokenHashed: string)
+    {
+        const user = await this.findById(userId);
+        if (!user)
+            throw new NotFoundException(`User with ID ${userId} not found`);
+        user.refreshTokenHash = refreshTokenHashed;
+        await this.userrepo.save(user);
+    }
+    
     async createUser(createUserDto: CreateUserDto)
     {
         const existusername = await this.findByUsername(createUserDto.username.toLowerCase().trim());
