@@ -1,8 +1,26 @@
 import { useState } from 'react';
+import { useEffect } from 'react';
 import SaulHeader from '../components/SaulHeader';
 
 
 export default function SaulSociety() {
+
+    useEffect(() => {
+        document.title = "Soul Society-Netpong";
+
+        const link = document.querySelector("link[rel~='icon']");
+        if (link) {
+            link.href = "/saule.svg";
+        }
+
+        return () => {
+            document.title = "NetPong";
+            if (link) {
+                link.href = "/netpong.svg";
+            }
+        };
+    }, []);
+
     const [isHovering, setIsHovering] = useState(false);
 
     const handleStartGame = () => {
