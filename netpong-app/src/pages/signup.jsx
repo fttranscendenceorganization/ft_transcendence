@@ -1,8 +1,26 @@
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
+import { useEffect } from 'react';
 import LoginHeader from '../components/loginHeader';
 
 export default function SignUp() {
+
+    useEffect(() => {
+        document.title = "Sign Up-Netpong";
+
+        const link = document.querySelector("link[rel~='icon']");
+        if (link) {
+            link.href = "/login.svg";
+        }
+
+        return () => {
+            document.title = "NetPong";
+            if (link) {
+                link.href = "/netpong.svg";
+            }
+        };
+    }, []);
+
     const [formData, setFormData] = useState({
         firstName: '',
         lastName: '',

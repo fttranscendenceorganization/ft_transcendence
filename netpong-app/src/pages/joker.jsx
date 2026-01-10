@@ -1,7 +1,25 @@
 import { useState } from 'react';
+import { useEffect } from 'react';
 import JokerHeader from '../components/JokerHeader';
 
 export default function Joker() {
+
+    useEffect(() => {
+        document.title = "Joker-Netpong";
+
+        const link = document.querySelector("link[rel~='icon']");
+        if (link) {
+            link.href = "/joker.svg";
+        }
+
+        return () => {
+            document.title = "NetPong";
+            if (link) {
+                link.href = "/netpong.svg";
+            }
+        };
+    }, []);
+
     const [isHovering, setIsHovering] = useState(false);
 
     const handleStartGame = () => {

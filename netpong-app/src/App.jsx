@@ -8,6 +8,7 @@ import ZombieLand from './pages/zombie-land';
 import Joker from './pages/joker';
 import BarbiePink from './pages/barbie-pink';
 import Exclusive from './pages/exclusive';
+import Contact from './pages/contact';
 
 function Navigation() {
   const location = useLocation();
@@ -36,6 +37,7 @@ function App() {
             <Route path="/joker" element={<Joker />} />
             <Route path="/barbie-pink" element={<BarbiePink />} />
             <Route path="/exclusive" element={<Exclusive />} />
+            <Route path="/contact" element={<Contact />} />
 
             <Route path="*" element={<Home />} />
           </Routes>
