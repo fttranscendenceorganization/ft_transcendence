@@ -1,7 +1,13 @@
 import Header from '../components/Header';
 import { Link } from 'react-router-dom';
+import { useEffect } from 'react';
 
 export default function Home() {
+
+    useEffect(() => {
+        document.title = "Home-Netpong";
+    }, []);
+
     return (
         <div className="antialiased bg-[url('/images/fairytale.webp')] w-full min-h-screen bg-cover bg-center bg-no-repeat bg-fixed text-white">
 

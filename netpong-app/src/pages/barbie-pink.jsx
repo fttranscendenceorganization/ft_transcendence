@@ -1,7 +1,25 @@
 import { useState } from 'react';
+import { useEffect } from 'react';
 import BarbiePinkHeader from "../components/BarbiePinkHeader";
 
 export default function BarbiePink() {
+
+    useEffect(() => {
+        document.title = "Barbie Pink-Netpong";
+        
+        const link = document.querySelector("link[rel~='icon']");
+        if (link) {
+            link.href = "/barbie.svg";
+        }
+
+        return () => {
+            document.title = "NetPong";
+            if (link) {
+                link.href = "/netpong.svg";
+            }
+        };
+    }, []);
+
     const [isHovering, setIsHovering] = useState(false);
 
     const handleStartGame = () => {
