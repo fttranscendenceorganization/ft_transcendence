@@ -1,5 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
+import { useEffect } from 'react';
 import LoginHeader from '../components/loginHeader';
 
 const VALIDATION_RULES = {
@@ -84,6 +85,22 @@ export default function SignUp() {
     const [errors, setErrors] = useState({});
     const [isLoading, setIsLoading] = useState(false);
     const [apiError, setApiError] = useState('');
+
+    useEffect(() => {
+        document.title = "Sign Up-Netpong";
+
+        const link = document.querySelector("link[rel~='icon']");
+        if (link) {
+            link.href = "/login.svg";
+        }
+
+        return () => {
+            document.title = "NetPong";
+            if (link) {
+                link.href = "/netpong.svg";
+            }
+        };
+    }, []);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
