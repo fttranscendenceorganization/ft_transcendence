@@ -25,8 +25,8 @@ export class User
     @Exclude()
     password: string;
 
-    @Column({nullable: true})
-    refreshTokenHash: string;
+    @Column({ type: 'text', nullable: true })
+    refreshTokenHash: string | null;
 
     @Column({nullable: true})
     avatarUrl: string;
