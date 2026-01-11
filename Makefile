@@ -1,5 +1,7 @@
 
-COMPOSE=docker compose  -f ./infra/compose/docker-compose.yml
+COMPOSE=docker compose -f ./infra/compose/docker-compose.yml
+TAIL?=100
+SERVICES?=backend_api front_end nginx database
 
 all: up
 
@@ -19,8 +21,20 @@ fclean: clean
 re: fclean all
 
 logs:
-	$(COMPOSE) logs -f
+	$(COMPOSE) logs --tail=$(TAIL) -f $(SERVICES)
+
+logs-backend:
+	$(COMPOSE) logs --tail=$(TAIL) -f backend_api
+
+logs-frontend:
+	$(COMPOSE) logs --tail=$(TAIL) -f front_end
+
+logs-nginx:
+	$(COMPOSE) logs --tail=$(TAIL) -f nginx
+
+logs-db:
+	$(COMPOSE) logs --tail=$(TAIL) -f database
 ps:
 	$(COMPOSE) ps
 
-.PHONY: all up down clean fclean re logs ps
+.PHONY: all up down clean fclean re logs logs-backend logs-frontend logs-nginx logs-db ps

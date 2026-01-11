@@ -79,6 +79,12 @@ export class AuthService
         };  
     }
 
+
+    async logout(user:User) : Promise<void>
+    {
+        await this.userService.updateRefreshToken(user.id, null);
+    }
+
     async isRefreshTokenValid(inputRefrshToken, userRefreshTokenHash): Promise <boolean>
     {
         const isTokenMatch = await bcrypt.compare(inputRefrshToken, userRefreshTokenHash);
