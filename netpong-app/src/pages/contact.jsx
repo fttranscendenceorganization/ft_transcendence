@@ -1,6 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
 
 export default function Contact() {
+
+    useEffect(() => {
+        document.title = "Contact us-Netpong";
+    }, []);
+
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const dropdownRef = useRef(null);
 

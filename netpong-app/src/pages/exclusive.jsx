@@ -1,6 +1,11 @@
 import { useState, useEffect } from 'react';
 
 export default function Exclusive() {
+
+    useEffect(() => {
+        document.title = "Exclusive-Netpong";
+    }, []);
+
     const [isVisible, setIsVisible] = useState(false);
 
     useEffect(() => {
@@ -11,7 +16,7 @@ export default function Exclusive() {
         <div className="antialiased w-full min-h-screen overflow-x-hidden relative bg-slate-950">
 
             <div className="absolute inset-0 bg-[url('/images/air.jpg')] bg-center bg-no-repeat bg-cover bg-fixed"></div>
-            
+
             <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-purple-900/20 to-slate-900"></div>
             <div className="absolute inset-0 bg-gradient-to-b from-slate-900/40 via-slate-900/30 to-slate-900/60"></div>
 

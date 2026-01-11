@@ -1,7 +1,25 @@
 import { useState } from 'react';
+import { useEffect } from 'react';
 import ZombieLandHeader from '../components/ZombieLandHeader';
 
 export default function ZombieLand() {
+
+    useEffect(() => {
+        document.title = "Zombie Land-Netpong";
+
+        const link = document.querySelector("link[rel~='icon']");
+        if (link) {
+            link.href = "/zombie.svg";
+        }
+
+        return () => {
+            document.title = "NetPong";
+            if (link) {
+                link.href = "/netpong.svg";
+            }
+        };
+    }, []);
+
     const [isHovering, setIsHovering] = useState(false);
 
     const handleStartGame = () => {
