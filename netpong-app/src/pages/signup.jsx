@@ -1,9 +1,90 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { useEffect } from 'react';
 import LoginHeader from '../components/loginHeader';
 
+const VALIDATION_RULES = {
+    firstName: {
+        minLength: 1,
+        maxLength: 30,
+        pattern: /^.+$/,
+        message: 'First name must be 1-30 characters'
+    },
+    lastName: {
+        minLength: 1,
+        maxLength: 30,
+        pattern: /^.+$/,
+        message: 'Last name must be 1-30 characters'
+    },
+    username: {
+        minLength: 3,
+        maxLength: 20,
+        pattern: /^[a-zA-Z0-9_]+$/,
+        message: 'Username must be 3-20 characters, alphanumeric and underscores only'
+    },
+    email: {
+        pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+        message: 'Please enter a valid email address'
+    },
+    password: {
+        minLength: 8,
+        maxLength: 64,
+        hasUpperCase: /(?=.*[A-Z])/,
+        hasNumber: /(?=.*\d)/,
+        hasSpecialChar: /(?=.*[!@#$%^&*])/,
+        message: 'Password must be 8-64 characters with uppercase letter, number, and special character (!@#$%^&*)'
+    }
+};
+
+const validateForm = (data) => {
+    const errors = {};
+
+    if (!data.firstName || data.firstName.length < VALIDATION_RULES.firstName.minLength || data.firstName.length > VALIDATION_RULES.firstName.maxLength) {
+        errors.firstName = VALIDATION_RULES.firstName.message;
+    }
+
+    if (!data.lastName || data.lastName.length < VALIDATION_RULES.lastName.minLength || data.lastName.length > VALIDATION_RULES.lastName.maxLength) {
+        errors.lastName = VALIDATION_RULES.lastName.message;
+    }
+
+    if (!data.username || data.username.length < VALIDATION_RULES.username.minLength || data.username.length > VALIDATION_RULES.username.maxLength) {
+        errors.username = VALIDATION_RULES.username.message;
+    } else if (!VALIDATION_RULES.username.pattern.test(data.username)) {
+        errors.username = VALIDATION_RULES.username.message;
+    }
+
+    if (!data.email || !VALIDATION_RULES.email.pattern.test(data.email)) {
+        errors.email = VALIDATION_RULES.email.message;
+    }
+
+    if (!data.password || data.password.length < VALIDATION_RULES.password.minLength || data.password.length > VALIDATION_RULES.password.maxLength) {
+        errors.password = VALIDATION_RULES.password.message;
+    } else {
+        if (!VALIDATION_RULES.password.hasUpperCase.test(data.password)) {
+            errors.password = 'Password must contain at least one uppercase letter';
+        } else if (!VALIDATION_RULES.password.hasNumber.test(data.password)) {
+            errors.password = 'Password must contain at least one number';
+        } else if (!VALIDATION_RULES.password.hasSpecialChar.test(data.password)) {
+            errors.password = 'Password must contain at least one special character (!@#$%^&*)';
+        }
+    }
+
+    return errors;
+};
+
 export default function SignUp() {
+    const navigate = useNavigate();
+    
+    const [formData, setFormData] = useState({
+        firstName: '',
+        lastName: '',
+        username: '',
+        email: '',
+        password: ''
+    });
+    const [errors, setErrors] = useState({});
+    const [isLoading, setIsLoading] = useState(false);
+    const [apiError, setApiError] = useState('');
 
     useEffect(() => {
         document.title = "Sign Up-Netpong";
@@ -21,23 +102,31 @@ export default function SignUp() {
         };
     }, []);
 
-    const [formData, setFormData] = useState({
-        firstName: '',
-        lastName: '',
-        username: '',
-        email: '',
-        password: ''
-    });
-
     const handleChange = (e) => {
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value
-        });
+        const { name, value } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: value
+        }));
+        if (errors[name]) {
+            setErrors(prev => ({
+                ...prev,
+                [name]: ''
+            }));
+        }
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setApiError('');
+
+        const validationErrors = validateForm(formData);
+        if (Object.keys(validationErrors).length > 0) {
+            setErrors(validationErrors);
+            return;
+        }
+
+        setIsLoading(true);
 
         try {
             const res = await fetch('/api/users', {
@@ -48,32 +137,24 @@ export default function SignUp() {
                 body: JSON.stringify(formData)
             });
 
-            if (!res.ok) {
-                const errorData = await res.json();
-                throw new Error(errorData.message || 'Failed to create account');
-            }
-
             const data = await res.json();
-            console.log('User created:', data);
-            alert('Account Created Successfully!');
+
+            if (!res.ok) {
+                throw new Error(data.message || data.error || 'Failed to create account');
+            }
+            
+            navigate('/login');
+
         } catch (err) {
-            console.error('Signup error:', err);
-            alert(`Signup failed: ${err.message}`);
+            setApiError(err.message || 'An unexpected error occurred. Please try again.');
+        } finally {
+            setIsLoading(false);
         }
     };
 
-
-
-    // const handleSubmit = (e) => {
-    //     e.preventDefault();
-    //     console.log('Form submitted:', formData);
-    //     alert('Account Created Successfully!');
-    //     // here we will add our backend API call here -------------------------------------------------
-    // };
-
     const handleSocialSignUp = (provider) => {
         alert(`Sign up with ${provider}`);
-        // here we will Add  our OAuth logic -----------------------------------------------------------------------------
+        // TODO: Implement OAuth for Google, GitHub, 42
     };
 
     return (
@@ -103,6 +184,12 @@ export default function SignUp() {
                         </h4>
                     </div>
 
+                    {apiError && (
+                        <div className="mb-6 bg-red-500/20 border-2 border-red-500 rounded-xl p-4 text-red-300 text-sm font-semibold">
+                            {apiError}
+                        </div>
+                    )}
+
                     <form onSubmit={handleSubmit}>
                         <div className="mb-6 flex flex-col md:flex-row gap-4">
                             <div className="relative flex-1">
@@ -111,9 +198,12 @@ export default function SignUp() {
                                     name="firstName"
                                     value={formData.firstName}
                                     onChange={handleChange}
+                                    disabled={isLoading}
                                     required
                                     placeholder=" "
-                                    className="w-full bg-white/10 text-zinc-100 p-2 pl-10 md:pl-12 rounded-xl border-2 backdrop-blur-sm border-purple-500/50 h-14 md:h-16 shadow-xl hover:bg-white/15 hover:border-purple-400 focus:outline-none focus:border-purple-400 focus:bg-white/15 peer transition-all"
+                                    className={`w-full bg-white/10 text-zinc-100 p-2 pl-10 md:pl-12 rounded-xl border-2 backdrop-blur-sm h-14 md:h-16 shadow-xl hover:bg-white/15 focus:outline-none focus:bg-white/15 peer transition-all disabled:opacity-50 ${
+                                        errors.firstName ? 'border-red-500' : 'border-purple-500/50 hover:border-purple-400 focus:border-purple-400'
+                                    }`}
                                 />
                                 <span className="absolute top-1/2 left-3 md:left-4 -translate-y-1/2 text-zinc-200 pointer-events-none font-bold text-sm md:text-base peer-focus:text-xs peer-focus:top-2 peer-focus:text-purple-300 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:top-2 peer-[:not(:placeholder-shown)]:text-purple-300 transition-all">
                                     First Name
@@ -121,6 +211,9 @@ export default function SignUp() {
                                 <svg className="absolute right-3 md:right-4 top-1/2 -translate-y-1/2 w-5 h-5 md:w-6 md:h-6 text-purple-400 drop-shadow-[0_0_8px_rgba(168,85,247,0.8)] pointer-events-none" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
                                 </svg>
+                                {errors.firstName && (
+                                    <p className="text-red-400 text-xs font-semibold mt-1">{errors.firstName}</p>
+                                )}
                             </div>
 
                             <div className="relative flex-1">
@@ -129,9 +222,12 @@ export default function SignUp() {
                                     name="lastName"
                                     value={formData.lastName}
                                     onChange={handleChange}
+                                    disabled={isLoading}
                                     required
                                     placeholder=" "
-                                    className="w-full bg-white/10 text-zinc-100 p-2 pl-10 md:pl-12 rounded-xl border-2 border-purple-500/50 backdrop-blur-sm shadow-xl h-14 md:h-16 hover:bg-white/15 hover:border-purple-400 focus:outline-none focus:border-purple-400 focus:bg-white/15 peer transition-all"
+                                    className={`w-full bg-white/10 text-zinc-100 p-2 pl-10 md:pl-12 rounded-xl border-2 backdrop-blur-sm shadow-xl h-14 md:h-16 hover:bg-white/15 focus:outline-none focus:bg-white/15 peer transition-all disabled:opacity-50 ${
+                                        errors.lastName ? 'border-red-500' : 'border-purple-500/50 hover:border-purple-400 focus:border-purple-400'
+                                    }`}
                                 />
                                 <span className="absolute top-1/2 left-3 md:left-4 -translate-y-1/2 text-zinc-200 pointer-events-none font-bold text-sm md:text-base peer-focus:text-xs peer-focus:top-2 peer-focus:text-purple-300 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:top-2 peer-[:not(:placeholder-shown)]:text-purple-300 transition-all">
                                     Last Name
@@ -139,6 +235,9 @@ export default function SignUp() {
                                 <svg className="absolute right-3 md:right-4 top-1/2 -translate-y-1/2 w-5 h-5 md:w-6 md:h-6 text-purple-400 drop-shadow-[0_0_8px_rgba(168,85,247,0.8)] pointer-events-none" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
                                 </svg>
+                                {errors.lastName && (
+                                    <p className="text-red-400 text-xs font-semibold mt-1">{errors.lastName}</p>
+                                )}
                             </div>
                         </div>
 
@@ -148,9 +247,12 @@ export default function SignUp() {
                                 name="username"
                                 value={formData.username}
                                 onChange={handleChange}
+                                disabled={isLoading}
                                 required
                                 placeholder=" "
-                                className="w-full bg-white/10 text-zinc-100 p-2 pl-10 md:pl-12 rounded-xl border-2 border-purple-500/50 backdrop-blur-sm shadow-xl h-14 md:h-16 hover:bg-white/15 hover:border-purple-400 focus:outline-none focus:border-purple-400 focus:bg-white/15 peer transition-all"
+                                className={`w-full bg-white/10 text-zinc-100 p-2 pl-10 md:pl-12 rounded-xl border-2 backdrop-blur-sm shadow-xl h-14 md:h-16 hover:bg-white/15 focus:outline-none focus:bg-white/15 peer transition-all disabled:opacity-50 ${
+                                    errors.username ? 'border-red-500' : 'border-purple-500/50 hover:border-purple-400 focus:border-purple-400'
+                                }`}
                             />
                             <span className="absolute top-1/2 left-3 md:left-4 -translate-y-1/2 text-zinc-200 pointer-events-none font-bold text-sm md:text-base peer-focus:text-xs peer-focus:top-2 peer-focus:text-purple-300 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:top-2 peer-[:not(:placeholder-shown)]:text-purple-300 transition-all">
                                 Username
@@ -158,6 +260,9 @@ export default function SignUp() {
                             <svg className="absolute right-3 md:right-4 top-1/2 -translate-y-1/2 w-5 h-5 md:w-6 md:h-6 text-purple-400 drop-shadow-[0_0_8px_rgba(168,85,247,0.8)] pointer-events-none" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
                             </svg>
+                            {errors.username && (
+                                <p className="text-red-400 text-xs font-semibold mt-1">{errors.username}</p>
+                            )}
                         </div>
 
                         <div className="relative mb-6">
@@ -166,9 +271,12 @@ export default function SignUp() {
                                 name="email"
                                 value={formData.email}
                                 onChange={handleChange}
+                                disabled={isLoading}
                                 required
                                 placeholder=" "
-                                className="w-full bg-white/10 text-zinc-100 p-2 pl-10 md:pl-12 rounded-xl border-2 border-purple-500/50 backdrop-blur-sm shadow-xl h-14 md:h-16 hover:bg-white/15 hover:border-purple-400 focus:outline-none focus:border-purple-400 focus:bg-white/15 peer transition-all"
+                                className={`w-full bg-white/10 text-zinc-100 p-2 pl-10 md:pl-12 rounded-xl border-2 backdrop-blur-sm shadow-xl h-14 md:h-16 hover:bg-white/15 focus:outline-none focus:bg-white/15 peer transition-all disabled:opacity-50 ${
+                                    errors.email ? 'border-red-500' : 'border-purple-500/50 hover:border-purple-400 focus:border-purple-400'
+                                }`}
                             />
                             <span className="absolute top-1/2 left-3 md:left-4 -translate-y-1/2 text-zinc-200 pointer-events-none font-bold text-sm md:text-base peer-focus:text-xs peer-focus:top-2 peer-focus:text-purple-300 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:top-2 peer-[:not(:placeholder-shown)]:text-purple-300 transition-all">
                                 Email
@@ -176,6 +284,9 @@ export default function SignUp() {
                             <svg className="absolute right-3 md:right-4 top-1/2 -translate-y-1/2 w-5 h-5 md:w-6 md:h-6 text-purple-400 drop-shadow-[0_0_8px_rgba(168,85,247,0.8)] pointer-events-none" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
                             </svg>
+                            {errors.email && (
+                                <p className="text-red-400 text-xs font-semibold mt-1">{errors.email}</p>
+                            )}
                         </div>
 
                         <div className="relative mb-8">
@@ -184,9 +295,12 @@ export default function SignUp() {
                                 name="password"
                                 value={formData.password}
                                 onChange={handleChange}
+                                disabled={isLoading}
                                 required
                                 placeholder=" "
-                                className="w-full bg-white/10 text-zinc-100 p-2 pl-10 md:pl-12 rounded-xl border-2 border-purple-500/50 backdrop-blur-sm shadow-xl h-14 md:h-16 hover:bg-white/15 hover:border-purple-400 focus:outline-none focus:border-purple-400 focus:bg-white/15 peer transition-all"
+                                className={`w-full bg-white/10 text-zinc-100 p-2 pl-10 md:pl-12 rounded-xl border-2 backdrop-blur-sm shadow-xl h-14 md:h-16 hover:bg-white/15 focus:outline-none focus:bg-white/15 peer transition-all disabled:opacity-50 ${
+                                    errors.password ? 'border-red-500' : 'border-purple-500/50 hover:border-purple-400 focus:border-purple-400'
+                                }`}
                             />
                             <span className="absolute top-1/2 left-3 md:left-4 -translate-y-1/2 text-zinc-200 pointer-events-none font-bold text-sm md:text-base peer-focus:text-xs peer-focus:top-2 peer-focus:text-purple-300 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:top-2 peer-[:not(:placeholder-shown)]:text-purple-300 transition-all">
                                 Password
@@ -194,13 +308,31 @@ export default function SignUp() {
                             <svg className="absolute right-3 md:right-4 top-1/2 -translate-y-1/2 w-5 h-5 md:w-6 md:h-6 text-purple-400 drop-shadow-[0_0_8px_rgba(168,85,247,0.8)] pointer-events-none" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M10.05 4.575a1.575 1.575 0 1 0-3.15 0v3m3.15-3v-1.5a1.575 1.575 0 0 1 3.15 0v1.5m-3.15 0 .075 5.925m3.075.75V4.575m0 0a1.575 1.575 0 0 1 3.15 0V15M6.9 7.575a1.575 1.575 0 1 0-3.15 0v8.175a6.75 6.75 0 0 0 6.75 6.75h2.018a5.25 5.25 0 0 0 3.712-1.538l1.732-1.732a5.25 5.25 0 0 0 1.538-3.712l.003-2.024a.668.668 0 0 1 .198-.471 1.575 1.575 0 1 0-2.228-2.228 3.818 3.818 0 0 0-1.12 2.687M6.9 7.575V12m6.27 4.318A4.49 4.49 0 0 1 16.35 15m.002 0h-.002" />
                             </svg>
+                            {errors.password && (
+                                <p className="text-red-400 text-xs font-semibold mt-1">{errors.password}</p>
+                            )}
                         </div>
 
                         <div className="text-center">
-                            <button type="submit" className="group bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-500 hover:to-violet-500 text-white py-4 px-8 md:px-16 font-bold rounded-xl shadow-2xl shadow-purple-500/50 transition-all duration-300 text-sm md:text-base w-full md:w-auto hover:scale-105 border-2 border-purple-500/50 flex items-center justify-center gap-2">
-                                <span>CREATE ACCOUNT</span>
-                                <svg className="w-5 h-5 transition-transform group-hover:translate-x-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                            <button 
+                                type="submit" 
+                                disabled={isLoading}
+                                className="group bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-500 hover:to-violet-500 disabled:from-gray-600 disabled:to-gray-600 text-white py-4 px-8 md:px-16 font-bold rounded-xl shadow-2xl shadow-purple-500/50 transition-all duration-300 text-sm md:text-base w-full md:w-auto hover:scale-105 disabled:scale-100 border-2 border-purple-500/50 flex items-center justify-center gap-2"
+                            >
+                                <span>{isLoading ? 'CREATING ACCOUNT...' : 'CREATE ACCOUNT'}</span>
+                                <svg 
+                                    className={`w-5 h-5 transition-transform ${isLoading ? 'animate-spin' : 'group-hover:translate-x-1'}`}
+                                    xmlns="http://www.w3.org/2000/svg" 
+                                    fill="none" 
+                                    viewBox="0 0 24 24" 
+                                    strokeWidth="2" 
+                                    stroke="currentColor"
+                                >
+                                    <path 
+                                        strokeLinecap="round" 
+                                        strokeLinejoin="round" 
+                                        d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" 
+                                    />
                                 </svg>
                             </button>
                         </div>

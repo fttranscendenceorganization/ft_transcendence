@@ -39,7 +39,7 @@ export class UserService
         });
     }
 
-    async updateRefreshToken(userId: string , refreshTokenHashed: string)
+    async updateRefreshToken(userId: string , refreshTokenHashed: string | null)
     {
         const user = await this.findById(userId);
         if (!user)

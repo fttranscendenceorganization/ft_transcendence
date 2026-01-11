@@ -1,4 +1,4 @@
-import { Body, Controller , Get, Post, Req, Request, Res, UseGuards} from '@nestjs/common';
+import { Controller , Get, HttpCode, HttpStatus, Post, Request, Res, UseGuards} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthGuard } from '@nestjs/passport';
 import { User } from 'src/user/entities/user.entity';
@@ -6,11 +6,13 @@ import { AuthResponseDto } from './dto/auth-response.dto';
 import { UserResponseDto } from 'src/user/dto/user-response.dto';
 import { plainToInstance } from 'class-transformer';
 import type { Response } from 'express';
+import { ConfigService } from '@nestjs/config';
 
 type ResponseWithCookie = Response & {
     cookie: (name: string, val: string, options?: Record<string, unknown>) => void;
 };
-import { ConfigService } from '@nestjs/config';
+
+
 
 @Controller('auth')
 
@@ -31,7 +33,7 @@ export class AuthController
         const refreshMaxAgeMs = this.authService.parseDurationToMs(this.config.get('JWT_REFRESH_EXPIRES'));
         res.cookie('refreshToken', authResponseDto.tokens.RefreshToken, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
+            secure: true,
             sameSite: 'strict',
             maxAge: refreshMaxAgeMs,
         });
@@ -41,6 +43,8 @@ export class AuthController
             accessToken: authResponseDto.tokens.AccessToken,
         };
     }
+
+
 
     @UseGuards(AuthGuard('refreshjwt'))
     @Post('refresh')
@@ -53,7 +57,7 @@ export class AuthController
         const refreshMaxAgeMs = this.authService.parseDurationToMs(this.config.get('JWT_REFRESH_EXPIRES'));
         res.cookie('refreshToken', authResponseDto.tokens.RefreshToken, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
+            secure: true,
             sameSite: 'strict',
             maxAge: refreshMaxAgeMs,
         });
@@ -63,6 +67,27 @@ export class AuthController
             accessToken: authResponseDto.tokens.AccessToken,
         };
     }
+
+     
+
+
+    @UseGuards(AuthGuard('refreshjwt'))
+    @Post('logout')
+    @HttpCode(HttpStatus.NO_CONTENT)
+    async logout(@Request() req, @Res({ passthrough: true }) res: ResponseWithCookie)
+    {
+        const user : User = req.user;
+
+        await this.authService.logout(user);
+        res.cookie('refreshToken', '', {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'strict',
+            maxAge: 0,
+        });
+    }
+
+
 
 
     @UseGuards(AuthGuard('jwt'))
