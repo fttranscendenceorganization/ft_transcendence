@@ -68,7 +68,7 @@ export default function Exclusive() {
                             </div>
                             <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10 hover:border-violet-500/40 transition-all duration-300 hover:bg-white/10 cursor-pointer">
                                 <div className="text-2xl mb-2">⚡</div>
-                                <div className="font-semibold text-white/80">Epic Games</div>
+                                <div className="font-semibold text-white/80">Massive Games</div>
                             </div>
                         </div>
 
