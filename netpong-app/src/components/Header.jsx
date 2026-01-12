@@ -17,12 +17,12 @@ export default function Header() {
 
     const gameModesData = [
         {
-            name: 'Saul Society',
-            path: '/saul-society',
+            name: 'Soul Society',
+            path: '/soul-society',
             icon: '⚔️',
             color: 'gray',
             hoverBg: 'hover:bg-gray-400',
-            description: 'Saul Protector'
+            description: 'Soul Protector'
         },
         {
             name: 'Pink Barbie',

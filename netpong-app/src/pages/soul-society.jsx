@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { useEffect } from 'react';
-import SaulHeader from '../components/SaulHeader';
+import SoulHeader from '../components/SoulHeader';
 
 
-export default function SaulSociety() {
+export default function SoulSociety() {
 
     useEffect(() => {
         document.title = "Soul Society-Netpong";
@@ -24,7 +24,7 @@ export default function SaulSociety() {
     const [isHovering, setIsHovering] = useState(false);
 
     const handleStartGame = () => {
-        alert('Starting Saul Society!');
+        alert('Starting Soul Society!');
     };
 
     return (
@@ -48,7 +48,7 @@ export default function SaulSociety() {
                 ))}
             </div>
 
-            <SaulHeader />
+            <SoulHeader />
 
             <div className="container mx-auto px-4 py-8 md:py-16 relative z-10">
                 <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-center max-w-7xl mx-auto">
@@ -65,7 +65,7 @@ export default function SaulSociety() {
                             <h1 className="text-4xl md:text-6xl lg:text-7xl font-extrabold mb-6 leading-tight">
                                 <span className="block text-gray-300 drop-shadow-[0_0_25px_rgba(209,213,219,0.8)] hover:drop-shadow-[0_0_35px_rgba(209,213,219,1)] transition-all duration-300">HONOR</span>
                                 <span className="block text-white drop-shadow-lg my-1">FIGHT</span>
-                                <span className="block text-gray-500 drop-shadow-[0_0_25px_rgba(107,114,128,0.8)] hover:drop-shadow-[0_0_35px_rgba(107,114,128,1)] transition-all duration-300">SAUL</span>
+                                <span className="block text-gray-500 drop-shadow-[0_0_25px_rgba(107,114,128,0.8)] hover:drop-shadow-[0_0_35px_rgba(107,114,128,1)] transition-all duration-300">SOUL</span>
                             </h1>
 
                             <div className="flex items-center gap-3 mb-8">
