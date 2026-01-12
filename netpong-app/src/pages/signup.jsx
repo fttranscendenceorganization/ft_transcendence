@@ -3,6 +3,10 @@ import { useState } from 'react';
 import { useEffect } from 'react';
 import LoginHeader from '../components/loginHeader';
 
+const initiateGoogleAuth = () => {
+  window.location.href = '/api/auth/google';
+};
+
 const VALIDATION_RULES = {
     firstName: {
         minLength: 1,
@@ -153,8 +157,9 @@ export default function SignUp() {
     };
 
     const handleSocialSignUp = (provider) => {
-        alert(`Sign up with ${provider}`);
-        // TODO: Implement OAuth for Google, GitHub, 42
+        if (provider === 'google') {
+            initiateGoogleAuth();
+        }
     };
 
     return (
@@ -347,7 +352,7 @@ export default function SignUp() {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                         <button
                             type="button"
-                            onClick={() => handleSocialSignUp('Google')}
+                            onClick={() => handleSocialSignUp('google')}
                             className="flex items-center justify-center gap-3 bg-white hover:bg-gray-100 text-gray-800 py-3 px-4 font-bold rounded-xl shadow-lg transition-all duration-300 hover:scale-105 border-2 border-gray-200"
                         >
                             <svg className="w-5 h-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
