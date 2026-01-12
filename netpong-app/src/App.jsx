@@ -3,7 +3,7 @@ import Header from './components/Header';
 import Home from './pages/Home';
 import Login from './pages/login';
 import SignUp from './pages/signup';
-import SaulSociety from './pages/saul-society';
+import SoulSociety from './pages/soul-society';
 import ZombieLand from './pages/zombie-land';
 import Joker from './pages/joker';
 import BarbiePink from './pages/barbie-pink';
@@ -12,7 +12,7 @@ import Contact from './pages/contact';
 
 function Navigation() {
   const location = useLocation();
-  const hideHeaderPaths = ['/login', '/signup', '/saul-society', '/zombie-land', '/joker', '/barbie-pink'];
+  const hideHeaderPaths = ['/login', '/signup', '/soul-society', '/zombie-land', '/joker', '/barbie-pink'];
   if (hideHeaderPaths.includes(location.pathname)) {
     return null;
   }
@@ -32,7 +32,7 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
-            <Route path="/saul-society" element={<SaulSociety />} />
+            <Route path="/soul-society" element={<SoulSociety />} />
             <Route path="/zombie-land" element={<ZombieLand />} />
             <Route path="/joker" element={<Joker />} />
             <Route path="/barbie-pink" element={<BarbiePink />} />

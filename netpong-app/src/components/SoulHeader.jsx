@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
 
-export default function SaulHeader() {
+export default function SoulHeader() {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const dropdownRef = useRef(null);
 
@@ -17,12 +17,12 @@ export default function SaulHeader() {
 
     const gameModesData = [
         {
-            name: 'Saul Society',
-            path: '/saul-society',
+            name: 'Soul Society',
+            path: '/soul-society',
             icon: '⚔️',
             color: 'gray',
             hoverBg: 'hover:bg-gray-400',
-            description: 'Saul Protector'
+            description: 'Soul Protector'
         }
         ,
         {
