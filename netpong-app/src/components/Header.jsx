@@ -15,6 +15,23 @@ export default function Header() {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
+    const handleLogout = async () => {
+        try {
+            await fetch('/api/auth/logout', {
+                method: 'POST',
+                credentials: 'include',
+            });
+        } catch (error) {
+            console.error('Logout error:', error);
+        } finally {
+            // Clear local token and session
+            clearToken();
+            sessionStorage.removeItem('user');
+            setIsLoggedIn(false);
+            navigate('/login');
+        }
+    };
+
     const gameModesData = [
         {
             name: 'Soul Society',
