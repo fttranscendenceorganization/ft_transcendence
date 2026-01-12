@@ -9,6 +9,7 @@ import Joker from './pages/joker';
 import BarbiePink from './pages/barbie-pink';
 import Exclusive from './pages/exclusive';
 import Contact from './pages/contact';
+import AuthCallback from './pages/AuthCallback';
 
 function Navigation() {
   const location = useLocation();
@@ -32,6 +33,7 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
+            <Route path="/auth-callback" element={<AuthCallback />} />
             <Route path="/soul-society" element={<SoulSociety />} />
             <Route path="/zombie-land" element={<ZombieLand />} />
             <Route path="/joker" element={<Joker />} />
