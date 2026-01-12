@@ -9,47 +9,48 @@ import { plainToInstance } from 'class-transformer';
 import { JwtPayload } from './types/jwtpayload.type';
 import { Tokens } from './types/tokens.type';
 import { ConfigService } from '@nestjs/config';
+import { GoogleUserPayload } from './strategies/oauth/dto/google-user.payload';
 
 
 @Injectable()
-export class AuthService
-{
+export class AuthService {
     constructor(private readonly userService: UserService,
-                private readonly jwtService: JwtService,
-                private readonly config: ConfigService,
-    ){}
+        private readonly jwtService: JwtService,
+        private readonly config: ConfigService,
+    ) { }
 
-    async validateUser(emailOrusername: string, password: string ) : Promise<User | null>
-    {
+    async validateUser(emailOrusername: string, password: string): Promise<User | null> {
         let user = await this.userService.findByEmail(emailOrusername.toLowerCase().trim());
-        if (!user)
-        {
+        if (!user) {
             user = await this.userService.findByUsername(emailOrusername.toLowerCase().trim())
-            if(!user)
+            if (!user)
                 return null;
         }
+        
+        if (!user.password) {
+            return null;
+        }
+        
         const isPasswordMatch = await bcrypt.compare(password, user.password);
         if (!isPasswordMatch)
             return null;
         return user;
     }
 
-    async validateUserById(userId: string) : Promise<User | null>
-    {
+    async validateUserById(userId: string): Promise<User | null> {
         return await this.userService.findById(userId);
     }
 
-    async generateTokens(id:string, Username:string) : Promise<Tokens>
-    {
-        const payload: JwtPayload = {sub:id, username: Username}
+    async generateTokens(id: string, Username: string): Promise<Tokens> {
+        const payload: JwtPayload = { sub: id, username: Username }
         const accessToken = await this.jwtService.signAsync(payload, {
-                secret: this.config.get('JWT_ACCESS_SECRET'),
-                expiresIn: this.config.get('JWT_ACCESS_EXPIRES'),
+            secret: this.config.get('JWT_ACCESS_SECRET'),
+            expiresIn: this.config.get('JWT_ACCESS_EXPIRES'),
         });
 
         const refreshToken = await this.jwtService.signAsync(payload, {
-                secret: this.config.get('JWT_REFRESH_SECRET'),
-                expiresIn: this.config.get('JWT_REFRESH_EXPIRES'),
+            secret: this.config.get('JWT_REFRESH_SECRET'),
+            expiresIn: this.config.get('JWT_REFRESH_EXPIRES'),
         })
 
         return {
@@ -57,42 +58,82 @@ export class AuthService
             RefreshToken: refreshToken,
         };
     }
-    
-    async login(user: User) : Promise<AuthResponseDto>
-    {
-        const tokens  = await this.generateTokens(user.id, user.username);
+
+    async login(user: User): Promise<AuthResponseDto> {
+        const tokens = await this.generateTokens(user.id, user.username);
 
         const refreshTokenHashed = await bcrypt.hash(tokens.RefreshToken, 10);
         await this.userService.updateRefreshToken(user.id, refreshTokenHashed);
 
-        const  userResponseDto = plainToInstance(UserResponseDto, user, {
-            excludeExtraneousValues : true,
+        const userResponseDto = plainToInstance(UserResponseDto, user, {
+            excludeExtraneousValues: true,
         });
 
-        
+
         return {
             user: userResponseDto,
             tokens: {
                 AccessToken: tokens.AccessToken,
-                RefreshToken: tokens.RefreshToken, 
+                RefreshToken: tokens.RefreshToken,
             }
-        };  
+        };
     }
 
+    async ValidateGoogleUser(googleUser: GoogleUserPayload): Promise<User> {
+        let user = await this.userService.findByGoogleId(googleUser.googleId);
+        if (user)
+            return user;
+        user = await this.userService.findByEmail(googleUser.email);
+        if (user) {
+            await this.userService.updateGoogleUser(user, googleUser.googleId, googleUser.avatarUrl)
+            return user;
+        }
 
-    async logout(user:User) : Promise<void>
-    {
+        let baseName = this.getUsername(googleUser.email).slice(0, 14);
+        let username = baseName;
+        let isUnique = false;
+        let attempts = 0;
+
+        while (!isUnique && attempts < 10) {
+            const existing = await this.userService.findByUsername(username);
+            if (!existing)
+                isUnique = true;
+            else {
+                const suffix = Math.floor(1000 + Math.random() * 9000);
+                username = `${baseName}_${suffix}`;
+                attempts++;
+            }
+        }
+        if (!isUnique)
+            username = `${baseName.slice(0, 10)}_${Date.now().toString().slice(-8)}`;
+
+        const newUser = await this.userService.createGoogleUser({
+            googleId: googleUser.googleId,
+            email: googleUser.email,
+            username: username,
+            firstName: googleUser.firstName,
+            lastName: googleUser.lastName,
+            avatarUrl: googleUser.avatarUrl,
+        });
+
+        return newUser;
+    }
+
+    async logout(user: User): Promise<void> {
         await this.userService.updateRefreshToken(user.id, null);
     }
 
-    async isRefreshTokenValid(inputRefrshToken, userRefreshTokenHash): Promise <boolean>
-    {
+    async isRefreshTokenValid(inputRefrshToken, userRefreshTokenHash): Promise<boolean> {
         const isTokenMatch = await bcrypt.compare(inputRefrshToken, userRefreshTokenHash);
         return isTokenMatch;
     }
 
-    parseDurationToMs(duration: string | number | undefined): number
-    {
+    private getUsername(email: string): string {
+        const prefix = email.split('@')[0];
+        return prefix.replace(/[^\w]/g, '');
+    }
+    
+    parseDurationToMs(duration: string | number | undefined): number {
         if (typeof duration === 'number')
             return duration;
 

@@ -21,15 +21,18 @@ export class User
     @Column({nullable: true})
     lastName: string;
 
-    @Column()
+    @Column({ unique: true, nullable: true, type: 'varchar' })
+    googleId: string | null;
+
+    @Column({ nullable: true })
     @Exclude()
     password: string;
 
     @Column({ type: 'text', nullable: true })
     refreshTokenHash: string | null;
 
-    @Column({nullable: true})
-    avatarUrl: string;
+   @Column({ type: 'text', nullable: true })
+    avatarUrl: string | null;
 
     @Column({default: 0})
     wins: number;
