@@ -118,6 +118,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
+            git config --global  --add safe.directory ${{ secrets.SERVER_PATH }}
             cd ${{ secrets.SERVER_PATH }}
             git pull origin main
             make prod
