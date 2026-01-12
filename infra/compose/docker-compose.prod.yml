@@ -1,0 +1,69 @@
+services:
+  nginx:
+    build: ../nginx
+    image: nginx
+    ports:
+      - "443:443"
+      - "80:80"
+    volumes:
+      - /etc/ssl/netpong:/etc/ssl:ro
+      - ../nginx/conf.d/default.conf:/etc/nginx/templates/default.conf.template:ro
+    env_file:
+      - /etc/netpong/nginx.env
+    networks:
+      - public_net
+      - internal_net
+    depends_on:
+      - backend_api
+      - front_end
+    restart: always
+
+  front_end:
+    build:
+      context: ../../netpong-app
+      dockerfile: ../infra/frontend/Dockerfile
+    image: frontend
+    networks:
+      - internal_net
+    restart: always
+
+  backend_api:
+    build:
+      context: ../../backend_srcs
+      dockerfile: ../infra/backend/Dockerfile
+    image: backend_api
+    env_file:
+      - ../env/backend.env
+    networks:
+      - internal_net
+    depends_on:
+      database:
+        condition: service_healthy
+    restart: always
+
+
+  database:
+    image: postgres:17
+    env_file:
+      - ../env/database.env
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - internal_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: always
+
+volumes:
+  db_data:
+
+networks:
+  public_net:
+    driver: bridge
+    name: public_net
+  internal_net:
+    driver: bridge
+    name: internal_net

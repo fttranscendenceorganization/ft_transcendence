@@ -1,12 +1,15 @@
 
-COMPOSE=docker compose -f ./infra/compose/docker-compose.yml
+COMPOSE=docker compose -f ./infra/compose/docker-compose.dev.yml
 TAIL?=100
 SERVICES?=backend_api front_end nginx database
 
 all: up
 
 up:
-	$(COMPOSE) up -d --build
+	$(COMPOSE)  up -d --build
+
+prod:
+	$(COMPOSE) -f ./infra/compose/docker-compose.prod.yml up -d --build
 
 down:
 	$(COMPOSE) down

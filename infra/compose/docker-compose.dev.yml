@@ -5,6 +5,11 @@ services:
     ports:
       - "443:443"
       - "80:80"
+    volumes:
+      - ../nginx/conf.d/default.conf:/etc/nginx/templates/default.conf.template:ro
+      - ../nginx/certs:/etc/ssl:ro
+    env_file:
+      - ../env/nginx.env
     networks:
       - public_net
       - internal_net
