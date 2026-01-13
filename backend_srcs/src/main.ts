@@ -1,10 +1,12 @@
 import { NestFactory, Reflector } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  const configService = app.get(ConfigService);
 
   app.useGlobalPipes(new ValidationPipe({
     whitelist: true,
@@ -12,8 +14,12 @@ async function bootstrap() {
     transform: true,
   }));
   
+  // Parse CORS origins from env (comma-separated)
+  const corsOriginsEnv = configService.get<string>('CORS_ORIGINS') || 'http://localhost:5173';
+  const corsOrigins = corsOriginsEnv.split(',').map(origin => origin.trim());
+
   app.enableCors({
-    origin: ['https://ft_transcendence.1337.game'],
+    origin: corsOrigins,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
   });
