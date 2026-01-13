@@ -10,15 +10,20 @@ import BarbiePink from './pages/barbie-pink';
 import Exclusive from './pages/exclusive';
 import Contact from './pages/contact';
 import AuthCallback from './pages/AuthCallback';
+import Error404 from './pages/error_404';
+import Chat from './pages/chat';
 
 function Navigation() {
   const location = useLocation();
-  const hideHeaderPaths = ['/login', '/signup', '/soul-society', '/zombie-land', '/joker', '/barbie-pink'];
-  if (hideHeaderPaths.includes(location.pathname)) {
+  const hideHeaderPaths = ['/login', '/signup', '/soul-society', '/zombie-land', '/joker', '/barbie-pink', '/chat'];
+  const validPathsWithHeader = ['/', '/exclusive', '/contact'];
+
+  if (hideHeaderPaths.includes(location.pathname) || !validPathsWithHeader.includes(location.pathname)) {
     return null;
   }
 
   return <Header />;
+
 }
 
 function App() {
@@ -40,8 +45,9 @@ function App() {
             <Route path="/barbie-pink" element={<BarbiePink />} />
             <Route path="/exclusive" element={<Exclusive />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/chat" element={<Chat />} />
 
-            <Route path="*" element={<Home />} />
+            <Route path="*" element={<Error404 />} />
           </Routes>
         </main>
       </div>
