@@ -33,7 +33,7 @@ services:
       dockerfile: ../infra/backend/Dockerfile
     image: backend_api
     env_file:
-      - ../env/backend.env
+      - /etc/netpong/backend.env
     networks:
       - internal_net
     depends_on:
@@ -45,7 +45,7 @@ services:
   database:
     image: postgres:17
     env_file:
-      - ../env/database.env
+      - /etc/netpong/database.env
     volumes:
       - db_data:/var/lib/postgresql/data
     networks:

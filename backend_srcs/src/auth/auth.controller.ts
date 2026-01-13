@@ -89,7 +89,9 @@ export class AuthController {
             maxAge: refreshMaxAgeMs,
         });
 
-        return res.redirect(`https://localhost/auth-callback?token=${authResponseDto.tokens.AccessToken}`);
+        const frontendUrl = this.config.get<string>('FRONTEND_URL') || 'http://localhost:5173';
+        const callbackUrl = `${frontendUrl.replace(/\/$/, '')}/auth-callback?token=${encodeURIComponent(authResponseDto.tokens.AccessToken)}`;
+        return res.redirect(callbackUrl);
     }
 
     @UseGuards(AuthGuard('refreshjwt'))
