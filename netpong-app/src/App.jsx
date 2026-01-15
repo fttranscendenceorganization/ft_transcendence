@@ -12,11 +12,13 @@ import Contact from './pages/contact';
 import AuthCallback from './pages/AuthCallback';
 import Error404 from './pages/error_404';
 import Chat from './pages/chat';
+import GameModes from './pages/modes';
+import UserProfile from './pages/userDash';
 
 function Navigation() {
   const location = useLocation();
   const hideHeaderPaths = ['/login', '/signup', '/soul-society', '/zombie-land', '/joker', '/barbie-pink', '/chat'];
-  const validPathsWithHeader = ['/', '/exclusive', '/contact'];
+  const validPathsWithHeader = ['/', '/exclusive', '/contact', '/modes'];
 
   if (hideHeaderPaths.includes(location.pathname) || !validPathsWithHeader.includes(location.pathname)) {
     return null;
@@ -46,6 +48,8 @@ function App() {
             <Route path="/exclusive" element={<Exclusive />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/chat" element={<Chat />} />
+            <Route path="/user" element={<UserProfile />} />
+            <Route path="/modes" element={<GameModes />} />
 
             <Route path="*" element={<Error404 />} />
           </Routes>
