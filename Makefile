@@ -9,7 +9,8 @@ up:
 	$(COMPOSE)  up -d --build
 
 prod:
-	docker  compose -f ./infra/compose/docker-compose.prod.yml up -d --build
+	docker compose -f ./infra/compose/docker-compose.prod.yml pull
+	docker compose -f ./infra/compose/docker-compose.prod.yml up -d
 
 down:
 	$(COMPOSE) down
