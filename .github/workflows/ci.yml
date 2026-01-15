@@ -1,12 +1,18 @@
-name: CI – Build & Validate
+name: CI – Build, Push & Deploy
 
 on:
   push:
     branches: [main, master]
   pull_request:
 
+permissions:
+  contents: read
+  packages: write
+
 env:
   DOCKER_BUILDKIT: 1
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ghcr.io/${{ github.repository_owner }}
 
 jobs:
   validate:
@@ -17,77 +23,94 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Validate docker-compose
+      - name: Validate docker-compose (dev)
         run: docker compose -f infra/compose/docker-compose.dev.yml config
 
   frontend:
-    name: Frontend Build
+    name: Build & Push Frontend
     runs-on: ubuntu-latest
     needs: validate
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Cache Docker layers (frontend)
-        uses: actions/cache@v4
+      - name: Login to GHCR
+        uses: docker/login-action@v3
         with:
-          path: /tmp/.buildx-cache-frontend
-          key: frontend-${{ github.sha }}
-          restore-keys: frontend-
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build frontend image
+      - name: Build & push frontend image
         run: |
           docker buildx build \
-            --cache-from=type=local,src=/tmp/.buildx-cache-frontend \
-            --cache-to=type=local,dest=/tmp/.buildx-cache-frontend-new,mode=max \
             -f infra/frontend/Dockerfile \
+            -t $IMAGE_PREFIX/ft_frontend:${{ github.sha }} \
+            -t $IMAGE_PREFIX/ft_frontend:latest \
+            --push \
             netpong-app
 
-      - name: Move cache
-        run: |
-          rm -rf /tmp/.buildx-cache-frontend
-          mv /tmp/.buildx-cache-frontend-new /tmp/.buildx-cache-frontend
-
   backend:
-    name: Backend Build
+    name: Build & Push Backend
     runs-on: ubuntu-latest
     needs: validate
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Cache Docker layers (backend)
-        uses: actions/cache@v4
+      - name: Login to GHCR
+        uses: docker/login-action@v3
         with:
-          path: /tmp/.buildx-cache-backend
-          key: backend-${{ github.sha }}
-          restore-keys: backend-
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build backend image
+      - name: Build & push backend image
         run: |
           docker buildx build \
-            --cache-from=type=local,src=/tmp/.buildx-cache-backend \
-            --cache-to=type=local,dest=/tmp/.buildx-cache-backend-new,mode=max \
             -f infra/backend/Dockerfile \
+            -t $IMAGE_PREFIX/ft_backend:${{ github.sha }} \
+            -t $IMAGE_PREFIX/ft_backend:latest \
+            --push \
             backend_srcs
 
-      - name: Move cache
+  nginx:
+    name: Build & Push Nginx
+    runs-on: ubuntu-latest
+    needs: validate
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build & push nginx image
         run: |
-          rm -rf /tmp/.buildx-cache-backend
-          mv /tmp/.buildx-cache-backend-new /tmp/.buildx-cache-backend
+          docker buildx build \
+            -f infra/nginx/Dockerfile \
+            -t $IMAGE_PREFIX/ft_nginx:${{ github.sha }} \
+            -t $IMAGE_PREFIX/ft_nginx:latest \
+            --push \
+            infra/nginx
 
   notify:
     name: Notify Discord
     runs-on: ubuntu-latest
-    needs: [validate, frontend, backend]
+    needs: [validate, frontend, backend, nginx]
     if: always()
 
     steps:
@@ -104,10 +127,11 @@ jobs:
             **Author:** ${{ github.event.pull_request.user.login || github.actor }}
             **Status:** ${{ contains(needs.*.result, 'failure') && 'FAILED ❌' || 'SUCCESS ✅' }}
             **Commit:** ${{ github.sha }}
+
   deploy:
     name: Deploy to Production
     runs-on: ubuntu-latest
-    needs: [validate, frontend, backend]
+    needs: [frontend, backend, nginx]
     if: github.ref == 'refs/heads/main'
 
     steps:
@@ -118,7 +142,8 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            git config --global  --add safe.directory ${{ secrets.SERVER_PATH }}
+            set -e
             cd ${{ secrets.SERVER_PATH }}
             git pull origin main
+            docker login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
             make prod

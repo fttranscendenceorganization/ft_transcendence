@@ -1,7 +1,6 @@
 services:
   nginx:
-    build: ../nginx
-    image: nginx
+    image: ghcr.io/fttranscendenceorganization/ft_nginx:latest
     ports:
       - "443:443"
       - "80:80"
@@ -19,19 +18,13 @@ services:
     restart: always
 
   front_end:
-    build:
-      context: ../../netpong-app
-      dockerfile: ../infra/frontend/Dockerfile
-    image: frontend
+    image: ghcr.io/fttranscendenceorganization/ft_frontend:latest
     networks:
       - internal_net
     restart: always
 
   backend_api:
-    build:
-      context: ../../backend_srcs
-      dockerfile: ../infra/backend/Dockerfile
-    image: backend_api
+    image: ghcr.io/fttranscendenceorganization/ft_backend:latest
     env_file:
       - /etc/netpong/backend.env
     networks:
