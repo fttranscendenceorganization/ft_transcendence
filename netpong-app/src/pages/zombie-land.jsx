@@ -31,7 +31,7 @@ export default function ZombieLand() {
             <ZombieLandHeader />
 
             <div className="antialiased bg-slate-900 w-full min-h-screen text-white overflow-x-hidden relative">
-                <div className="absolute inset-0 bg-[url('/images/zombie.jpg')] bg-center bg-no-repeat bg-cover"></div>
+                <div className="absolute inset-0 bg-[url('/images/creepy.jpg')] bg-center bg-no-repeat bg-cover"></div>
                 <div className="absolute inset-0 bg-gradient-to-b from-slate-900/70 via-slate-900/50 to-slate-900/90"></div>
 
                 <div className="absolute inset-0 overflow-hidden pointer-events-none">
