@@ -40,8 +40,20 @@ export class UserService {
         });
     }
 
+    async findByGithubId(githubId: string): Promise<User | null> {
+        return await this.userrepo.findOne({
+            where: { githubId, isActive: true },
+        });
+    }
+
     async updateGoogleUser(user: User, googleId: string, avatarUrl: string | null) {
         user.googleId = googleId;
+        user.avatarUrl = avatarUrl;
+        await this.userrepo.save(user);
+    }
+
+    async updateGithubUser(user: User, githubId: string, avatarUrl: string | null) {
+        user.githubId = githubId;
         user.avatarUrl = avatarUrl;
         await this.userrepo.save(user);
     }
@@ -55,7 +67,7 @@ export class UserService {
     }
 
     async createGoogleUser(data: {
-        googleId: string;
+        providerId: string;
         email: string;
         username: string;
         firstName: string;
@@ -63,6 +75,22 @@ export class UserService {
         avatarUrl: string | null;
     }): Promise<User> {
        
+        const user = this.userrepo.create(data);
+        try {
+            return await this.userrepo.save(user);
+        } catch (error) {
+            throw new InternalServerErrorException('Failed to create user account');
+        }
+    }
+
+    async createGithubUser(data: {
+        githubId: string;
+        email: string;
+        username: string;
+        firstName: string;
+        lastName: string;
+        avatarUrl: string | null;
+    }): Promise<User> {
         const user = this.userrepo.create(data);
         try {
             return await this.userrepo.save(user);

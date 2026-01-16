@@ -22,6 +22,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy)
         })
     }
 
+
     async validate(accessToken:string, refrshToken:string, profile:Profile, done:VerifyCallback) 
     {
         const email = profile.emails?.[0]?.value;
@@ -29,7 +30,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy)
             return done(new BadRequestException('No email provided from Google'), false);
 
         const googleData = {
-            googleId: profile.id,
+            providerId: profile.id,
             email: email,
             firstName: profile.name?.givenName ?? email.split('@')[0].slice(0, 30),
             lastName: profile.name?.familyName ?? '',
@@ -40,6 +41,5 @@ export class GoogleStrategy extends PassportStrategy(Strategy)
             return done(new UnauthorizedException(), false);
         return done(null, user);
     }
-
 
 }

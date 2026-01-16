@@ -10,6 +10,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { RefreshJwtStrategy } from './strategies/refresh-jwt.strategy';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { GoogleStrategy } from './strategies/oauth/google.strategy';
+import { GithubStrategy } from './strategies/oauth/github.strategy';
 
 @Module({
     imports : [
@@ -26,7 +27,7 @@ import { GoogleStrategy } from './strategies/oauth/google.strategy';
         }),
     ],
     controllers : [AuthController],
-    providers : [AuthService, UserService, LocalStrategy, JwtStrategy, RefreshJwtStrategy, GoogleStrategy],
+    providers : [AuthService, UserService, LocalStrategy, JwtStrategy, RefreshJwtStrategy, GoogleStrategy, GithubStrategy],
     exports : [],
 })
 

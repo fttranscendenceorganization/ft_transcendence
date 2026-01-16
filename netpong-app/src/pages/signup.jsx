@@ -4,7 +4,11 @@ import { useEffect } from 'react';
 import LoginHeader from '../components/loginHeader';
 
 const initiateGoogleAuth = () => {
-  window.location.href = '/api/auth/google';
+    window.location.href = '/api/auth/google';
+};
+
+const initiateGithubAuth = () => {
+    window.location.href = '/api/auth/github';
 };
 
 const VALIDATION_RULES = {
@@ -157,8 +161,15 @@ export default function SignUp() {
     };
 
     const handleSocialSignUp = (provider) => {
-        if (provider === 'google') {
+        if (!provider) return;
+        const p = provider.toString().toLowerCase();
+        if (p === 'google') {
             initiateGoogleAuth();
+            return;
+        }
+        if (p === 'github') {
+            initiateGithubAuth();
+            return;
         }
     };
 
