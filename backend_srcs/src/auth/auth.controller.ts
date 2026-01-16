@@ -75,7 +75,7 @@ export class AuthController {
 
     @Get('google/callback')
     @UseGuards(AuthGuard('google'))
-    async googleAuthRedirect(@Req() req, @Res() res)
+    async googleAuthRedirect(@Req() req, @Res({ passthrough: true }) res: ResponseWithCookie)
     {
         const user = req.user;
 
@@ -89,7 +89,33 @@ export class AuthController {
             maxAge: refreshMaxAgeMs,
         });
 
-        const frontendUrl = this.config.get<string>('FRONTEND_URL') || 'http://localhost:5173';
+        const frontendUrl = this.config.get<string>('FRONTEND_URL') || 'https://localhost';
+        const callbackUrl = `${frontendUrl.replace(/\/$/, '')}/auth-callback?token=${encodeURIComponent(authResponseDto.tokens.AccessToken)}`;
+        return res.redirect(callbackUrl);
+    }
+
+    @Get('github')
+    @UseGuards(AuthGuard('github'))
+    async githubAuth(@Req() req)
+    {}
+
+    @Get('github/callback')
+    @UseGuards(AuthGuard('github'))
+    async githubAuthRedirect(@Req() req, @Res({ passthrough: true }) res: ResponseWithCookie)
+    {
+        const user = req.user;
+
+        const authResponseDto: AuthResponseDto = await this.authService.login(user);
+
+        const refreshMaxAgeMs = this.authService.parseDurationToMs(this.config.get('JWT_REFRESH_EXPIRES'));
+        res.cookie('refreshToken', authResponseDto.tokens.RefreshToken, {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'strict',
+            maxAge: refreshMaxAgeMs,
+        });
+
+        const frontendUrl = this.config.get<string>('FRONTEND_URL') || 'https://localhost';
         const callbackUrl = `${frontendUrl.replace(/\/$/, '')}/auth-callback?token=${encodeURIComponent(authResponseDto.tokens.AccessToken)}`;
         return res.redirect(callbackUrl);
     }

@@ -9,7 +9,7 @@ import { plainToInstance } from 'class-transformer';
 import { JwtPayload } from './types/jwtpayload.type';
 import { Tokens } from './types/tokens.type';
 import { ConfigService } from '@nestjs/config';
-import { GoogleUserPayload } from './strategies/oauth/dto/google-user.payload';
+import { OauthUserPayload } from './strategies/oauth/dto/oauth-user.payload';
 
 
 @Injectable()
@@ -79,13 +79,13 @@ export class AuthService {
         };
     }
 
-    async ValidateGoogleUser(googleUser: GoogleUserPayload): Promise<User> {
-        let user = await this.userService.findByGoogleId(googleUser.googleId);
+    async ValidateGoogleUser(googleUser: OauthUserPayload): Promise<User> {
+        let user = await this.userService.findByGoogleId(googleUser.providerId);
         if (user)
             return user;
         user = await this.userService.findByEmail(googleUser.email);
         if (user) {
-            await this.userService.updateGoogleUser(user, googleUser.googleId, googleUser.avatarUrl)
+            await this.userService.updateGoogleUser(user, googleUser.providerId, googleUser.avatarUrl)
             return user;
         }
 
@@ -108,12 +108,52 @@ export class AuthService {
             username = `${baseName.slice(0, 10)}_${Date.now().toString().slice(-8)}`;
 
         const newUser = await this.userService.createGoogleUser({
-            googleId: googleUser.googleId,
+            providerId: googleUser.providerId,
             email: googleUser.email,
             username: username,
             firstName: googleUser.firstName,
             lastName: googleUser.lastName,
             avatarUrl: googleUser.avatarUrl,
+        });
+
+        return newUser;
+    }
+
+    async ValidateGithubUser(githubUser: OauthUserPayload): Promise<User> {
+        let user = await this.userService.findByGithubId(githubUser.providerId);
+        if (user)
+            return user;
+        user = await this.userService.findByEmail(githubUser.email);
+        if (user) {
+            await this.userService.updateGithubUser(user, githubUser.providerId, githubUser.avatarUrl)
+            return user;
+        }
+
+        let baseName = this.getUsername(githubUser.email).slice(0, 14);
+        let username = baseName;
+        let isUnique = false;
+        let attempts = 0;
+
+        while (!isUnique && attempts < 10) {
+            const existing = await this.userService.findByUsername(username);
+            if (!existing)
+                isUnique = true;
+            else {
+                const suffix = Math.floor(1000 + Math.random() * 9000);
+                username = `${baseName}_${suffix}`;
+                attempts++;
+            }
+        }
+        if (!isUnique)
+            username = `${baseName.slice(0, 10)}_${Date.now().toString().slice(-8)}`;
+
+        const newUser = await this.userService.createGithubUser({
+            githubId: githubUser.providerId,
+            email: githubUser.email,
+            username: username,
+            firstName: githubUser.firstName,
+            lastName: githubUser.lastName,
+            avatarUrl: githubUser.avatarUrl,
         });
 
         return newUser;
