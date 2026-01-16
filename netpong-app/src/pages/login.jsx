@@ -8,9 +8,17 @@ const initiateGoogleAuth = () => {
   window.location.href = '/api/auth/google';
 };
 
+const initiateGithubAuth = () => {
+  window.location.href = '/api/auth/github';
+};
+
 const handleSocialLogin = (provider) => {
   if (provider === 'google') {
     initiateGoogleAuth();
+  }
+
+  if (provider === 'github') {
+    initiateGithubAuth();
   }
 };
 
@@ -44,7 +52,7 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/auth/login', {
+  const response = await fetch('/api/auth/login', {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },

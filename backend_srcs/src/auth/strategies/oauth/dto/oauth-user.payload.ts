@@ -1,9 +1,9 @@
 import { IsEmail, IsOptional, IsString } from "class-validator";
 
-export class GoogleUserPayload
+export class OauthUserPayload
 {
     @IsString()
-    googleId:string;
+    providerId:string;
 
     @IsEmail()
     email:string;
