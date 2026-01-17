@@ -120,6 +120,32 @@ export class AuthController {
         return res.redirect(callbackUrl);
     }
 
+    @Get('42')
+    @UseGuards(AuthGuard('42'))
+    async intra42Auth(@Req() req)
+    {}
+
+    @Get('42/callback')
+    @UseGuards(AuthGuard('42'))
+    async intra42AuthRedirect(@Req() req, @Res({ passthrough: true }) res: ResponseWithCookie)
+    {
+        const user = req.user;
+
+        const authResponseDto: AuthResponseDto = await this.authService.login(user);
+
+        const refreshMaxAgeMs = this.authService.parseDurationToMs(this.config.get('JWT_REFRESH_EXPIRES'));
+        res.cookie('refreshToken', authResponseDto.tokens.RefreshToken, {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'strict',
+            maxAge: refreshMaxAgeMs,
+        });
+
+        const frontendUrl = this.config.get<string>('FRONTEND_URL') || 'https://localhost';
+        const callbackUrl = `${frontendUrl.replace(/\/$/, '')}/auth-callback?token=${encodeURIComponent(authResponseDto.tokens.AccessToken)}`;
+        return res.redirect(callbackUrl);
+    }
+
     @UseGuards(AuthGuard('refreshjwt'))
     @Post('logout')
     @HttpCode(HttpStatus.NO_CONTENT)

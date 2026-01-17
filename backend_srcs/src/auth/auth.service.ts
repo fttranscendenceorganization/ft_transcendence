@@ -108,7 +108,7 @@ export class AuthService {
             username = `${baseName.slice(0, 10)}_${Date.now().toString().slice(-8)}`;
 
         const newUser = await this.userService.createGoogleUser({
-            providerId: googleUser.providerId,
+            googleId: googleUser.providerId,
             email: googleUser.email,
             username: username,
             firstName: googleUser.firstName,
@@ -154,6 +154,46 @@ export class AuthService {
             firstName: githubUser.firstName,
             lastName: githubUser.lastName,
             avatarUrl: githubUser.avatarUrl,
+        });
+
+        return newUser;
+    }
+
+    async ValidateIntra42User(intra42User: OauthUserPayload): Promise<User> {
+        let user = await this.userService.findByIntra42Id(intra42User.providerId);
+        if (user)
+            return user;
+        user = await this.userService.findByEmail(intra42User.email);
+        if (user) {
+            await this.userService.updateGithubUser(user, intra42User.providerId, intra42User.avatarUrl)
+            return user;
+        }
+
+        let baseName = this.getUsername(intra42User.email).slice(0, 14);
+        let username = baseName;
+        let isUnique = false;
+        let attempts = 0;
+
+        while (!isUnique && attempts < 10) {
+            const existing = await this.userService.findByUsername(username);
+            if (!existing)
+                isUnique = true;
+            else {
+                const suffix = Math.floor(1000 + Math.random() * 9000);
+                username = `${baseName}_${suffix}`;
+                attempts++;
+            }
+        }
+        if (!isUnique)
+            username = `${baseName.slice(0, 10)}_${Date.now().toString().slice(-8)}`;
+
+        const newUser = await this.userService.createIntra42User({
+            intra42Id: intra42User.providerId,
+            email: intra42User.email,
+            username: username,
+            firstName: intra42User.firstName,
+            lastName: intra42User.lastName,
+            avatarUrl: intra42User.avatarUrl,
         });
 
         return newUser;

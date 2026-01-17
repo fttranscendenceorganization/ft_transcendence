@@ -46,6 +46,12 @@ export class UserService {
         });
     }
 
+    async findByIntra42Id(intra42Id: string): Promise<User | null> {
+        return await this.userrepo.findOne({
+            where: { intra42Id, isActive: true },
+        });
+    }
+
     async updateGoogleUser(user: User, googleId: string, avatarUrl: string | null) {
         user.googleId = googleId;
         user.avatarUrl = avatarUrl;
@@ -54,6 +60,12 @@ export class UserService {
 
     async updateGithubUser(user: User, githubId: string, avatarUrl: string | null) {
         user.githubId = githubId;
+        user.avatarUrl = avatarUrl;
+        await this.userrepo.save(user);
+    }
+
+    async updateIntra42bId(user: User, intra42Id: string, avatarUrl: string | null) {
+        user.intra42Id = intra42Id;
         user.avatarUrl = avatarUrl;
         await this.userrepo.save(user);
     }
@@ -67,7 +79,7 @@ export class UserService {
     }
 
     async createGoogleUser(data: {
-        providerId: string;
+        googleId: string;
         email: string;
         username: string;
         firstName: string;
@@ -85,6 +97,22 @@ export class UserService {
 
     async createGithubUser(data: {
         githubId: string;
+        email: string;
+        username: string;
+        firstName: string;
+        lastName: string;
+        avatarUrl: string | null;
+    }): Promise<User> {
+        const user = this.userrepo.create(data);
+        try {
+            return await this.userrepo.save(user);
+        } catch (error) {
+            throw new InternalServerErrorException('Failed to create user account');
+        }
+    }
+
+    async createIntra42User(data: {
+        intra42Id: string;
         email: string;
         username: string;
         firstName: string;

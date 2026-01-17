@@ -12,6 +12,10 @@ const initiateGithubAuth = () => {
   window.location.href = '/api/auth/github';
 };
 
+const initiateIntra42Auth = () => {
+  window.location.href = '/api/auth/42';
+};
+
 const handleSocialLogin = (provider) => {
   if (provider === 'google') {
     initiateGoogleAuth();
@@ -19,6 +23,10 @@ const handleSocialLogin = (provider) => {
 
   if (provider === 'github') {
     initiateGithubAuth();
+  }
+
+  if (provider === '42') {
+    initiateIntra42Auth();
   }
 };
 
