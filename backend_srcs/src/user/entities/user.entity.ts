@@ -27,6 +27,9 @@ export class User
     @Column({ unique: true, nullable: true, type: 'varchar' })
     githubId: string | null;
 
+    @Column({ unique: true, nullable: true, type: 'varchar' })
+    intra42Id: string | null;
+
     @Column({ nullable: true })
     @Exclude()
     password: string;
