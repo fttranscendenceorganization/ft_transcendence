@@ -11,6 +11,7 @@ import { RefreshJwtStrategy } from './strategies/refresh-jwt.strategy';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { GoogleStrategy } from './strategies/oauth/google.strategy';
 import { GithubStrategy } from './strategies/oauth/github.strategy';
+import { Intra42Strategy } from './strategies/oauth/intra42.strategy';
 
 @Module({
     imports : [
@@ -27,7 +28,7 @@ import { GithubStrategy } from './strategies/oauth/github.strategy';
         }),
     ],
     controllers : [AuthController],
-    providers : [AuthService, UserService, LocalStrategy, JwtStrategy, RefreshJwtStrategy, GoogleStrategy, GithubStrategy],
+    providers : [AuthService, UserService, LocalStrategy, JwtStrategy, RefreshJwtStrategy, GoogleStrategy, GithubStrategy, Intra42Strategy],
     exports : [],
 })
 

@@ -11,6 +11,10 @@ const initiateGithubAuth = () => {
     window.location.href = '/api/auth/github';
 };
 
+const initiateIntra42Auth = () => {
+    window.location.href = '/api/auth/42';
+};
+
 const VALIDATION_RULES = {
     firstName: {
         minLength: 1,
@@ -169,6 +173,10 @@ export default function SignUp() {
         }
         if (p === 'github') {
             initiateGithubAuth();
+            return;
+        }
+        if (p === '42') {
+            initiateIntra42Auth();
             return;
         }
     };
