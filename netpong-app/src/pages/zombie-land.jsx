@@ -5,7 +5,7 @@ import ZombieLandHeader from '../components/ZombieLandHeader';
 export default function ZombieLand() {
 
     useEffect(() => {
-        document.title = "Zombie Land-Netpong";
+        document.title = "Zombie Land - Netpong";
 
         const link = document.querySelector("link[rel~='icon']");
         if (link) {

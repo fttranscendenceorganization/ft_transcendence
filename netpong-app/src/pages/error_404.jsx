@@ -3,7 +3,7 @@ import { useEffect } from "react";
 export default function Error404() {
 
     useEffect(() => {
-        document.title = "Error 404-Netpong";
+        document.title = "Error 404 - Netpong";
 
         const link = document.querySelector("link[rel~='icon']");
         if (link) {

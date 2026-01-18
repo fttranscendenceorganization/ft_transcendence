@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 export default function Exclusive() {
 
     useEffect(() => {
-        document.title = "Exclusive-Netpong";
+        document.title = "Exclusive - Netpong";
     }, []);
 
     const [isVisible, setIsVisible] = useState(false);

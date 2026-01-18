@@ -6,7 +6,7 @@ import SoulHeader from '../components/SoulHeader';
 export default function SoulSociety() {
 
     useEffect(() => {
-        document.title = "Soul Society-Netpong";
+        document.title = "Soul Society - Netpong";
 
         const link = document.querySelector("link[rel~='icon']");
         if (link) {
