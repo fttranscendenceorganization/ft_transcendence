@@ -5,7 +5,7 @@ import BarbiePinkHeader from "../components/BarbiePinkHeader";
 export default function BarbiePink() {
 
     useEffect(() => {
-        document.title = "Barbie Pink-Netpong";
+        document.title = "Barbie Pink - Netpong";
 
         const link = document.querySelector("link[rel~='icon']");
         if (link) {

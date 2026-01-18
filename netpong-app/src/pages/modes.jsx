@@ -6,7 +6,7 @@ export default function GameModes() {
     const dropdownRef = useRef(null);
 
     useEffect(() => {
-        document.title = "Modes-Netpong";
+        document.title = "Modes - Netpong";
     }, []);
 
     useEffect(() => {

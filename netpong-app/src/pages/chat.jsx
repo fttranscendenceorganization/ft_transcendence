@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 
 export default function ChatPage() {
     useEffect(() => {
-        document.title = "Chat-Netpong";
+        document.title = "Chat - Netpong";
     }, []);
 
     const [message, setMessage] = useState('');

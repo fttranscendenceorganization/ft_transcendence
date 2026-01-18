@@ -5,7 +5,7 @@ import JokerHeader from '../components/JokerHeader';
 export default function Joker() {
 
     useEffect(() => {
-        document.title = "Joker-Netpong";
+        document.title = "Joker - Netpong";
 
         const link = document.querySelector("link[rel~='icon']");
         if (link) {
