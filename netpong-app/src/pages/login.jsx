@@ -33,7 +33,7 @@ const handleSocialLogin = (provider) => {
 export default function Login() {
 
   useEffect(() => {
-    document.title = "Login-Netpong";
+    document.title = "Login - Netpong";
 
     const link = document.querySelector("link[rel~='icon']");
     if (link) {

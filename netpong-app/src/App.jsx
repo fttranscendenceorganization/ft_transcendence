@@ -14,6 +14,8 @@ import Error404 from './pages/error_404';
 import Chat from './pages/chat';
 import GameModes from './pages/modes';
 import UserProfile from './pages/userDash';
+import PrivacyPolicy from './pages/policyPage';
+import TermsPage from './pages/termsPage';
 
 function Navigation() {
   const location = useLocation();
@@ -50,6 +52,8 @@ function App() {
             <Route path="/chat" element={<Chat />} />
             <Route path="/user" element={<UserProfile />} />
             <Route path="/modes" element={<GameModes />} />
+             <Route path="/policy" element={<PrivacyPolicy />} />
+            <Route path="/terms" element={<TermsPage />} />
 
             <Route path="*" element={<Error404 />} />
           </Routes>

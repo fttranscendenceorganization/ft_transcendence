@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 export default function UserProfile() {
 
     useEffect(() => {
-        document.title = "Profile-Netpong";
+        document.title = "Profile - Netpong";
     }, []);
 
     const navigate = useNavigate();

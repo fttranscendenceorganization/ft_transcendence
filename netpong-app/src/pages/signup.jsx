@@ -99,7 +99,7 @@ export default function SignUp() {
     const [apiError, setApiError] = useState('');
 
     useEffect(() => {
-        document.title = "Sign Up-Netpong";
+        document.title = "Sign Up - Netpong";
 
         const link = document.querySelector("link[rel~='icon']");
         if (link) {
@@ -408,7 +408,7 @@ export default function SignUp() {
 
                     <div className="text-center">
                         <p className="text-sm text-gray-400">
-                            By signing up, you agree to our <a href="#" className="text-purple-400 hover:text-purple-300 transition">Terms</a> and <a href="#" className="text-purple-400 hover:text-purple-300 transition">Privacy Policy</a>
+                            By signing up, you agree to our <a href="/terms" className="text-purple-400 hover:text-purple-300 transition">Terms</a> and <a href="/policy" className="text-purple-400 hover:text-purple-300 transition">Privacy Policy</a>
                         </p>
                     </div>
                 </div>
