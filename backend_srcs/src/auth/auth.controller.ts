@@ -70,8 +70,9 @@ export class AuthController {
 
     @Get('google')
     @UseGuards(AuthGuard('google'))
-    async googleAuth(@Req() req)
-    {}
+    async googleAuth(@Req() req) {}
+
+
 
     @Get('google/callback')
     @UseGuards(AuthGuard('google'))
@@ -90,14 +91,13 @@ export class AuthController {
         });
 
         const frontendUrl = this.config.get<string>('FRONTEND_URL') || 'https://localhost';
-        const callbackUrl = `${frontendUrl.replace(/\/$/, '')}/auth-callback?token=${encodeURIComponent(authResponseDto.tokens.AccessToken)}`;
+        const callbackUrl = `${frontendUrl.replace(/\/$/, '')}/auth-callback`;
         return res.redirect(callbackUrl);
     }
 
     @Get('github')
     @UseGuards(AuthGuard('github'))
-    async githubAuth(@Req() req)
-    {}
+    async githubAuth(@Req() req) {}
 
     @Get('github/callback')
     @UseGuards(AuthGuard('github'))
@@ -116,14 +116,13 @@ export class AuthController {
         });
 
         const frontendUrl = this.config.get<string>('FRONTEND_URL') || 'https://localhost';
-        const callbackUrl = `${frontendUrl.replace(/\/$/, '')}/auth-callback?token=${encodeURIComponent(authResponseDto.tokens.AccessToken)}`;
+        const callbackUrl = `${frontendUrl.replace(/\/$/, '')}/auth-callback`;
         return res.redirect(callbackUrl);
     }
 
     @Get('42')
     @UseGuards(AuthGuard('42'))
-    async intra42Auth(@Req() req)
-    {}
+    async intra42Auth(@Req() req) {}
 
     @Get('42/callback')
     @UseGuards(AuthGuard('42'))
@@ -142,7 +141,7 @@ export class AuthController {
         });
 
         const frontendUrl = this.config.get<string>('FRONTEND_URL') || 'https://localhost';
-        const callbackUrl = `${frontendUrl.replace(/\/$/, '')}/auth-callback?token=${encodeURIComponent(authResponseDto.tokens.AccessToken)}`;
+        const callbackUrl = `${frontendUrl.replace(/\/$/, '')}/auth-callback`;
         return res.redirect(callbackUrl);
     }
 

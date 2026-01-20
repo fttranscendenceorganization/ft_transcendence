@@ -27,6 +27,18 @@ export class UserResponseDto
     losses: number;
 
     @Expose()
+    level: number;
+
+    @Expose()
+    points: number;
+
+    @Expose()
+    rank: string;
+
+    @Expose()
+    favouriteGame: string;
+
+    @Expose()
     isActive: boolean;
 
     @Expose()
