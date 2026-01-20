@@ -10,10 +10,18 @@ export class UserService {
         @InjectRepository(User)
         private readonly userrepo: Repository<User>) { }
 
-    async findAll(): Promise<User[]> {
-        return this.userrepo.find({
+    async findAll(page = 1, limit = 20): Promise<{ items: User[]; total: number }> {
+        const maxLimit = 100;
+        const take = Math.min(limit, maxLimit);
+        const skip = (Math.max(page, 1) - 1) * take;
+
+        const [items, total] = await this.userrepo.findAndCount({
             where: { isActive: true },
+            take,
+            skip,
+            order: { createdAt: 'DESC' },
         });
+        return { items, total };
     }
 
     async findByUsername(username: string): Promise<User | null> {
@@ -52,22 +60,22 @@ export class UserService {
         });
     }
 
-    async updateGoogleUser(user: User, googleId: string, avatarUrl: string | null) {
+    async updateGoogleUser(user: User, googleId: string, avatarUrl: string | null): Promise<User> {
         user.googleId = googleId;
         user.avatarUrl = avatarUrl;
-        await this.userrepo.save(user);
+        return await this.userrepo.save(user);
     }
 
-    async updateGithubUser(user: User, githubId: string, avatarUrl: string | null) {
+    async updateGithubUser(user: User, githubId: string, avatarUrl: string | null): Promise<User> {
         user.githubId = githubId;
         user.avatarUrl = avatarUrl;
-        await this.userrepo.save(user);
+        return await this.userrepo.save(user);
     }
 
-    async updateIntra42bId(user: User, intra42Id: string, avatarUrl: string | null) {
+    async updateIntra42User(user: User, intra42Id: string, avatarUrl: string | null): Promise<User> {
         user.intra42Id = intra42Id;
         user.avatarUrl = avatarUrl;
-        await this.userrepo.save(user);
+        return await this.userrepo.save(user);
     }
 
     async updateRefreshToken(userId: string, refreshTokenHashed: string | null) {

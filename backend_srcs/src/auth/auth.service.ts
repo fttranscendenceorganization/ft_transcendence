@@ -81,12 +81,12 @@ export class AuthService {
 
     async ValidateGoogleUser(googleUser: OauthUserPayload): Promise<User> {
         let user = await this.userService.findByGoogleId(googleUser.providerId);
-        if (user)
-            return user;
+        if (user) {
+            return await this.userService.updateGoogleUser(user, googleUser.providerId, googleUser.avatarUrl);
+        }
         user = await this.userService.findByEmail(googleUser.email);
         if (user) {
-            await this.userService.updateGoogleUser(user, googleUser.providerId, googleUser.avatarUrl)
-            return user;
+            return await this.userService.updateGoogleUser(user, googleUser.providerId, googleUser.avatarUrl);
         }
 
         let baseName = this.getUsername(googleUser.email).slice(0, 14);
@@ -121,12 +121,12 @@ export class AuthService {
 
     async ValidateGithubUser(githubUser: OauthUserPayload): Promise<User> {
         let user = await this.userService.findByGithubId(githubUser.providerId);
-        if (user)
-            return user;
+        if (user) {
+            return await this.userService.updateGithubUser(user, githubUser.providerId, githubUser.avatarUrl);
+        }
         user = await this.userService.findByEmail(githubUser.email);
         if (user) {
-            await this.userService.updateGithubUser(user, githubUser.providerId, githubUser.avatarUrl)
-            return user;
+            return await this.userService.updateGithubUser(user, githubUser.providerId, githubUser.avatarUrl);
         }
 
         let baseName = this.getUsername(githubUser.email).slice(0, 14);
@@ -161,12 +161,12 @@ export class AuthService {
 
     async ValidateIntra42User(intra42User: OauthUserPayload): Promise<User> {
         let user = await this.userService.findByIntra42Id(intra42User.providerId);
-        if (user)
-            return user;
+        if (user) {
+            return await this.userService.updateIntra42User(user, intra42User.providerId, intra42User.avatarUrl);
+        }
         user = await this.userService.findByEmail(intra42User.email);
         if (user) {
-            await this.userService.updateGithubUser(user, intra42User.providerId, intra42User.avatarUrl)
-            return user;
+            return await this.userService.updateIntra42User(user, intra42User.providerId, intra42User.avatarUrl);
         }
 
         let baseName = this.getUsername(intra42User.email).slice(0, 14);

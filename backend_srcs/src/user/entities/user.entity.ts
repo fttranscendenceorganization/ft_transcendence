@@ -46,6 +46,18 @@ export class User
     @Column({default: 0})
     losses: number;
 
+    @Column({default: 1})
+    level: number;
+
+    @Column({default: 0})
+    points: number;
+
+    @Column({ type: 'varchar', nullable: true })
+    rank: string | null;
+
+    @Column({ type: 'varchar', nullable: true })
+    favouriteGame: string | null;
+
     @Column({default: true})
     isActive: boolean;
 

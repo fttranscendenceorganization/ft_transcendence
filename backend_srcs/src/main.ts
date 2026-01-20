@@ -14,8 +14,7 @@ async function bootstrap() {
     transform: true,
   }));
   
-  // Parse CORS origins from env (comma-separated)
-  const corsOriginsEnv = configService.get<string>('CORS_ORIGINS') || 'http://localhost:5173';
+  const corsOriginsEnv = configService.get<string>('CORS_ORIGINS') || 'https://localhost';
   const corsOrigins = corsOriginsEnv.split(',').map(origin => origin.trim());
 
   app.enableCors({

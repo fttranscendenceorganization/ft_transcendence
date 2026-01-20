@@ -22,6 +22,12 @@ export class GithubStrategy extends PassportStrategy(Strategy)
             })
         }
 
+    authorizationParams(options: any): object {
+        return {
+            prompt: 'select_account'
+        };
+    }
+
     async validate(accessToken: string, refrshToken: string, profile: Profile, done: any) {
         const email = profile.emails?.[0]?.value;
         if (!email)

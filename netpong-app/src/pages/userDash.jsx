@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { logout, authFetch } from '../utils/api';
 
 export default function UserProfile() {
 
@@ -13,28 +14,36 @@ export default function UserProfile() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-
-        // My example for the data returned by the backend used from login page
-        const MyUserData = {
-            firstName: "Ahmed",
-            lastName: "Ahlaqqach",
-            username: "aahlaqqa",
-            email: "ahmed@gmail.com",
-            avatar: "A", // we can use this and replace it with an avatar later instead of the letter
-            wins: 14,
-            losses: 5,
-            points: 245,
-            rank: "Diamond",
-            level: 42,
-            favoriteGame: "Zombie Land",
-            joinDate: "January 2026",
-            winRate: 73.9
-        };
-
-        setTimeout(() => {
-            setUserData(MyUserData);
-            setLoading(false);
-        }, 500);
+        (async () => {
+            try {
+                const res = await authFetch('/api/auth/me', { method: 'GET' });
+                if (!res.ok) {
+                    window.location.href = '/login';
+                    return;
+                }
+                const data = await res.json();
+                const user = {
+                    firstName: data.firstName,
+                    lastName: data.lastName,
+                    username: data.username,
+                    email: data.email,
+                    avatar: data.avatarUrl,
+                    wins: data.wins,
+                    losses: data.losses,
+                    points: data.points,
+                    rank: data.rank ?? 'Unranked',
+                    level: data.level,
+                    favoriteGame: data.favoriteGame ?? 'Unknown',
+                    joinDate: data.createdAt ? new Date(data.createdAt).toLocaleString() : '',
+                    winRate: data.wins ? Math.round((data.wins / Math.max(1, (data.wins + (data.losses ?? 0)))) * 10) / 10 : 0,
+                };
+                setUserData(user);
+                setLoading(false);
+            } catch (err) {
+                console.error('Failed fetching user profile', err);
+                window.location.href = '/login';
+            }
+        })();
     }, []);
 
     if (loading) {
@@ -60,10 +69,10 @@ export default function UserProfile() {
                 <a href="/" className="flex items-center group">
                     <img src="/images/netpong.svg" alt="NETPONG Logo" className="h-8 md:h-10 w-auto transition-transform group-hover:scale-110" />
                 </a>
-                <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-4">
                     <a href="/chat" className="text-white hover:text-orange-400 font-bold transition">Chat</a>
                     <button
-                        onClick={() => navigate('/logout')}
+                        onClick={async () => { await logout(); }}
                         className="bg-red-700 hover:bg-red-600 text-white py-2 px-4 md:px-5 font-bold rounded-lg shadow-xl transition text-sm md:text-base"
                     >
                         Logout
@@ -78,8 +87,16 @@ export default function UserProfile() {
                         <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
 
                             <div className="relative group">
-                                <div className="w-32 h-32 md:w-40 md:h-40 bg-gradient-to-br from-orange-500 to-red-600 rounded-full flex items-center justify-center shadow-2xl border-4 border-white/20 group-hover:scale-110 transition-transform duration-300">
-                                    <span className="text-6xl md:text-7xl font-extrabold text-white">{userData.avatar}</span>
+                                <div className="w-32 h-32 md:w-40 md:h-40 bg-gradient-to-br from-orange-500 to-red-600 rounded-full flex items-center justify-center shadow-2xl border-4 border-white/20 group-hover:scale-110 transition-transform duration-300 overflow-hidden">
+                                    {typeof userData.avatar === 'string' && (userData.avatar.startsWith('http') || userData.avatar.startsWith('/')) ? (
+                                        <img
+                                            src={userData.avatar}
+                                            alt={`${userData.username} avatar`}
+                                            className="w-full h-full object-cover rounded-full"
+                                        />
+                                    ) : (
+                                        <span className="text-6xl md:text-7xl font-extrabold text-white">{userData.avatar}</span>
+                                    )}
                                 </div>
                                 <div className="absolute bottom-2 right-2 w-8 h-8 bg-green-500 border-4 border-slate-900 rounded-full"></div>
                             </div>
