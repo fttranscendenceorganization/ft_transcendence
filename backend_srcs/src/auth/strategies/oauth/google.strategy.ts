@@ -22,6 +22,13 @@ export class GoogleStrategy extends PassportStrategy(Strategy)
         })
     }
 
+    authenticate(req: any, options?: any) {
+        options = options || {};
+        options.prompt = 'select_account';
+        options.accessType = 'offline';
+        super.authenticate(req, options);
+    }
+
 
     async validate(accessToken:string, refrshToken:string, profile:Profile, done:VerifyCallback) 
     {
