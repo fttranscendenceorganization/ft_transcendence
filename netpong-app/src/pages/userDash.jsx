@@ -18,7 +18,7 @@ export default function UserProfile() {
             try {
                 const res = await authFetch('/api/auth/me', { method: 'GET' });
                 if (!res.ok) {
-                    window.location.href = '/login';
+                    navigate('/login');
                     return;
                 }
                 const data = await res.json();
@@ -41,10 +41,10 @@ export default function UserProfile() {
                 setLoading(false);
             } catch (err) {
                 console.error('Failed fetching user profile', err);
-                window.location.href = '/login';
+                navigate('/login');
             }
         })();
-    }, []);
+    }, [navigate]);
 
     if (loading) {
         return (
