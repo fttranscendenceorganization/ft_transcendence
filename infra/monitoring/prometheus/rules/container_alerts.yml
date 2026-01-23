@@ -1,0 +1,13 @@
+groups:
+- name: container-alerts
+  rules:
+
+  - alert: ContainerDown
+    expr: |
+      absent(container_last_seen)
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Container down"
+      description: "One or more containers are not running"
