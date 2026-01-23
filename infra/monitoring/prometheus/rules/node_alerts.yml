@@ -1,0 +1,41 @@
+groups:
+- name: node-alerts
+  rules:
+
+  - alert: HighCPUUsage
+    expr: |
+      100 - (
+        avg by (instance) (
+          rate(node_cpu_seconds_total{mode="idle"}[2m])
+        ) * 100
+      ) > 80
+    for: 2m
+    labels:
+      severity: warning
+    annotations:
+      summary: "High CPU usage on {{ $labels.instance }}"
+      description: "CPU usage is above 80% for more than 2 minutes"
+
+  - alert: HighMemoryUsage
+    expr: |
+      (1 - (
+        node_memory_MemAvailable_bytes /
+        node_memory_MemTotal_bytes
+      )) * 100 > 80
+    for: 2m
+    labels:
+      severity: warning
+    annotations:
+      summary: "High memory usage on {{ $labels.instance }}"
+      description: "Memory usage is above 80%"
+
+  - alert: DiskAlmostFull
+    expr: |
+      (node_filesystem_avail_bytes{mountpoint="/"} /
+       node_filesystem_size_bytes{mountpoint="/"}) * 100 < 15
+    for: 2m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Disk almost full on {{ $labels.instance }}"
+      description: "Disk space below 15%"
