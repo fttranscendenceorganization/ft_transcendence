@@ -111,7 +111,7 @@ export default function Login() {
 
             <h2 className="font-bold text-2xl md:text-4xl text-zinc-100 text-center mb-2">
               <span className="relative inline-block">
-                SIGN IN
+                LOG IN
                 <span className="absolute -bottom-2 left-0 w-full h-1 bg-gradient-to-r from-violet-600 via-purple-500 to-violet-600 rounded-full"></span>
               </span>
             </h2>
@@ -212,7 +212,7 @@ export default function Login() {
               </div>
 
               <div className="text-center mt-6">
-                <a href="#" className="text-sm text-violet-300 hover:text-violet-200 transition">Forgot Password?</a>
+                <a href="/forgot-password" className="text-sm text-violet-300 hover:text-violet-200 transition">Forgot Password?</a>
               </div>
             </form>
 
