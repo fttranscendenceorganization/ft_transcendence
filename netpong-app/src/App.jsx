@@ -16,10 +16,11 @@ import GameModes from './pages/modes';
 import UserProfile from './pages/userDash';
 import PrivacyPolicy from './pages/policyPage';
 import TermsPage from './pages/termsPage';
+import ForgotPassword from './pages/forgotPassword';
 
 function Navigation() {
   const location = useLocation();
-  const hideHeaderPaths = ['/login', '/signup', '/soul-society', '/zombie-land', '/joker', '/barbie-pink', '/chat'];
+  const hideHeaderPaths = ['/login', '/signup', '/soul-society', '/zombie-land', '/joker', '/barbie-pink', '/chat', '/forgot-password'];
   const validPathsWithHeader = ['/', '/exclusive', '/contact', '/modes'];
 
   if (hideHeaderPaths.includes(location.pathname) || !validPathsWithHeader.includes(location.pathname)) {
@@ -52,8 +53,9 @@ function App() {
             <Route path="/chat" element={<Chat />} />
             <Route path="/user" element={<UserProfile />} />
             <Route path="/modes" element={<GameModes />} />
-             <Route path="/policy" element={<PrivacyPolicy />} />
+            <Route path="/policy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<TermsPage />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
 
             <Route path="*" element={<Error404 />} />
           </Routes>
