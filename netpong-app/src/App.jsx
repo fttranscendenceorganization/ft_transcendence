@@ -17,10 +17,11 @@ import UserProfile from './pages/userDash';
 import PrivacyPolicy from './pages/policyPage';
 import TermsPage from './pages/termsPage';
 import ForgotPassword from './pages/forgotPassword';
+import ResetPassword from './pages/resetPassword';
 
 function Navigation() {
   const location = useLocation();
-  const hideHeaderPaths = ['/login', '/signup', '/soul-society', '/zombie-land', '/joker', '/barbie-pink', '/chat', '/forgot-password'];
+  const hideHeaderPaths = ['/login', '/signup', '/soul-society', '/zombie-land', '/joker', '/barbie-pink', '/chat', '/forgot-password', '/reset-password'];
   const validPathsWithHeader = ['/', '/exclusive', '/contact', '/modes'];
 
   if (hideHeaderPaths.includes(location.pathname) || !validPathsWithHeader.includes(location.pathname)) {
@@ -56,6 +57,7 @@ function App() {
             <Route path="/policy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<TermsPage />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
 
             <Route path="*" element={<Error404 />} />
           </Routes>

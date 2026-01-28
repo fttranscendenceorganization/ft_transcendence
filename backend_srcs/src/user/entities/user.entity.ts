@@ -58,6 +58,12 @@ export class User
     @Column({ type: 'varchar', nullable: true })
     favouriteGame: string | null;
 
+    @Column({ type: 'text', nullable: true })
+    resetPasswordTokenHash: string | null;
+
+    @Column({ type: 'timestamptz', nullable: true })
+    resetPasswordExpiresAt: Date | null;
+
     @Column({default: true})
     isActive: boolean;
 
