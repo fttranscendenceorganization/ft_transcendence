@@ -30,10 +30,33 @@ export default function ForgotPassword() {
         setError('');
         setIsLoading(true);
 
-        setTimeout(() => {
-            setIsLoading(false);
+        try {
+            const res = await fetch('/api/auth/forgot-password', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email }),
+            });
+
+            if (!res.ok) {
+                let message = 'Failed to send reset instructions. Please try again.';
+                try {
+                    const data = await res.json();
+                    if (data?.message)
+                        message = data.message;
+                } catch {
+                }
+                setError(message);
+                return;
+            }
+
             setSuccess(true);
-        }, 2000);
+        } catch (err) {
+            setError('Network error. Please try again.');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (

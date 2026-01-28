@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { UserService } from 'src/user/user.service';
 import { AuthResponseDto } from './dto/auth-response.dto';
 import * as bcrypt from 'bcrypt';
@@ -10,6 +10,8 @@ import { JwtPayload } from './types/jwtpayload.type';
 import { Tokens } from './types/tokens.type';
 import { ConfigService } from '@nestjs/config';
 import { OauthUserPayload } from './strategies/oauth/dto/oauth-user.payload';
+import { EmailService } from 'src/email/email.service';
+import * as crypto from 'crypto';
 
 
 @Injectable()
@@ -17,6 +19,7 @@ export class AuthService {
     constructor(private readonly userService: UserService,
         private readonly jwtService: JwtService,
         private readonly config: ConfigService,
+        private readonly emailService: EmailService,
     ) { }
 
     async validateUser(emailOrusername: string, password: string): Promise<User | null> {
@@ -206,6 +209,35 @@ export class AuthService {
     async isRefreshTokenValid(inputRefrshToken, userRefreshTokenHash): Promise<boolean> {
         const isTokenMatch = await bcrypt.compare(inputRefrshToken, userRefreshTokenHash);
         return isTokenMatch;
+    }
+
+    async requestPasswordReset(email: string): Promise<void> {
+        const normalizedEmail = email.toLowerCase().trim();
+        const user = await this.userService.findByEmail(normalizedEmail);
+
+        if (!user)
+            return;
+
+        const token = crypto.randomBytes(32).toString('hex');
+        const tokenHash = this.hashResetToken(token);
+        const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+        await this.userService.setResetPasswordToken(user, tokenHash, expiresAt);
+        await this.emailService.sendPasswordResetEmail(normalizedEmail, token);
+    }
+
+    async resetPassword(token: string, newPassword: string): Promise<void> {
+        const tokenHash = this.hashResetToken(token);
+        const user = await this.userService.findByResetPasswordTokenHash(tokenHash);
+
+        if (!user || !user.resetPasswordExpiresAt || user.resetPasswordExpiresAt < new Date())
+            throw new BadRequestException('Invalid or expired reset token');
+
+        await this.userService.updatePasswordAfterReset(user, newPassword);
+    }
+
+    private hashResetToken(token: string): string {
+        return crypto.createHash('sha256').update(token).digest('hex');
     }
 
     private getUsername(email: string): string {

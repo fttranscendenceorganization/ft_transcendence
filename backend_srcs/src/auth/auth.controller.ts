@@ -1,4 +1,4 @@
-import { Controller, Get, HttpCode, HttpStatus, Post, Req, Request, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Post, Req, Request, Res, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthGuard } from '@nestjs/passport';
 import { User } from 'src/user/entities/user.entity';
@@ -7,6 +7,8 @@ import { UserResponseDto } from 'src/user/dto/user-response.dto';
 import { plainToInstance } from 'class-transformer';
 import type { Response } from 'express';
 import { ConfigService } from '@nestjs/config';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 type ResponseWithCookie = Response & {
     cookie: (name: string, val: string, options?: Record<string, unknown>) => void;
@@ -159,6 +161,21 @@ export class AuthController {
             sameSite: 'strict',
             maxAge: 0,
         });
+    }
+
+    @Post('forgot-password')
+    @HttpCode(HttpStatus.OK)
+    async forgotPassword(@Body() body: ForgotPasswordDto): Promise<{ message: string }>
+    {
+        await this.authService.requestPasswordReset(body.email);
+        return { message: 'If an account with that email exists, a password reset link has been sent.' };
+    }
+
+    @Post('reset-password')
+    @HttpCode(HttpStatus.NO_CONTENT)
+    async resetPassword(@Body() body: ResetPasswordDto): Promise<void>
+    {
+        await this.authService.resetPassword(body.token, body.newPassword);
     }
 
     @UseGuards(AuthGuard('jwt'))

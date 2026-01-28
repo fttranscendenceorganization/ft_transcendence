@@ -86,6 +86,32 @@ export class UserService {
         await this.userrepo.save(user);
     }
 
+    async setResetPasswordToken(user: User, tokenHash: string, expiresAt: Date): Promise<void> {
+        user.resetPasswordTokenHash = tokenHash;
+        user.resetPasswordExpiresAt = expiresAt;
+        await this.userrepo.save(user);
+    }
+
+    async clearResetPasswordToken(user: User): Promise<void> {
+        user.resetPasswordTokenHash = null;
+        user.resetPasswordExpiresAt = null;
+        await this.userrepo.save(user);
+    }
+
+    async findByResetPasswordTokenHash(tokenHash: string): Promise<User | null> {
+        return await this.userrepo.findOne({
+            where: { resetPasswordTokenHash: tokenHash, isActive: true },
+        });
+    }
+
+    async updatePasswordAfterReset(user: User, newPassword: string): Promise<void> {
+        user.password = newPassword;
+        user.refreshTokenHash = null;
+        user.resetPasswordTokenHash = null;
+        user.resetPasswordExpiresAt = null;
+        await this.userrepo.save(user);
+    }
+
     async createGoogleUser(data: {
         googleId: string;
         email: string;
