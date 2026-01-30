@@ -3,11 +3,10 @@ groups:
   rules:
 
   - alert: ContainerDown
-    expr: |
-      absent(container_last_seen)
+    expr: up{job="cadvisor"} == 0
     for: 1m
     labels:
       severity: critical
     annotations:
-      summary: "Container down"
-      description: "One or more containers are not running"
+      summary: "cAdvisor Monitoring Service is Down"
+      description: "cAdvisor exporter is not reachable on production VM"
