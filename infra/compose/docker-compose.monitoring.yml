@@ -18,10 +18,6 @@ services:
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
-    environment:
-      - GF_SERVER_DOMAIN=netpong.games
-      - GF_SERVER_ROOT_URL=https://netpong.games/grafana/
-      - GF_SERVER_SERVE_FROM_SUB_PATH=false
     env_file:
       - /etc/netpong/grafana.env
     volumes:
@@ -46,7 +42,6 @@ services:
       - internal_net
     restart: always
 
-
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:latest
     container_name: cadvisor
@@ -68,6 +63,17 @@ services:
       - ../monitoring/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
     command:
       - "--config.file=/etc/alertmanager/alertmanager.yml"
+    networks:
+      - internal_net
+    restart: always
+  
+  alertmanager-discord:
+    image: benjojo/alertmanager-discord:latest
+    container_name: alertmanager-discord
+    env_file:
+      - /etc/netpong/discord.env
+    ports:
+      - "9094:9094"
     networks:
       - internal_net
     restart: always
