@@ -13,10 +13,15 @@ export class EmailService {
 
     private initializeTransporter() {
         const host = this.configService.get<string>('SMTP_HOST');
-        const port = this.configService.get<number>('SMTP_PORT');
+        const portRaw = this.configService.get<string | number>('SMTP_PORT');
         const user = this.configService.get<string>('SMTP_USER');
         const pass = this.configService.get<string>('SMTP_PASS');
-        const secure = this.configService.get<boolean>('SMTP_SECURE', false);
+        const secureRaw = this.configService.get<string | boolean>('SMTP_SECURE', false);
+
+        const port = typeof portRaw === 'string' ? Number(portRaw) : portRaw;
+        const secure = typeof secureRaw === 'string'
+            ? secureRaw.trim().toLowerCase() === 'true'
+            : Boolean(secureRaw);
 
         if (!host || !port) {
             this.logger.warn('SMTP not configured - emails disabled');
@@ -34,6 +39,9 @@ export class EmailService {
             secure,
             auth: user && pass ? { user, pass } : undefined,
             tls: { rejectUnauthorized: false },
+            connectionTimeout: 10000,
+            greetingTimeout: 10000,
+            socketTimeout: 20000,
         });
 
         this.logger.log(`SMTP: ${host}:${port}`);
@@ -43,8 +51,23 @@ export class EmailService {
         const frontendUrl = this.configService.get<string>('FRONTEND_URL', 'http://localhost:3000');
         const resetUrl = `${frontendUrl}/reset-password?token=${resetToken}`;
 
+        const smtpUser = this.configService.get<string>('SMTP_USER');
+        const fromConfig = this.configService.get<string>('SMTP_FROM');
+        const defaultFrom = smtpUser
+            ? `"NetPong Support" <${smtpUser}>`
+            : '"NetPong Support" <noreply@netpong.com>';
+
+        const from = fromConfig && fromConfig.includes('@') ? fromConfig : defaultFrom;
+        const replyTo = fromConfig && smtpUser && !fromConfig.includes(smtpUser)
+            ? fromConfig
+            : undefined;
+
+        const resendApiKey = this.configService.get<string>('RESEND_API_KEY');
+        const resendFrom = this.configService.get<string>('RESEND_FROM') || from;
+
         const mailOptions = {
-            from: this.configService.get<string>('SMTP_FROM', '"NetPong Support" <noreply@netpong.com>'),
+            from,
+            replyTo,
             to: email,
             subject: 'Password Reset Request - NetPong',
             html: `
@@ -132,9 +155,15 @@ If you didn't request this reset, please ignore this email. Your password will r
             `,
         };
 
+        if (resendApiKey) {
+            await this.sendWithResend(resendApiKey, resendFrom, replyTo, email, mailOptions.subject, mailOptions.html, mailOptions.text);
+            return;
+        }
+
         try {
-            const info = await this.transporter.sendMail(mailOptions);
-            
+            await this.transporter.verify();
+            await this.transporter.sendMail(mailOptions);
+
             if (this.transporter.options['streamTransport']) {
                 this.logger.log(`DEV MODE - Reset URL: ${resetUrl}`);
             } else {
@@ -142,6 +171,50 @@ If you didn't request this reset, please ignore this email. Your password will r
             }
         } catch (error) {
             this.logger.error(`Email failed for ${email}:`, error.message);
+            throw new Error('Failed to send email');
+        }
+    }
+
+    private async sendWithResend(
+        apiKey: string,
+        from: string,
+        replyTo: string | undefined,
+        to: string,
+        subject: string,
+        html: string,
+        text: string,
+    ): Promise<void> {
+        try {
+            const payload: Record<string, unknown> = {
+                from,
+                to,
+                subject,
+                html,
+                text,
+            };
+
+            if (replyTo) {
+                payload.reply_to = replyTo;
+            }
+
+            const response = await fetch('https://api.resend.com/emails', {
+                method: 'POST',
+                headers: {
+                    Authorization: `Bearer ${apiKey}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload),
+            });
+
+            if (!response.ok) {
+                const errorBody = await response.text();
+                this.logger.error(`Resend error (${response.status}): ${errorBody}`);
+                throw new Error('Failed to send email');
+            }
+
+            this.logger.log(`Email sent via Resend to ${to}`);
+        } catch (error) {
+            this.logger.error(`Resend failed for ${to}:`, error.message);
             throw new Error('Failed to send email');
         }
     }
