@@ -37,7 +37,7 @@ export default function Contact() {
             hoverBorder: 'hover:border-orange-500/50'
         },
         {
-            name: 'Mohammed',
+            name: 'Mohamed',
             role: 'Devops',
             initial: 'M',
             bgColor: 'bg-purple-500',

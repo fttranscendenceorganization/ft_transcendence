@@ -61,7 +61,7 @@ export default function SoulHeader() {
             </Link>
 
             <nav className="md:absolute md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 flex flex-wrap justify-center items-center gap-4 md:gap-8 text-sm md:text-base">
-                <Link to="/" className="text-white font-bold hover:text-gray-400 transition-all duration-300 relative group ">
+                <Link to="/home" className="text-white font-bold hover:text-gray-400 transition-all duration-300 relative group ">
                     Home
                     <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gray-400 transition-all duration-300 group-hover:w-full"></span>
                 </Link>
@@ -145,12 +145,37 @@ export default function SoulHeader() {
                 </Link>
             </nav>
 
-            <Link
-                to="/chat"
-                className="relative overflow-hidden bg-gradient-to-r from-gary-700 to-gray-600 hover:from-gray-600 hover:to-gray-500 text-white py-2 px-4 md:px-5 font-bold rounded-lg shadow-xl transition-all duration-300 text-sm md:text-base hover:scale-105 hover:shadow-gray-500/50 group/btn">
-                <span className="relative z-10">START CHAT</span>
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700"></div>
-            </Link>
+            <div className="flex items-center gap-4">
+                <Link
+                    to="/chat"
+                    className="relative overflow-hidden bg-gradient-to-r 
+                   from-gray-700 to-gray-600 
+                   hover:from-gray-600 hover:to-gray-500
+                   text-white py-2 px-4 md:px-5 font-bold rounded-lg 
+                   shadow-xl transition-all duration-300 
+                   text-sm md:text-base hover:scale-105 hover:shadow-gray-500/50 
+                   group/chat"
+                >
+                    <span className="relative z-10">Chat</span>
+                    <div className="absolute inset-0 bg-gradient-to-r 
+                        from-transparent via-white/20 to-transparent 
+                        -translate-x-full group-hover/chat:translate-x-full 
+                        transition-transform duration-700" />
+                </Link>
+
+                <button
+                    onClick={async () => { await logout(); }}
+                    className="relative overflow-hidden bg-gradient-to-r 
+                   from-gray-800 to-gray-700
+                   hover:from-gray-700 hover:to-gray-600
+                   text-white py-2 px-4 md:px-5 font-bold rounded-lg 
+                   shadow-xl transition-all duration-300 
+                   text-sm md:text-base hover:scale-105 hover:shadow-gray-500/40"
+                >
+                    Logout
+                </button>
+            </div>
+
 
             <style jsx>{`
                 @keyframes slideIn {
