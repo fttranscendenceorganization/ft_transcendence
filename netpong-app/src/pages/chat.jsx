@@ -29,7 +29,7 @@ export default function ChatPage() {
         return saved ? JSON.parse(saved) : [
             { id: 1, userId: '4', user: 'Youssef', initial: 'Y', time: '2:30 PM', text: 'Welcome to NETPONG chat!', isSent: false, color: 'from-purple-500 to-violet-600', delivered: true, read: true },
             { id: 2, user: 'You', initial: 'Y', time: '2:31 PM', text: 'Hey! Ready to play?', isSent: true, color: 'from-orange-500 to-red-600', delivered: true, read: true },
-            { id: 3, userId: '3', user: 'Mohammed', initial: 'M', time: '2:32 PM', text: 'Anyone up for Zombie Land mode?', isSent: false, color: 'from-green-500 to-emerald-600', delivered: true, read: true },
+            { id: 3, userId: '3', user: 'Mohamed', initial: 'M', time: '2:32 PM', text: 'Anyone up for Zombie Land mode?', isSent: false, color: 'from-green-500 to-emerald-600', delivered: true, read: true },
             { id: 4, userId: '2', user: 'Houdaifa', initial: 'H', time: '2:33 PM', text: "I'm in! Let's do this!", isSent: false, color: 'from-pink-500 to-rose-600', delivered: true, read: true }
         ];
     }); // Default messages showed in the first re-render ever
@@ -47,12 +47,12 @@ export default function ChatPage() {
     const onlinePlayers = [
         { id: '1', name: 'Ahmed', initial: 'A', game: 'Zombie Land', color: 'from-orange-500 to-red-600' },
         { id: '2', name: 'Houdaifa', initial: 'H', game: 'Barbie Pink', color: 'from-purple-500 to-violet-600' },
-        { id: '3', name: 'Mohammed', initial: 'M', game: 'Saul Society', color: 'from-green-500 to-emerald-600' },
+        { id: '3', name: 'Mohamed', initial: 'M', game: 'Saul Society', color: 'from-green-500 to-emerald-600' },
         { id: '4', name: 'Youssef', initial: 'Y', game: 'Joker', color: 'from-pink-500 to-rose-600' }
     ].filter(player => !blockedUsers.includes(player.id)); // onlien players excluded from the blocked users
 
     const liveMatches = [
-        { type: 'live', title: 'Final Game', description: 'Ahmed vs Mohammed - Zombie Land', badge: 'LIVE NOW', badgeColor: 'green' },
+        { type: 'live', title: 'Final Game', description: 'Ahmed vs Mohamed - Zombie Land', badge: 'LIVE NOW', badgeColor: 'green' },
         { type: 'recent', title: 'Recent Match', description: 'Houdaifa wins Barbie Pink tournament', badge: 'Winner Chicken Dinner !!', badgeColor: 'orange' },
         { type: 'top', title: 'Top Player', description: 'Youssef - 10 wins streak', badge: 'MVP', badgeColor: 'yellow' }
     ];
@@ -171,7 +171,7 @@ export default function ChatPage() {
     return (
         <div className="h-screen flex flex-col overflow-hidden bg-slate-900">
             <header className="w-full bg-slate-900 py-4 relative flex flex-col md:flex-row items-center justify-between px-4 md:px-6 z-20 shadow-md gap-4 md:gap-0 border-b border-slate-800">
-                <a href="/" className="flex items-center group">
+                <a href="/home" className="flex items-center group">
                     <img src="/images/netpong.svg" alt="NETPONG Logo" className="h-8 md:h-10 w-auto transition-transform group-hover:scale-110" />
                 </a>
                 <div className="flex items-center gap-3">
@@ -284,7 +284,7 @@ export default function ChatPage() {
                                     const allPlayers = [
                                         { id: '1', name: 'Ahmed', initial: 'A', color: 'from-orange-500 to-red-600' },
                                         { id: '2', name: 'Houdaifa', initial: 'H', color: 'from-purple-500 to-violet-600' },
-                                        { id: '3', name: 'Mohammed', initial: 'M', color: 'from-green-500 to-emerald-600' },
+                                        { id: '3', name: 'Mohamed', initial: 'M', color: 'from-green-500 to-emerald-600' },
                                         { id: '4', name: 'Youssef', initial: 'Y', color: 'from-pink-500 to-rose-600' }
                                     ];
                                     const user = allPlayers.find(p => p.id === userId);
