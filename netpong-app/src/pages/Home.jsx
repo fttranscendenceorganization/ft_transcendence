@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 export default function UserHome() {
 
     useEffect(() => {
-        document.title = "Dashboard - Netpong";
+        document.title = "User Home - Netpong";
     }, []);
 
     const gameModes = [
