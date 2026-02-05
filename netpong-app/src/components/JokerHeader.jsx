@@ -61,7 +61,7 @@ export default function JokerHeader() {
             </Link>
 
             <nav className="md:absolute md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 flex flex-wrap justify-center items-center gap-4 md:gap-8 text-sm md:text-base">
-                <Link to="/" className="text-white font-bold hover:text-red-500 transition-all duration-300 relative group">
+                <Link to="/home" className="text-white font-bold hover:text-red-500 transition-all duration-300 relative group">
                     Home
                     <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-red-400 transition-all duration-300 group-hover:w-full"></span>
                 </Link>

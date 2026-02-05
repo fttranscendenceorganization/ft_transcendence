@@ -53,7 +53,7 @@ export default function ZombieLandHeader() {
 
     return (
         <header className="sticky top-0 w-full bg-slate-900/95 backdrop-blur-md py-4 flex flex-col md:flex-row items-center justify-between px-4 md:px-6 z-50 shadow-lg border-b border-white/10 gap-4 md:gap-0">
-            <Link to="/" className="flex items-center group">
+            <Link to="/home" className="flex items-center group">
                 <img
                     src="/images/zombie.svg"
                     alt="NETPONG Logo"
