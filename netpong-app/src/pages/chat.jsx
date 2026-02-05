@@ -195,7 +195,7 @@ export default function ChatPage() {
                         <span className="hidden sm:inline">Blocked ({blockedUsers.length})</span>
                     </button>
                     <a href="/logout" className="bg-red-700 hover:bg-red-600 text-white py-2 px-4 md:px-5 font-bold rounded-lg shadow-xl transition text-sm md:text-base">
-                        SIGN OUT
+                        Logout
                     </a>
                 </div>
             </header>
