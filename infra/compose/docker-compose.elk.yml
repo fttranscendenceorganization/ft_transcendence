@@ -29,7 +29,6 @@ services:
       elasticsearch:
         condition: service_healthy
     networks:
-      - internal_net
       - elk_net
     restart: always
 
@@ -45,7 +44,3 @@ services:
 volumes:
   es_data:
 
-networks:
-  elk_net:
-    driver: bridge
-    name: elk_net

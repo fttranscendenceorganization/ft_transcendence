@@ -22,6 +22,7 @@ services:
       - grafana_data:/var/lib/grafana
     networks:
       - internal_net
+      - monitoring_net
     restart: always
 
   node-exporter:
@@ -63,6 +64,7 @@ services:
       - "--config.file=/etc/alertmanager/alertmanager.yml"
     networks:
       - internal_net
+      - monitoring_net
     restart: always
   
   alertmanager-discord:
@@ -79,7 +81,3 @@ services:
 volumes:
   prometheus_data:
   grafana_data:
-
-networks:
-  internal_net:
-    external: true
