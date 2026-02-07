@@ -49,5 +49,3 @@ networks:
   elk_net:
     driver: bridge
     name: elk_net
-  internal_net:
-    external: true
