@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { logout } from '../utils/api';
 
 export default function ChatPage() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        document.title = "Chat - Netpong";
+        document.title = "Chat - NetPong";
     }, []);
 
     const [message, setMessage] = useState('');
@@ -29,7 +30,7 @@ export default function ChatPage() {
         return saved ? JSON.parse(saved) : [
             { id: 1, userId: '4', user: 'Youssef', initial: 'Y', time: '2:30 PM', text: 'Welcome to NETPONG chat!', isSent: false, color: 'from-purple-500 to-violet-600', delivered: true, read: true },
             { id: 2, user: 'You', initial: 'Y', time: '2:31 PM', text: 'Hey! Ready to play?', isSent: true, color: 'from-orange-500 to-red-600', delivered: true, read: true },
-            { id: 3, userId: '3', user: 'Mohamed', initial: 'M', time: '2:32 PM', text: 'Anyone up for Zombie Land mode?', isSent: false, color: 'from-green-500 to-emerald-600', delivered: true, read: true },
+            { id: 3, userId: '3', user: 'Mohammed', initial: 'M', time: '2:32 PM', text: 'Anyone up for Zombie Land mode?', isSent: false, color: 'from-green-500 to-emerald-600', delivered: true, read: true },
             { id: 4, userId: '2', user: 'Houdaifa', initial: 'H', time: '2:33 PM', text: "I'm in! Let's do this!", isSent: false, color: 'from-pink-500 to-rose-600', delivered: true, read: true }
         ];
     }); // Default messages showed in the first re-render ever
@@ -47,12 +48,12 @@ export default function ChatPage() {
     const onlinePlayers = [
         { id: '1', name: 'Ahmed', initial: 'A', game: 'Zombie Land', color: 'from-orange-500 to-red-600' },
         { id: '2', name: 'Houdaifa', initial: 'H', game: 'Barbie Pink', color: 'from-purple-500 to-violet-600' },
-        { id: '3', name: 'Mohamed', initial: 'M', game: 'Saul Society', color: 'from-green-500 to-emerald-600' },
+        { id: '3', name: 'Mohammed', initial: 'M', game: 'Saul Society', color: 'from-green-500 to-emerald-600' },
         { id: '4', name: 'Youssef', initial: 'Y', game: 'Joker', color: 'from-pink-500 to-rose-600' }
     ].filter(player => !blockedUsers.includes(player.id)); // onlien players excluded from the blocked users
 
     const liveMatches = [
-        { type: 'live', title: 'Final Game', description: 'Ahmed vs Mohamed - Zombie Land', badge: 'LIVE NOW', badgeColor: 'green' },
+        { type: 'live', title: 'Final Game', description: 'Ahmed vs Mohammed - Zombie Land', badge: 'LIVE NOW', badgeColor: 'green' },
         { type: 'recent', title: 'Recent Match', description: 'Houdaifa wins Barbie Pink tournament', badge: 'Winner Chicken Dinner !!', badgeColor: 'orange' },
         { type: 'top', title: 'Top Player', description: 'Youssef - 10 wins streak', badge: 'MVP', badgeColor: 'yellow' }
     ];
@@ -194,9 +195,11 @@ export default function ChatPage() {
                         </svg>
                         <span className="hidden sm:inline">Blocked ({blockedUsers.length})</span>
                     </button>
-                    <a href="/logout" className="bg-red-700 hover:bg-red-600 text-white py-2 px-4 md:px-5 font-bold rounded-lg shadow-xl transition text-sm md:text-base">
+                    <button
+                        onClick={async () => { await logout(); }}
+                        className="bg-red-700 hover:bg-red-600 text-white py-2 px-4 md:px-5 font-bold rounded-lg shadow-xl transition text-sm md:text-base">
                         Logout
-                    </a>
+                    </button>
                 </div>
             </header>
 
@@ -284,7 +287,7 @@ export default function ChatPage() {
                                     const allPlayers = [
                                         { id: '1', name: 'Ahmed', initial: 'A', color: 'from-orange-500 to-red-600' },
                                         { id: '2', name: 'Houdaifa', initial: 'H', color: 'from-purple-500 to-violet-600' },
-                                        { id: '3', name: 'Mohamed', initial: 'M', color: 'from-green-500 to-emerald-600' },
+                                        { id: '3', name: 'Mohammed', initial: 'M', color: 'from-green-500 to-emerald-600' },
                                         { id: '4', name: 'Youssef', initial: 'Y', color: 'from-pink-500 to-rose-600' }
                                     ];
                                     const user = allPlayers.find(p => p.id === userId);
@@ -393,7 +396,7 @@ export default function ChatPage() {
                                             <p className="text-white font-bold text-sm">{player.name}</p>
                                             <p className="text-gray-400 text-xs">{player.game}</p>
                                         </div>
-                                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <div className="flex gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                                             <button
                                                 onClick={() => handlePlayerClick(player.id)}
                                                 className="p-1.5 hover:bg-slate-600 rounded-lg transition"

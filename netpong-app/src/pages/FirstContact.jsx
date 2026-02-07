@@ -4,7 +4,7 @@ import FirstHeader from '../components/FirstHeader';
 export default function FirstContact() {
 
     useEffect(() => {
-        document.title = "Contact us - Netpong";
+        document.title = "Contact us - NetPong";
     }, []);
 
     const teamMembers = [

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
+import { logout } from '../utils/api';
 
 export default function ZombieLandHeader() {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
