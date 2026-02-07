@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 export default function PrivacyPolicy() {
 
     useEffect(() => {
-        document.title = "Privacy Policy - Netpong";
+        document.title = "Privacy Policy - NetPong";
     }, []);
 
     return (

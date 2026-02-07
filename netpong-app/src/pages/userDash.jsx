@@ -5,7 +5,7 @@ import { logout, authFetch } from '../utils/api';
 export default function UserProfile() {
 
     useEffect(() => {
-        document.title = "Profile - Netpong";
+        document.title = "Profile - NetPong";
     }, []);
 
     const navigate = useNavigate();
