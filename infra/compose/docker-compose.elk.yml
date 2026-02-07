@@ -1,0 +1,53 @@
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.12.0
+    container_name: elasticsearch
+    env_file:
+      - /etc/netpong/elk.env
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
+    networks:
+      - elk_net
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s -u elastic:$$ELASTIC_PASSWORD http://localhost:9200/_cluster/health | grep -q 'status.*\\(green\\|yellow\\)'"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+    restart: always
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.12.0
+    container_name: logstash
+    user: root
+    env_file:
+      - /etc/netpong/elk.env
+    volumes:
+      - ../elk/logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+      - /var/lib/docker/containers:/var/log/docker_logs:ro
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      - internal_net
+      - elk_net
+    restart: always
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.12.0
+    container_name: kibana
+    env_file:
+      - /etc/netpong/elk.env
+    networks:
+      - elk_net
+    restart: always
+
+volumes:
+  es_data:
+
+networks:
+  elk_net:
+    driver: bridge
+    name: elk_net
+  internal_net:
+    external: true
