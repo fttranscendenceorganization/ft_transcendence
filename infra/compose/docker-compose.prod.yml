@@ -1,5 +1,5 @@
 include:
-  - path: ./docker-compose.elk.ym
+  - path: ./docker-compose.elk.yml
 services:
   nginx:
     image: ghcr.io/fttranscendenceorganization/ft_nginx:latest
