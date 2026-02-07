@@ -1,5 +1,6 @@
 include:
   - path: ./docker-compose.elk.yml
+  - path: ./docker-compose.monitoring.yml
 services:
   nginx:
     image: ghcr.io/fttranscendenceorganization/ft_nginx:latest
@@ -11,9 +12,14 @@ services:
       - ../nginx/conf.d/default.conf:/etc/nginx/templates/default.conf.template:ro
     env_file:
       - /etc/netpong/nginx.env
+    logging:
+      driver: "json-file"
+      options:
+        tag: "nginx"
     networks:
       - public_net
       - internal_net
+      - monitoring_net
       - elk_net
     depends_on:
       - backend_api
@@ -30,6 +36,10 @@ services:
     image: ghcr.io/fttranscendenceorganization/ft_backend:latest
     env_file:
       - /etc/netpong/backend.env
+    logging:
+      driver: "json-file"
+      options:
+        tag: "backend_api"
     networks:
       - internal_net
     depends_on:
@@ -58,8 +68,15 @@ volumes:
 
 networks:
   public_net:
-    driver: bridge
     name: public_net
-  internal_net:
     driver: bridge
+  internal_net:
     name: internal_net
+    driver: bridge
+  monitoring_net:
+    driver: bridge
+    name: monitoring_net
+  elk_net:
+    driver: bridge
+    name: elk_net
+
