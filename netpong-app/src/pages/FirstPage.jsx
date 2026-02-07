@@ -5,7 +5,7 @@ import { useEffect } from 'react';
 export default function FirstPage() {
 
     useEffect(() => {
-        document.title = "Home - Netpong";
+        document.title = "Home - NetPong";
     }, []);
 
     return (
