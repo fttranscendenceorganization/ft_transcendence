@@ -101,7 +101,7 @@ export default function SignUp() {
     const [showPassword, setShowPassword] = useState(false);
 
     useEffect(() => {
-        document.title = "Sign Up - Netpong";
+        document.title = "Sign Up - NetPong";
 
         const link = document.querySelector("link[rel~='icon']");
         if (link) {

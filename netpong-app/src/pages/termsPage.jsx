@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 export default function TermsPage() {
 
     useEffect(() => {
-        document.title = "Terms Service - Netpong";
+        document.title = "Terms Service - NetPong";
     }, []);
 
     return (

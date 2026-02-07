@@ -5,7 +5,7 @@ export default function Exclusive() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        document.title = "Exclusive Features - Netpong";
+        document.title = "Exclusive Features - NetPong";
     }, []);
 
     const [isVisible, setIsVisible] = useState(false);
