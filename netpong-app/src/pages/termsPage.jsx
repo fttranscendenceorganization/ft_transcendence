@@ -18,10 +18,10 @@ export default function TermsPage() {
                     />
                 </a>
                 <a
-                    href="/"
+                    href="/signup"
                     className="text-white hover:text-orange-400 font-bold transition-all duration-300"
                 >
-                    Back to Home
+                    Back to Sign Up
                 </a>
             </header>
 
