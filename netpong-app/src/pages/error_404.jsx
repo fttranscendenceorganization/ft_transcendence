@@ -78,7 +78,7 @@ export default function Error404() {
                         </a>
 
                         <a
-                            href="/contact"
+                            href="/first-contact"
                             className="group/btn relative overflow-hidden bg-slate-800/80 hover:bg-slate-700/80 text-white py-4 px-8 md:px-10 font-bold rounded-2xl shadow-lg transition-all duration-300 inline-flex items-center gap-3 hover:scale-105 border-2 border-white/20 hover:border-white/40"
                         >
                             <span className="relative z-10">Contact Supports</span>
@@ -86,23 +86,6 @@ export default function Error404() {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
                             </svg>
                         </a>
-                    </div>
-
-                    <div className="mt-12 pt-8 border-t border-white/10">
-                        <p className="text-gray-400 text-sm mb-4">Or explore these popular pages:</p>
-                        <div className="flex flex-wrap justify-center gap-3">
-                            <a href="/exclusive" className="text-orange-400 hover:text-orange-300 font-semibold text-sm transition-colors duration-300 hover:underline">
-                                Exclusive Games
-                            </a>
-                            <span className="text-gray-600">•</span>
-                            <a href="/modes" className="text-orange-400 hover:text-orange-300 font-semibold text-sm transition-colors duration-300 hover:underline">
-                                Game Modes
-                            </a>
-                            <span className="text-gray-600">•</span>
-                            <a href="/chat" className="text-orange-400 hover:text-orange-300 font-semibold text-sm transition-colors duration-300 hover:underline">
-                                Start Chat
-                            </a>
-                        </div>
                     </div>
                 </div>
 

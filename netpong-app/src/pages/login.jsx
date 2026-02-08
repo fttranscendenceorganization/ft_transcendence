@@ -81,7 +81,7 @@ export default function Login() {
       setToken(data.accessToken);
       sessionStorage.setItem('user', JSON.stringify(data.user));
 
-      navigate('/user');
+      navigate('/home');
     } catch (err) {
       const message = err.message || 'Login failed. Please check your credentials.';
       if (message.includes('password')) {
