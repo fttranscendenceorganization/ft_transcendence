@@ -22,6 +22,7 @@ import ScrollTop from './components/ScrollTop';
 import FirstPage from './pages/FirstPage';
 import FirstContact from './pages/FirstContact';
 import PrivateMessagePage from './pages/privateChat';
+import Leaderboard from './pages/Leaderboard';
 
 function Navigation() {
   const location = useLocation();
@@ -90,6 +91,8 @@ function App() {
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/home" element={<Home />} />
+            <Route path="/leaderboard" element={<Leaderboard />} />
+
 
             <Route path="/messages" element={<PrivateMessagePage />} />
             <Route path="/messages/:userId" element={<PrivateMessagePage />} />
