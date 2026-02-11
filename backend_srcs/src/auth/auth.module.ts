@@ -1,10 +1,8 @@
 import { Module } from '@nestjs/common';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { UserService } from 'src/user/user.service';
+import { UserModule } from 'src/user/user.module';
 import { EmailModule } from 'src/email/email.module';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from 'src/user/entities/user.entity';
 import { LocalStrategy } from './strategies/local.strategy';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './strategies/jwt.strategy';
@@ -18,7 +16,7 @@ import { Intra42Strategy } from './strategies/oauth/intra42.strategy';
     imports : [
         ConfigModule,
         EmailModule,
-        TypeOrmModule.forFeature([User]),
+        UserModule,
         JwtModule.registerAsync({
             imports: [ConfigModule],
             inject: [ConfigService],
@@ -30,7 +28,7 @@ import { Intra42Strategy } from './strategies/oauth/intra42.strategy';
         }),
     ],
     controllers : [AuthController],
-    providers : [AuthService, UserService, LocalStrategy, JwtStrategy, RefreshJwtStrategy, GoogleStrategy, GithubStrategy, Intra42Strategy],
+    providers : [AuthService, LocalStrategy, JwtStrategy, RefreshJwtStrategy, GoogleStrategy, GithubStrategy, Intra42Strategy],
     exports : [],
 })
 
