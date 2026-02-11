@@ -10,7 +10,7 @@ export default function ForgotPassword() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        document.title = "Forgot Password - Netpong";
+        document.title = "Forgot Password - NetPong";
 
         const link = document.querySelector("link[rel~='icon']");
         if (link) {

@@ -33,7 +33,7 @@ const handleSocialLogin = (provider) => {
 export default function Login() {
 
   useEffect(() => {
-    document.title = "Login - Netpong";
+    document.title = "Login - NetPong";
 
     const link = document.querySelector("link[rel~='icon']");
     if (link) {
@@ -81,7 +81,7 @@ export default function Login() {
       setToken(data.accessToken);
       sessionStorage.setItem('user', JSON.stringify(data.user));
 
-      navigate('/user');
+      navigate('/home');
     } catch (err) {
       const message = err.message || 'Login failed. Please check your credentials.';
       if (message.includes('password')) {
@@ -104,7 +104,7 @@ export default function Login() {
         </video>
 
         <div className="container mx-auto px-4 py-8 max-w-4xl">
-          <div className="bg-slate-900/50 backdrop-blur-xl rounded-3xl px-6 md:px-10 py-8 md:py-12 shadow-2xl border border-violet-500/30">
+          <div className="bg-slate-900/20 backdrop-blur-md rounded-3xl px-6 md:px-10 py-8 md:py-12 shadow-2xl border border-violet-500/20">
             <h1 className="text-lg md:text-xl font-bold text-zinc-100 text-center mb-4">
               START TO PLAY <Link to="/" className="font-extrabold text-violet-400 text-xl md:text-2xl drop-shadow-[0_0_15px_rgba(139,92,246,0.8)]">NETPONG</Link>
             </h1>

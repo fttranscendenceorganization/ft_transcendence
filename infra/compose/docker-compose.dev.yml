@@ -1,7 +1,14 @@
+include:
+  - path: ./docker-compose.elk.yml
+  - path: ./docker-compose.monitoring.yml
 services:
   nginx:
     build: ../nginx
     image: nginx
+    logging:
+      driver: "json-file"
+      options:
+        tag: "nginx"
     ports:
       - "443:443"
       - "80:80"
@@ -13,6 +20,8 @@ services:
     networks:
       - public_net
       - internal_net
+      - monitoring_net
+      - elk_net
     depends_on:
       - backend_api
       - front_end
@@ -32,6 +41,10 @@ services:
       context: ../../backend_srcs
       dockerfile: ../infra/backend/Dockerfile
     image: backend_api
+    logging:
+      driver: "json-file"
+      options:
+        tag: "backend_api"
     env_file:
       - ../env/backend.env
     networks:
@@ -62,8 +75,14 @@ volumes:
 
 networks:
   public_net:
-    driver: bridge
     name: public_net
-  internal_net:
     driver: bridge
+  internal_net:
     name: internal_net
+    driver: bridge
+  monitoring_net:
+    driver: bridge
+    name: monitoring_net
+  elk_net:
+    driver: bridge
+    name: elk_net

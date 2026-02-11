@@ -6,7 +6,7 @@ import { getFriends, getBlockedUsers } from '../utils/userService';
 export default function ChatPage() {
 
     useEffect(() => {
-        document.title = "Chat - Netpong";
+        document.title = "Chat - NetPong";
     }, []);
 
     const [message, setMessage] = useState('');
@@ -442,7 +442,7 @@ export default function ChatPage() {
     return (
         <div className="h-screen flex flex-col overflow-hidden bg-slate-900">
             <header className="w-full bg-slate-900 py-4 relative flex flex-col md:flex-row items-center justify-between px-4 md:px-6 z-20 shadow-md gap-4 md:gap-0 border-b border-slate-800">
-                <a href="/" className="flex items-center group">
+                <a href="/home" className="flex items-center group">
                     <img src="/images/netpong.svg" alt="NETPONG Logo" className="h-8 md:h-10 w-auto transition-transform group-hover:scale-110" />
                 </a>
                 <div className="flex items-center gap-3">
@@ -465,9 +465,11 @@ export default function ChatPage() {
                         </svg>
                         <span className="hidden sm:inline">Blocked ({blockedUserDetails.length})</span>
                     </button>
-                    <a href="/logout" className="bg-red-700 hover:bg-red-600 text-white py-2 px-4 md:px-5 font-bold rounded-lg shadow-xl transition text-sm md:text-base">
-                        SIGN OUT
-                    </a>
+                    <button
+                        onClick={async () => { await logout(); }}
+                        className="bg-red-700 hover:bg-red-600 text-white py-2 px-4 md:px-5 font-bold rounded-lg shadow-xl transition text-sm md:text-base">
+                        Logout
+                    </button>
                 </div>
             </header>
 
@@ -723,7 +725,7 @@ export default function ChatPage() {
                                             <p className="text-white font-bold text-sm">{player.name}</p>
                                             <p className="text-gray-400 text-xs">{player.game}</p>
                                         </div>
-                                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <div className="flex gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                                             <button
                                                 onClick={(e) => { e.stopPropagation(); handlePlayerClick(player.id); }}
                                                 className="p-1.5 hover:bg-slate-600 rounded-lg transition"
