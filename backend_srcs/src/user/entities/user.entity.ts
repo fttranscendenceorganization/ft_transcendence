@@ -1,6 +1,9 @@
 import { Exclude } from 'class-transformer';
-import {  Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, BeforeInsert, BeforeUpdate } from 'typeorm';
+import {  Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, BeforeInsert, BeforeUpdate, ManyToMany, OneToMany } from 'typeorm';
 import * as bcrypt from 'bcrypt';
+import { Conversation } from 'src/chat/entities/conversation.entity';
+import { Message } from 'src/chat/entities/message.entity';
+import { Block } from './block.entity';
 
 @Entity('users')
 
@@ -72,6 +75,18 @@ export class User
 
     @UpdateDateColumn()
     updatedAt: Date;
+
+    @ManyToMany(() => Conversation, (conversation) => conversation.participants)
+    conversations: Conversation[];
+
+    @OneToMany(() => Message, (message) => message.sender)
+    messages: Message[];
+
+    @OneToMany(() => Block, (block) => block.blocker)
+    blocksSent: Block[];
+
+    @OneToMany(() => Block, (block) => block.blocked)
+    blocksReceived: Block[];
 
     @BeforeInsert()
     @BeforeUpdate()

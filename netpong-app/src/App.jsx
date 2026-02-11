@@ -18,11 +18,35 @@ import PrivacyPolicy from './pages/policyPage';
 import TermsPage from './pages/termsPage';
 import ForgotPassword from './pages/forgotPassword';
 import ResetPassword from './pages/resetPassword';
+import ScrollTop from './components/ScrollTop';
+import FirstPage from './pages/FirstPage';
+import FirstContact from './pages/FirstContact';
+import Leaderboard from './pages/Leaderboard';
 
 function Navigation() {
   const location = useLocation();
-  const hideHeaderPaths = ['/login', '/signup', '/soul-society', '/zombie-land', '/joker', '/barbie-pink', '/chat', '/forgot-password', '/reset-password'];
-  const validPathsWithHeader = ['/', '/exclusive', '/contact', '/modes'];
+
+  const hideHeaderPaths = [
+    '/login',
+    '/signup',
+    '/soul-society',
+    '/zombie-land',
+    '/joker',
+    '/barbie-pink',
+    '/chat',
+    '/forgot-password',
+    '/reset-password',
+    '/',
+    '/first-contact'
+  ];
+
+  const validPathsWithHeader = [
+    '/exclusive',
+    '/contact',
+    '/modes',
+    '/home',
+    '/leaderboard'
+  ];
 
   if (hideHeaderPaths.includes(location.pathname) || !validPathsWithHeader.includes(location.pathname)) {
     return null;
@@ -58,6 +82,8 @@ function App() {
             <Route path="/terms" element={<TermsPage />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/home" element={<Home />} />
+            <Route path="/leaderboard" element={<Leaderboard />} />
 
             <Route path="*" element={<Error404 />} />
           </Routes>
