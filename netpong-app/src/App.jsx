@@ -21,7 +21,6 @@ import ResetPassword from './pages/resetPassword';
 import ScrollTop from './components/ScrollTop';
 import FirstPage from './pages/FirstPage';
 import FirstContact from './pages/FirstContact';
-import PrivateMessagePage from './pages/privateChat';
 import Leaderboard from './pages/Leaderboard';
 
 function Navigation() {
@@ -35,7 +34,6 @@ function Navigation() {
     '/joker',
     '/barbie-pink',
     '/chat',
-    '/messages',
     '/forgot-password',
     '/reset-password',
     '/',
@@ -49,10 +47,6 @@ function Navigation() {
     '/home',
     '/leaderboard'
   ];
-
-  if (location.pathname.startsWith('/messages/')) {
-    return null;
-  }
 
   if (hideHeaderPaths.includes(location.pathname) || !validPathsWithHeader.includes(location.pathname)) {
     return null;
@@ -92,10 +86,6 @@ function App() {
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/home" element={<Home />} />
             <Route path="/leaderboard" element={<Leaderboard />} />
-
-
-            <Route path="/messages" element={<PrivateMessagePage />} />
-            <Route path="/messages/:userId" element={<PrivateMessagePage />} />
 
             <Route path="*" element={<Error404 />} />
           </Routes>
