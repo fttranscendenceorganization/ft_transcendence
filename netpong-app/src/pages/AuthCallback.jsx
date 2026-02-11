@@ -8,7 +8,7 @@ export default function AuthCallback() {
     (async () => {
       const ok = await refreshAccessToken();
       if (ok) {
-        navigate('/user', { replace: true });
+        navigate('/home', { replace: true });
       } else {
         navigate('/login', { replace: true });
       }

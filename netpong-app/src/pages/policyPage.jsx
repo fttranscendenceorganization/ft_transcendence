@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 export default function PrivacyPolicy() {
 
     useEffect(() => {
-        document.title = "Privacy Policy - Netpong";
+        document.title = "Privacy Policy - NetPong";
     }, []);
 
     return (
@@ -18,10 +18,10 @@ export default function PrivacyPolicy() {
                     />
                 </a>
                 <a
-                    href="/"
+                    href="/signup"
                     className="text-white hover:text-orange-400 font-bold transition-all duration-300"
                 >
-                    Back to Home
+                    Back to Sign Up
                 </a>
             </header>
 

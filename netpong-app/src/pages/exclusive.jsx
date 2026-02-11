@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 export default function Exclusive() {
+    const navigate = useNavigate();
 
     useEffect(() => {
-        document.title = "Exclusive - Netpong";
+        document.title = "Exclusive Features - NetPong";
     }, []);
 
     const [isVisible, setIsVisible] = useState(false);
@@ -30,7 +32,7 @@ export default function Exclusive() {
             <div className="relative w-full min-h-screen overflow-hidden flex items-center justify-center py-20">
                 <div className={`relative z-10 flex flex-col items-center justify-center text-white px-4 md:px-6 text-center transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
 
-                    <div className="bg-slate-900/50 backdrop-blur-xl rounded-3xl px-6 md:px-12 py-10 md:py-14 shadow-2xl border border-white/20 max-w-4xl transition-all duration-500 hover:bg-slate-900/60 hover:shadow-[0_0_50px_rgba(139,92,246,0.3)] hover:border-violet-500/40 hover:scale-[1.02] group">
+                    <div className="bg-slate-900/50 backdrop-blur-xl rounded-3xl px-6 md:px-12 py-10 md:py-14 shadow-2xl border border-white/20 max-w-5xl transition-all duration-500 hover:bg-slate-900/60 hover:shadow-[0_0_50px_rgba(139,92,246,0.3)] hover:border-violet-500/40 group">
 
                         <div className="inline-block mb-6">
                             <div className="bg-gradient-to-r from-red-500 to-violet-500 text-white text-xs md:text-sm font-bold px-4 py-2 rounded-full uppercase tracking-wider shadow-lg">
@@ -39,7 +41,7 @@ export default function Exclusive() {
                         </div>
 
                         <p className="text-2xl md:text-4xl lg:text-5xl font-extrabold tracking-wide relative inline-block text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-red-400 to-red-500 mb-6 animate-pulse">
-                            ENJOY THE GAMES
+                            COMPETE & DOMINATE
                         </p>
 
                         <div className="flex items-center justify-center gap-2 mb-8">
@@ -56,19 +58,65 @@ export default function Exclusive() {
                                 NETPONG
                             </a>
                             <span className="text-white/70"> — </span>
-                            PLAY TWO EXCLUSIVE GAMES
+                            EXCLUSIVE COMPETITIVE FEATURES
                             <br className="hidden md:block" />
-                            <span className="text-violet-400 font-extrabold">MADE JUST FOR YOU</span>
+                            <span className="text-violet-400 font-extrabold">PROVE YOUR SKILLS</span>
                         </p>
 
-                        <div className="grid grid-cols-2 gap-4 mt-10 mb-10 text-sm md:text-base">
-                            <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10 hover:border-violet-500/40 transition-all duration-300 hover:bg-white/10 cursor-pointer">
-                                <div className="text-2xl mb-2">🎮</div>
-                                <div className="font-semibold text-white/80">2 Exclusive Games</div>
+                        <p className="text-white/60 text-sm md:text-base mt-6 max-w-2xl mx-auto leading-relaxed">
+                            Join intense tournaments, compete against the best players worldwide,
+                            and climb the leaderboards. Show everyone what you're made of!
+                        </p>
+
+                        <div className="grid md:grid-cols-2 gap-6 mt-12 mb-10">
+
+                            <button
+                                onClick={() => navigate('/tournaments')}
+                                className="group/card bg-gradient-to-br from-orange-500/10 to-red-500/10 backdrop-blur-sm rounded-2xl p-6 border-2 border-orange-500/30 hover:border-orange-500 transition-all duration-300 hover:scale-105 hover:shadow-[0_0_40px_rgba(249,115,22,0.4)] cursor-pointer text-left"
+                            >
+                                <div className="text-5xl mb-4 transition-transform duration-300 group-hover/card:scale-110">🏆</div>
+                                <h3 className="font-bold text-xl md:text-2xl text-white mb-3">Live Tournaments</h3>
+                                <p className="text-white/70 text-sm md:text-base mb-4">
+                                    Join ongoing competitions, win prizes, and earn your place in NETPONG history
+                                </p>
+                                <div className="flex items-center gap-2 text-orange-400 font-semibold text-sm">
+                                    <span>Enter Now</span>
+                                    <span className="transition-transform duration-300 group-hover/card:translate-x-2">→</span>
+                                </div>
+                            </button>
+
+                            <button
+                                onClick={() => navigate('/leaderboard')}
+                                className="group/card bg-gradient-to-br from-violet-500/10 to-purple-500/10 backdrop-blur-sm rounded-2xl p-6 border-2 border-violet-500/30 hover:border-violet-500 transition-all duration-300 hover:scale-105 hover:shadow-[0_0_40px_rgba(139,92,246,0.4)] cursor-pointer text-left"
+                            >
+                                <div className="text-5xl mb-4 transition-transform duration-300 group-hover/card:scale-110">👑</div>
+                                <h3 className="font-bold text-xl md:text-2xl text-white mb-3">Top Players</h3>
+                                <p className="text-white/70 text-sm md:text-base mb-4">
+                                    See who's dominating the game, track rankings, and challenge the best
+                                </p>
+                                <div className="flex items-center gap-2 text-violet-400 font-semibold text-sm">
+                                    <span>View Rankings</span>
+                                    <span className="transition-transform duration-300 group-hover/card:translate-x-2">→</span>
+                                </div>
+                            </button>
+                        </div>
+
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mt-10 mb-10 text-xs md:text-sm">
+                            <div className="bg-white/5 backdrop-blur-sm rounded-xl p-3 md:p-4 border border-white/10 hover:border-violet-500/40 transition-all duration-300 hover:bg-white/10">
+                                <div className="text-xl md:text-2xl mb-2">⚔️</div>
+                                <div className="font-semibold text-white/80">Real Competition</div>
                             </div>
-                            <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10 hover:border-violet-500/40 transition-all duration-300 hover:bg-white/10 cursor-pointer">
-                                <div className="text-2xl mb-2">⚡</div>
-                                <div className="font-semibold text-white/80">Massive Games</div>
+                            <div className="bg-white/5 backdrop-blur-sm rounded-xl p-3 md:p-4 border border-white/10 hover:border-violet-500/40 transition-all duration-300 hover:bg-white/10">
+                                <div className="text-xl md:text-2xl mb-2">🎯</div>
+                                <div className="font-semibold text-white/80">Global Rankings</div>
+                            </div>
+                            <div className="bg-white/5 backdrop-blur-sm rounded-xl p-3 md:p-4 border border-white/10 hover:border-violet-500/40 transition-all duration-300 hover:bg-white/10">
+                                <div className="text-xl md:text-2xl mb-2">💎</div>
+                                <div className="font-semibold text-white/80">Exclusive Modes</div>
+                            </div>
+                            <div className="bg-white/5 backdrop-blur-sm rounded-xl p-3 md:p-4 border border-white/10 hover:border-violet-500/40 transition-all duration-300 hover:bg-white/10">
+                                <div className="text-xl md:text-2xl mb-2">⚡</div>
+                                <div className="font-semibold text-white/80">Live Updates</div>
                             </div>
                         </div>
 
@@ -77,7 +125,7 @@ export default function Exclusive() {
                                 href="/login"
                                 className="relative overflow-hidden group/btn border-2 border-violet-500 bg-gradient-to-r from-violet-600 to-violet-500 hover:from-violet-500 hover:to-violet-400 text-white py-4 px-8 md:px-12 text-lg md:text-xl font-bold rounded-2xl shadow-[0_0_30px_rgba(139,92,246,0.4)] transition-all duration-300 inline-flex items-center gap-3 hover:scale-105 hover:shadow-[0_0_50px_rgba(139,92,246,0.6)] active:scale-95"
                             >
-                                <span className="relative z-10">START PLAYING</span>
+                                <span className="relative z-10">GET STARTED</span>
                                 <span className="relative z-10 text-xl md:text-2xl transition-transform duration-300 group-hover/btn:translate-x-1">➜</span>
 
                                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700"></div>
@@ -85,7 +133,7 @@ export default function Exclusive() {
                         </div>
 
                         <p className="text-white/50 text-xs md:text-sm mt-6">
-                            No Premium Plans required • Free to play
+                            Free to join • No premium required • Compete now
                         </p>
                     </div>
 

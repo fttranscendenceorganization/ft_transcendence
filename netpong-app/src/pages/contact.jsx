@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from 'react';
 export default function Contact() {
 
     useEffect(() => {
-        document.title = "Contact us - Netpong";
+        document.title = "Contact us - NetPong";
     }, []);
 
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -37,7 +37,7 @@ export default function Contact() {
             hoverBorder: 'hover:border-orange-500/50'
         },
         {
-            name: 'Mohammed',
+            name: 'Mohamed',
             role: 'Devops',
             initial: 'M',
             bgColor: 'bg-purple-500',

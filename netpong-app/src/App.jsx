@@ -59,13 +59,15 @@ function Navigation() {
 function App() {
   return (
     <Router>
+      <ScrollTop />
       <div className="min-h-screen bg-slate-950">
         { }
         <Navigation />
 
         <main>
           <Routes>
-            <Route path="/" element={<Home />} />
+            <Route path="/" element={<FirstPage />} />
+            <Route path="/first-contact" element={<FirstContact />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
             <Route path="/auth-callback" element={<AuthCallback />} />
