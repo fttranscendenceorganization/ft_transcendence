@@ -96,7 +96,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect
     @SubscribeMessage('sendMessage')
     async handleSendMessage(
         @ConnectedSocket() client: Socket,
-        @MessageBody() data: { conversationId: string; content: string })
+        @MessageBody() data: { conversationId: string; content: string; replyToMessageId?: string })
     {
         const user = client.data.user as { id?: string } | undefined;
         const userId = user?.id;
@@ -108,9 +108,26 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect
             userId,
             data.conversationId,
             data.content,
+            data.replyToMessageId,
         );
 
         this.server.to(data.conversationId).emit('newMessage', message);
+    }
+
+    @SubscribeMessage('reactToMessage')
+    async handleReactToMessage(
+        @ConnectedSocket() client: Socket,
+        @MessageBody() data: { messageId: string; emoji: string },
+    ) {
+        const user = client.data.user as { id?: string } | undefined;
+        const userId = user?.id;
+
+        if (!userId || !data?.messageId || !data?.emoji)
+            return;
+
+        const result = await this.chatService.toggleReaction(userId, data.messageId, data.emoji);
+
+        this.server.to(result.conversationId).emit('messageReactionUpdate', result);
     }
 
 }
