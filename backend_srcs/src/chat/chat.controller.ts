@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, UseGuards, InternalServerErrorException, Logger, Param, BadRequestException } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards, InternalServerErrorException, Logger, Param, BadRequestException, Query } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { CurrentUser } from 'src/common/get-usr.decorator';
 import { CreateDmDto } from './dto/create-dm.dto';
@@ -91,12 +91,27 @@ export class ChatController
   @Get('conversations/:conversationId/messages')
   async getMessages(
     @CurrentUser('id') userId: string,
-    @Param('conversationId') conversationId: string
+    @Param('conversationId') conversationId: string,
+    @Query('before') before?: string,
+    @Query('limit') limit?: string,
   )
   {
     try {
-      this.logger.log(`Getting messages for conversation: ${conversationId}, user: ${userId}`);
-      return await this.chatService.getMessages(userId, conversationId);
+      this.logger.log(`Getting messages for conversation: ${conversationId}, user: ${userId}, before=${before}, limit=${limit}`);
+
+      let beforeDate: Date | undefined = undefined;
+      if (before) {
+        const parsed = new Date(before);
+        if (!isNaN(parsed.getTime())) {
+          beforeDate = parsed;
+        }
+      }
+
+      let take = parseInt(limit || '50', 10);
+      if (isNaN(take) || take <= 0) take = 50;
+      if (take > 100) take = 100;
+
+      return await this.chatService.getMessages(userId, conversationId, beforeDate, take);
     } catch (error) {
       this.logger.error(`Error in getMessages: ${error.message}`, error.stack);
       throw error;
@@ -111,13 +126,13 @@ export class ChatController
   )
   {
     try {
-      this.logger.log(`Sending message: user=${userId}, conversation=${dto.conversationId}`);
+      this.logger.log(`Sending message: user=${userId}, conversation=${dto.conversationId}, replyTo=${dto.replyToMessageId}`);
       
       if (!dto.content || !dto.content.trim()) {
         throw new BadRequestException('Message content cannot be empty');
       }
       
-      return await this.chatService.sendMessage(userId, dto.conversationId, dto.content);
+      return await this.chatService.sendMessage(userId, dto.conversationId, dto.content, dto.replyToMessageId);
     } catch (error) {
       this.logger.error(`Error in sendMessage: ${error.message}`, error.stack);
       throw error;

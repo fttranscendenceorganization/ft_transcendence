@@ -12,6 +12,7 @@ import { FriendRequest } from './user/entities/friend-request.entity';
 import { ChatModule } from './chat/chat.module';
 import { Conversation } from './chat/entities/conversation.entity';
 import { Message } from './chat/entities/message.entity';
+import { MessageReaction } from './chat/entities/message-reaction.entity';
 
 @Module({
   imports: [
@@ -27,7 +28,7 @@ import { Message } from './chat/entities/message.entity';
     username : process.env.POSTGRES_USER,
     password : process.env.POSTGRES_PASSWORD,
     database : process.env.POSTGRES_DB,
-    entities : [User, Block, FriendRequest, Conversation, Message],
+    entities : [User, Block, FriendRequest, Conversation, Message, MessageReaction],
     synchronize : true,
     }),
   ],
