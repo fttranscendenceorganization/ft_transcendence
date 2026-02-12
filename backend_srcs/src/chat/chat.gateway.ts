@@ -90,7 +90,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect
             return;
 
         client.join(conversationId);
-        console.log(`User ${client.id} joined room: ${conversationId}`);
     }
 
     @SubscribeMessage('sendMessage')
