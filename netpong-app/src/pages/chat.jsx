@@ -42,6 +42,7 @@ export default function ChatPage() {
         subtitle: '',
         avatarInitial: 'G',
         avatarColor: 'from-orange-500 to-red-600',
+        avatarUrl: null,
         targetUserId: null,
     });
     const [currentUser, setCurrentUser] = useState(null);
@@ -465,19 +466,13 @@ export default function ChatPage() {
             }
 
             if (!res.ok) {
-                const msg = data && data.message ? (Array.isArray(data.message) ? data.message[0] : data.message) : 'Failed to send friend request';
-                alert(msg);
                 return;
             }
 
             if (data && data.status === 'ACCEPTED') {
-                alert('Friend request accepted – you are now friends.');
                 await fetchFriends();
-            } else {
-                alert('Friend request sent.');
             }
         } catch (error) {
-            alert('Failed to send friend request');
         }
     };
 
@@ -532,6 +527,7 @@ export default function ChatPage() {
                 subtitle: onlineUserIds.includes(userId) ? 'Active now' : 'Offline',
                 avatarInitial: friend && friend.initial ? friend.initial : 'U',
                 avatarColor: friend && friend.color ? friend.color : 'from-purple-500 to-violet-600',
+                avatarUrl: friend && friend.avatarUrl ? friend.avatarUrl : null,
                 targetUserId: userId,
             });
             setActiveConversationId(conv.conversationId);
@@ -791,8 +787,16 @@ export default function ChatPage() {
                                 {blockedUserDetails.map(user => (
                                     <div key={user.id} className="flex items-center justify-between bg-slate-700/50 rounded-lg p-3">
                                         <div className="flex items-center gap-3">
-                                            <div className={`w-10 h-10 bg-gradient-to-br from-pink-500 to-rose-600 rounded-full flex items-center justify-center font-bold text-white`}>
-                                                {user.username ? user.username.charAt(0).toUpperCase() : '?'}
+                                            <div className={`w-10 h-10 bg-gradient-to-br from-pink-500 to-rose-600 rounded-full flex items-center justify-center font-bold text-white overflow-hidden`}>
+                                                {user.avatarUrl ? (
+                                                    <img
+                                                        src={user.avatarUrl}
+                                                        alt={user.username}
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                ) : (
+                                                    <span>{user.username ? user.username.charAt(0).toUpperCase() : '?'}</span>
+                                                )}
                                             </div>
                                             <span className="text-white font-bold">{user.username}</span>
                                         </div>
@@ -1009,8 +1013,16 @@ export default function ChatPage() {
                 <div className="flex-1 flex flex-col bg-slate-900">
                     <div className="bg-slate-800 px-4 py-3 border-b border-slate-700 flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <div className={`w-10 h-10 bg-gradient-to-br ${activeConversation.avatarColor} rounded-full flex items-center justify-center font-bold text-white`}>
-                                {activeConversation.avatarInitial}
+                            <div className={`w-10 h-10 bg-gradient-to-br ${activeConversation.avatarColor} rounded-full flex items-center justify-center font-bold text-white overflow-hidden`}>
+                                {activeConversation.type === 'DM' && activeConversation.avatarUrl ? (
+                                    <img
+                                        src={activeConversation.avatarUrl}
+                                        alt={activeConversation.title}
+                                        className="w-full h-full object-cover"
+                                    />
+                                ) : (
+                                    <span>{activeConversation.avatarInitial}</span>
+                                )}
                             </div>
                             <div>
                                 <p className="text-white font-bold text-sm">{activeConversation.title}</p>
@@ -1051,10 +1063,20 @@ export default function ChatPage() {
                                                 className="flex items-center justify-between bg-slate-800 rounded-lg p-2 border border-slate-700"
                                             >
                                                 <div className="flex items-center gap-3">
-                                                    <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-full flex items-center justify-center font-bold text-white text-xs">
-                                                        {req.requester && req.requester.username
-                                                            ? req.requester.username.charAt(0).toUpperCase()
-                                                            : '?'}
+                                                    <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-full flex items-center justify-center font-bold text-white text-xs overflow-hidden">
+                                                        {req.requester && req.requester.avatarUrl ? (
+                                                            <img
+                                                                src={req.requester.avatarUrl}
+                                                                alt={req.requester.username || 'User'}
+                                                                className="w-full h-full object-cover"
+                                                            />
+                                                        ) : (
+                                                            <span>
+                                                                {req.requester && req.requester.username
+                                                                    ? req.requester.username.charAt(0).toUpperCase()
+                                                                    : '?'}
+                                                            </span>
+                                                        )}
                                                     </div>
                                                     <div>
                                                         <p className="text-white text-sm font-semibold">
