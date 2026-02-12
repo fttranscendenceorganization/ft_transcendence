@@ -67,13 +67,13 @@ export default function ChatPage() {
             const mapped = users.map((u, index) => ({
                 id: u.id,
                 name: u.username,
+                avatarUrl: u.avatarUrl || null,
                 initial: u.username ? u.username.charAt(0).toUpperCase() : '?',
                 game: 'NetPong Player',
                 color: ['from-orange-500 to-red-600', 'from-purple-500 to-violet-600', 'from-green-500 to-emerald-600', 'from-pink-500 to-rose-600'][index % 4],
             }));
             setFriends(mapped);
         } catch (error) {
-            console.error('Failed to load friends', error);
         }
     };
 
@@ -83,7 +83,6 @@ export default function ChatPage() {
             setBlockedUsers(blocked.map(u => u.id));
             setBlockedUserDetails(blocked);
         } catch (error) {
-            console.error('Failed to refresh blocked users', error);
             setBlockedUsers([]);
             setBlockedUserDetails([]);
         }
@@ -97,7 +96,6 @@ export default function ChatPage() {
             const data = await res.json();
             setIncomingFriendRequests(Array.isArray(data) ? data : []);
         } catch (error) {
-            console.error('Failed to load friend requests', error);
         }
     };
 
@@ -125,7 +123,6 @@ export default function ChatPage() {
 
                 await fetchIncomingFriendRequests();
             } catch (error) {
-                console.error('Failed to initialize chat page', error);
             }
         })();
     }, []);
@@ -248,7 +245,6 @@ export default function ChatPage() {
                     })));
                 }
             } catch (error) {
-                console.error('Failed to load messages', error);
             }
             if (isMounted) setIsLoadingMessages(false);
         })();
@@ -357,7 +353,6 @@ export default function ChatPage() {
                 setHasMoreMessages(false);
             }
         } catch (error) {
-            console.error('Failed to load older messages', error);
         } finally {
             setIsLoadingMore(false);
         }
@@ -395,7 +390,6 @@ export default function ChatPage() {
             setMessage('');
             setReplyingTo(null);
         } catch (error) {
-            console.error('Failed to send message', error);
         }
     };
 
@@ -504,7 +498,6 @@ export default function ChatPage() {
             if (data && data.status === 'ACCEPTED')
                 await fetchFriends();
         } catch (error) {
-            console.error('Failed to respond to friend request', error);
         }
     };
 
@@ -519,6 +512,7 @@ export default function ChatPage() {
                     friend = {
                         id: u.id,
                         name: u.username,
+                        avatarUrl: u.avatarUrl || null,
                         initial: u.username ? u.username.charAt(0).toUpperCase() : '?',
                         color: 'from-purple-500 to-violet-600',
                         game: 'NetPong Player',
@@ -547,6 +541,7 @@ export default function ChatPage() {
                 const base = friend || {
                     id: userId,
                     name: 'User',
+                    avatarUrl: null,
                     initial: 'U',
                     color: 'from-purple-500 to-violet-600',
                     game: 'NetPong Player',
@@ -554,7 +549,6 @@ export default function ChatPage() {
                 return [...prev, base];
             });
         } catch (error) {
-            console.error('Failed to open DM', error);
         }
     };
 
@@ -575,7 +569,6 @@ export default function ChatPage() {
             setMessages(prev => prev.filter(msg => msg.userId !== userId));
             await refreshBlockedUsers();
         } catch (error) {
-            console.error('Failed to block user', error);
         }
     };
 
@@ -586,7 +579,6 @@ export default function ChatPage() {
             setBlockedUsers(prev => prev.filter(id => id !== userId));
             await refreshBlockedUsers();
         } catch (error) {
-            console.error('Failed to unblock user', error);
         }
     };
 
@@ -642,7 +634,6 @@ export default function ChatPage() {
             if (!socket) return;
             socket.emit('reactToMessage', { messageId, emoji });
         } catch (error) {
-            console.error('Failed to react to message', error);
         }
     };
 
@@ -963,8 +954,16 @@ export default function ChatPage() {
                                         >
                                             <div className="flex items-center gap-3">
                                                 <div className="relative">
-                                                    <div className={`w-10 h-10 bg-gradient-to-br ${player.color} rounded-full flex items-center justify-center font-bold text-white`}>
-                                                        {player.initial}
+                                                    <div className={`w-10 h-10 bg-gradient-to-br ${player.color} rounded-full flex items-center justify-center font-bold text-white overflow-hidden`}>
+                                                        {player.avatarUrl ? (
+                                                            <img
+                                                                src={player.avatarUrl}
+                                                                alt={player.name}
+                                                                className="w-full h-full object-cover"
+                                                            />
+                                                        ) : (
+                                                            <span>{player.initial}</span>
+                                                        )}
                                                     </div>
                                                     {onlineUserIds.includes(player.id) && (
                                                         <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-slate-800 rounded-full"></div>

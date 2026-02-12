@@ -72,8 +72,6 @@ export class ChatService
 
     async FindOrCreateDm(userId: string, recipientId: string): Promise<Conversation | null>
     {
-        console.log('FindOrCreateDm called with:', { userId, recipientId });
-        
         if (!userId || userId === '0' || userId === 'undefined') {
             throw new BadRequestException('Invalid user ID');
         }
