@@ -1,10 +1,11 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException, InternalServerErrorException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Conversation } from "./entities/conversation.entity";
-import { Repository } from "typeorm";
+import { LessThan, Repository } from "typeorm";
 import { Message } from "./entities/message.entity";
 import { UserService } from "src/user/user.service";
 import { User } from "src/user/entities/user.entity";
+import { MessageReaction } from "./entities/message-reaction.entity";
 
 @Injectable()
 export class ChatService
@@ -13,6 +14,8 @@ export class ChatService
                 private readonly conversationrepo: Repository<Conversation>,
                 @InjectRepository(Message)
                 private readonly messagerepo: Repository<Message>,
+                @InjectRepository(MessageReaction)
+                private readonly reactionRepo: Repository<MessageReaction>,
                 private readonly userService: UserService
             ){}
 
@@ -137,7 +140,7 @@ export class ChatService
             }));
     }
 
-    async sendMessage(userId: string, conversationId: string, content: string)
+    async sendMessage(userId: string, conversationId: string, content: string, replyToMessageId?: string)
     {
         const conversation = await this.findConversation(conversationId);
         if (!conversation)
@@ -182,26 +185,66 @@ export class ChatService
         if (!user)
             throw new NotFoundException('Sender user not found');
 
+        let replyTo: Message | undefined;
+        if (replyToMessageId) {
+            replyTo = await this.messagerepo.findOne({
+                where: { id: replyToMessageId },
+                relations: ['conversation', 'sender'],
+            }) || undefined;
+
+            if (replyTo && replyTo.conversation.id !== conversationId) {
+                throw new BadRequestException('Cannot reply to a message from another conversation');
+            }
+        }
+
         const message = this.messagerepo.create({
             content,
             conversation,
             sender: user,
+            replyTo: replyTo ?? null,
         });
 
         const savedMessage = await this.messagerepo.save(message);
-        
+
+        const full = await this.messagerepo.findOne({
+            where: { id: savedMessage.id },
+            relations: ['sender', 'replyTo', 'replyTo.sender', 'reactions', 'reactions.user'],
+        });
+
+        if (!full)
+            throw new InternalServerErrorException('Failed to load saved message');
+
         return {
-            id: savedMessage.id,
-            content: savedMessage.content,
-            createdAt: savedMessage.createdAt,
+            id: full.id,
+            content: full.content,
+            createdAt: full.createdAt,
             sender: {
-                id: user.id,
-                username: user.username,
-            }
+                id: full.sender.id,
+                username: full.sender.username,
+                avatarUrl: full.sender.avatarUrl,
+            },
+            replyTo: full.replyTo
+                ? {
+                    id: full.replyTo.id,
+                    content: full.replyTo.content,
+                    sender: {
+                        id: full.replyTo.sender.id,
+                        username: full.replyTo.sender.username,
+                    },
+                }
+                : null,
+            reactions: (full.reactions || []).map((r) => ({
+                id: r.id,
+                emoji: r.emoji,
+                user: {
+                    id: r.user.id,
+                    username: r.user.username,
+                },
+            })),
         };
     }
 
-    async getMessages(userId: string, conversationId: string)
+    async getMessages(userId: string, conversationId: string, before?: Date, limit: number = 50)
     {
         const conversation = await this.findConversation(conversationId);
         if (!conversation)
@@ -227,21 +270,113 @@ export class ChatService
             }
         }
 
-        const messages = await this.messagerepo.find({
-            where: { conversation: { id: conversationId } },
-            relations: ['sender'],
-            order: { createdAt: 'ASC' },
-        });
+        const where: any = { conversation: { id: conversationId } };
 
-        return messages.map(msg => ({
+        if (before) {
+            where.createdAt = LessThan(before);
+        }
+
+        const messages = await this.messagerepo.find({
+            where,
+            relations: ['sender', 'replyTo', 'replyTo.sender', 'reactions', 'reactions.user'],
+            order: { createdAt: 'DESC' },
+            take: limit,
+        });
+        const ordered = messages.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+
+        return ordered.map(msg => ({
             id: msg.id,
             content: msg.content,
             createdAt: msg.createdAt,
             sender: {
                 id: msg.sender.id,
                 username: msg.sender.username,
-            }
+                avatarUrl: msg.sender.avatarUrl,
+            },
+            replyTo: msg.replyTo
+                ? {
+                    id: msg.replyTo.id,
+                    content: msg.replyTo.content,
+                    sender: {
+                        id: msg.replyTo.sender.id,
+                        username: msg.replyTo.sender.username,
+                    },
+                }
+                : null,
+            reactions: (msg.reactions || []).map((r) => ({
+                id: r.id,
+                emoji: r.emoji,
+                user: {
+                    id: r.user.id,
+                    username: r.user.username,
+                },
+            })),
         }));
+    }
+
+    async toggleReaction(userId: string, messageId: string, emoji: string) {
+        if (!emoji || !emoji.trim()) {
+            throw new BadRequestException('Emoji is required');
+        }
+
+        const message = await this.messagerepo.findOne({
+            where: { id: messageId },
+            relations: ['conversation', 'conversation.participants'],
+        });
+
+        if (!message)
+            throw new NotFoundException('Message not found');
+
+        const conversation = message.conversation;
+        const isMember = conversation.participants.some(p => p.id === userId);
+        if (!isMember) {
+            throw new ForbiddenException('You are not a member of this chat');
+        }
+
+        const user = await this.userService.findById(userId);
+        if (!user)
+            throw new NotFoundException('User not found');
+
+        const existing = await this.reactionRepo.findOne({
+            where: {
+                message: { id: messageId },
+                user: { id: userId },
+                emoji,
+            },
+            relations: ['message', 'user'],
+        });
+
+        if (existing) {
+            await this.reactionRepo.remove(existing);
+        } else {
+            const reaction = this.reactionRepo.create({
+                message,
+                user,
+                emoji,
+            });
+            await this.reactionRepo.save(reaction);
+        }
+
+        const updated = await this.messagerepo.findOne({
+            where: { id: messageId },
+            relations: ['reactions', 'reactions.user', 'conversation'],
+        });
+
+        if (!updated)
+            throw new InternalServerErrorException('Failed to load updated reactions');
+
+        return {
+            messageId: updated.id,
+            conversationId: updated.conversation.id,
+            reactions: (updated.reactions || []).map((r) => ({
+                id: r.id,
+                emoji: r.emoji,
+                user: {
+                    id: r.user.id,
+                    username: r.user.username,
+                },
+            })),
+        };
     }
 
 }
