@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import ZombieLandHeader from '../components/ZombieLandHeader';
 
 export default function ZombieLand() {
@@ -22,8 +23,10 @@ export default function ZombieLand() {
 
     const [isHovering, setIsHovering] = useState(false);
 
+    const navigate = useNavigate();
+
     const handleStartGame = () => {
-        alert('Starting Zombie Land!');
+        navigate('/play');
     };
 
     return (

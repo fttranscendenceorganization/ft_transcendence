@@ -13,7 +13,6 @@ import AuthCallback from './pages/AuthCallback';
 import Error404 from './pages/error_404';
 import Chat from './pages/chat';
 import GameModes from './pages/modes';
-import UserProfile from './pages/userDash';
 import PrivacyPolicy from './pages/policyPage';
 import TermsPage from './pages/termsPage';
 import ForgotPassword from './pages/forgotPassword';
@@ -23,6 +22,7 @@ import FirstPage from './pages/FirstPage';
 import FirstContact from './pages/FirstContact';
 import PrivateMessagePage from './pages/privateChat';
 import Leaderboard from './pages/Leaderboard';
+import GamePlay from './pages/GamePlay';
 
 function Navigation() {
   const location = useLocation();
@@ -84,7 +84,6 @@ function App() {
             <Route path="/exclusive" element={<Exclusive />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/chat" element={<Chat />} />
-            <Route path="/user" element={<UserProfile />} />
             <Route path="/modes" element={<GameModes />} />
             <Route path="/policy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<TermsPage />} />
@@ -92,6 +91,7 @@ function App() {
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/home" element={<Home />} />
             <Route path="/leaderboard" element={<Leaderboard />} />
+            <Route path="/play" element={<GamePlay />} />
 
 
             <Route path="/messages" element={<PrivateMessagePage />} />
