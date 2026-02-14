@@ -1,4 +1,5 @@
 import AirHockeyCanvas from '../game/AirHockeyCanvas';
+import { useEffect } from 'react';
 
 export default function GamePlay() {
 
