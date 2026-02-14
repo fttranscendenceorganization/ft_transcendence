@@ -41,6 +41,14 @@ export default function AirHockeyCanvas() {
             canvas.width = rect.width * dpr;
             canvas.height = rect.height * dpr;
             ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+            // Reset the size here to fix the new sizes espiselly the mobile size
+            gameState.puck.x = worldWidth / 2;
+            gameState.puck.y = worldHeight / 2;
+            gameState.player.x = 50;
+            gameState.player.y = worldHeight / 2;
+            gameState.ai.x = worldWidth - 50;
+            gameState.ai.y = worldHeight / 2;
         };
 
         resize();
@@ -74,6 +82,7 @@ export default function AirHockeyCanvas() {
 
         // Touche Moves (For mobile)
         const onTouchMove = (e: TouchEvent) => {
+            e.preventDefault();
             const rect = canvas.getBoundingClientRect();
             const touche = e.touches[0];
             mouse.x = touche.clientX - rect.left;
@@ -83,7 +92,7 @@ export default function AirHockeyCanvas() {
         window.addEventListener('keydown', onKeyDown);
         window.addEventListener('keyup', onKeyUp);
         window.addEventListener('mousemove', onMouseMove);
-        window.addEventListener('touchmove', onTouchMove, { passive: true });
+        window.addEventListener('touchmove', onTouchMove, { passive: false });
 
         // Creation of WEBSOCKET
         const socket = new WebSocket('ws://localhost:3001'); // use wss for HTTPS
@@ -143,7 +152,7 @@ export default function AirHockeyCanvas() {
     return (
         <canvas
             ref={canvasRef}
-            className="w-full h-full bg-slate-900 rounded-2xl cursor-none"
+            className="w-full h-full bg-slate-900 rounded-2xl md:cursor-none"
         />
     );
 }
