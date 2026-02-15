@@ -13,6 +13,7 @@ import { ChatModule } from './chat/chat.module';
 import { Conversation } from './chat/entities/conversation.entity';
 import { Message } from './chat/entities/message.entity';
 import { MessageReaction } from './chat/entities/message-reaction.entity';
+import { HealthModule } from './health/health.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { MessageReaction } from './chat/entities/message-reaction.entity';
     UserModule,
     AuthModule,
     ChatModule,
+    HealthModule,
     TypeOrmModule.forRoot({
     type: 'postgres',
     host: process.env.DB_HOST,

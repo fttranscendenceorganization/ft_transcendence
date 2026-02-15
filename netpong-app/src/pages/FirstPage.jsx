@@ -1,13 +1,26 @@
 import FirstHeader from '../components/FirstHeader';
-import { Link } from 'react-router-dom';
 import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { refreshAccessToken } from '../utils/api';
 
 export default function FirstPage() {
 
-    useEffect(() => {
-        document.title = "Home - NetPong";
-    }, []);
+    const navigate = useNavigate();
 
+    useEffect(() => {
+        document.title = "NetPong – Online Air Hockey";
+
+        (async () => {
+            try {
+                const ok = await refreshAccessToken();
+                if (ok) {
+                    navigate('/home', { replace: true });
+                }
+            } catch {
+            }
+        })();
+    }, [navigate]);
+    
     return (
         <div className="min-h-screen">
             <FirstHeader />
