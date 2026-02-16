@@ -7,16 +7,19 @@ export default function EditProfile() {
 
     useEffect(() => {
         document.title = "Edit Profile - NetPong";
+
+
     }, []);
 
     // This is a user data (some fields here are unchangeable)
     const [profileData, setProfileData] = useState({
-        firstName: 'Ahmed',
-        lastName: 'Ahla',
-        email: 'ahmed@gmail.com',
-        username: 'aahlaqqa',
+        firstName: '',
+        lastName: '',
+        email: '',
+        username: '',
         profileImage: null
     });
+
 
     const [previewImage, setPreviewImage] = useState('/images/avatar.jpg');
     const [isLoading, setIsLoading] = useState(false);
