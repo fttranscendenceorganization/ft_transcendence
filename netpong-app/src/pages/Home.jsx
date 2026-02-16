@@ -23,7 +23,7 @@ export default function UserHome() {
                     firstName: data.firstName,
                     username: data.username,
                     avatar: data.avatarUrl ?? '/images/avatar.jpg',
-                    level: data.level || 1,
+                    level: data.level || 0,
                     xp: data.xp || 0,
                     xpNext: data.xpNext || 100,
                     rank: data.rank ?? 'Unranked',
@@ -94,7 +94,7 @@ export default function UserHome() {
 
                             <div className="flex md:flex-col gap-4">
                                 <button
-                                    onClick={() => navigate('#')}
+                                    onClick={() => navigate('/editprofile')}
                                     className="bg-gradient-to-r from-orange-600 to-red-600 
                                                hover:from-orange-500 hover:to-red-500 
                                                text-white py-3 px-6 font-bold rounded-xl 
