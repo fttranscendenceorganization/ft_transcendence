@@ -22,6 +22,7 @@ import FirstPage from './pages/FirstPage';
 import FirstContact from './pages/FirstContact';
 import Leaderboard from './pages/Leaderboard';
 import GamePlay from './pages/GamePlay';
+import EditProfile from './pages/EditProfile';
 
 function Navigation() {
   const location = useLocation();
@@ -45,7 +46,8 @@ function Navigation() {
     '/contact',
     '/modes',
     '/home',
-    '/leaderboard'
+    '/leaderboard',
+    '/editprofile'
   ];
 
   if (hideHeaderPaths.includes(location.pathname) || !validPathsWithHeader.includes(location.pathname)) {
@@ -86,6 +88,7 @@ function App() {
             <Route path="/home" element={<Home />} />
             <Route path="/leaderboard" element={<Leaderboard />} />
             <Route path="/play" element={<GamePlay />} />
+            <Route path="/editprofile" element={<EditProfile />} />
 
             <Route path="*" element={<Error404 />} />
           </Routes>
