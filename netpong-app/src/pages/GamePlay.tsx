@@ -1,8 +1,26 @@
 import { useNavigate } from "react-router-dom";
+import { useEffect } from 'react';
 import AirHockeyCanvas from '../game/AirHockeyCanvas';
 
 export default function GamePlay() {
     const navigate = useNavigate();
+
+
+    useEffect(() => {
+        document.title = "Zombie Land - NetGame";
+
+        const link = document.querySelector("link[rel~='icon']");
+        if (link) {
+            link.href = "/zombie.svg";
+        }
+
+        return () => {
+            document.title = "NetPong";
+            if (link) {
+                link.href = "/netpong.svg";
+            }
+        };
+    }, []);
 
     return (
         <div className="relative min-h-[100svh] overflow-hidden">
