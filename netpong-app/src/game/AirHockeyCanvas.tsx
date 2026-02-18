@@ -43,12 +43,18 @@ export default function AirHockeyCanvas() {
             ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
             // Reset the size here to fix the new sizes espiselly the mobile size
+            const paddleRadius = worldHeight * 0.09; // 9% of table height
+            const puckRadius = worldHeight * 0.045;  // 4.5% of table height
+            gameState.player.r = paddleRadius;
+            gameState.ai.r = paddleRadius;
+            gameState.puck.r = puckRadius;
             gameState.puck.x = worldWidth / 2;
             gameState.puck.y = worldHeight / 2;
-            gameState.player.x = 50;
+            gameState.player.x = worldWidth * 0.15;
             gameState.player.y = worldHeight / 2;
-            gameState.ai.x = worldWidth - 50;
+            gameState.ai.x = worldWidth * 0.85;
             gameState.ai.y = worldHeight / 2;
+
         };
 
         resize();
@@ -158,7 +164,6 @@ export default function AirHockeyCanvas() {
 }
 
 // Rendering function
-
 function draw(
     ctx: CanvasRenderingContext2D,
     w: number,
@@ -191,39 +196,171 @@ function draw(
 
 function drawPlayer(ctx: CanvasRenderingContext2D, player: any) {
     const { x, y, r } = player;
-    const glow = ctx.createRadialGradient(x, y, r * 0.2, x, y, r);
-    glow.addColorStop(0, '#6ee7b7');
-    glow.addColorStop(1, '#064e3b');
-    ctx.shadowBlur = 25;
-    ctx.shadowColor = '#22c55e';
-    ctx.fillStyle = glow;
+
+    const mainGlow = ctx.createRadialGradient(x, y, r * 0.1, x, y, r);
+    mainGlow.addColorStop(0, '#dcfce7');
+    mainGlow.addColorStop(0.3, '#86efac');
+    mainGlow.addColorStop(0.6, '#22c55e');
+    mainGlow.addColorStop(0.85, '#166534');
+    mainGlow.addColorStop(1, '#052e16');
+
+    ctx.fillStyle = mainGlow;
     ctx.beginPath();
     ctx.arc(x, y, r, 0, Math.PI * 2);
     ctx.fill();
-    ctx.shadowBlur = 0;
+    ctx.strokeStyle = '#bbf7d0';
+    ctx.lineWidth = 2;
+    ctx.globalAlpha = 0.6;
+    for (let i = 0; i < 6; i++) {
+        const angle = (Math.PI * 2 * i) / 6;
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(
+            x + Math.cos(angle) * r * 0.8,
+            y + Math.sin(angle) * r * 0.8
+        );
+        ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = '#f0fdf4';
+    ctx.beginPath();
+    ctx.arc(x, y, r * 0.25, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#166534';
+    for (let i = 0; i < 3; i++) {
+        const angle = (Math.PI * 2 * i) / 3;
+        ctx.beginPath();
+        ctx.arc(
+            x + Math.cos(angle) * r * 0.4,
+            y + Math.sin(angle) * r * 0.4,
+            r * 0.15,
+            0,
+            Math.PI * 2
+        );
+        ctx.fill();
+    }
 }
 
 function drawAI(ctx: CanvasRenderingContext2D, ai: any) {
     const { x, y, r } = ai;
-    const pulse = 1 + Math.sin(performance.now() * 0.008) * 0.1;
-    const glow = ctx.createRadialGradient(x, y, r * 0.1, x, y, r * pulse);
-    glow.addColorStop(0, '#fecaca');
-    glow.addColorStop(1, '#450a0a');
-    ctx.shadowBlur = 35;
-    ctx.shadowColor = '#ef4444';
-    ctx.fillStyle = glow;
+
+    const mainGlow = ctx.createRadialGradient(x, y, r * 0.1, x, y, r);
+    mainGlow.addColorStop(0, '#fca5a5');
+    mainGlow.addColorStop(0.3, '#ef4444');
+    mainGlow.addColorStop(0.6, '#b91c1c');
+    mainGlow.addColorStop(0.85, '#7f1d1d');
+    mainGlow.addColorStop(1, '#450a0a');
+
+    ctx.fillStyle = mainGlow;
     ctx.beginPath();
-    ctx.arc(x, y, r * pulse, 0, Math.PI * 2);
+    ctx.arc(x, y, r, 0, Math.PI * 2);
     ctx.fill();
-    ctx.shadowBlur = 0;
+
+    ctx.fillStyle = '#7f1d1d';
+    ctx.globalAlpha = 0.7;
+    for (let i = 0; i < 8; i++) {
+        const angle = (Math.PI * 2 * i) / 8;
+        const distance = r * 0.6;
+        ctx.beginPath();
+        ctx.arc(
+            x + Math.cos(angle) * distance,
+            y + Math.sin(angle) * distance,
+            r * 0.08,
+            0,
+            Math.PI * 2
+        );
+        ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    const eyeOffset = r * 0.3;
+    ctx.fillStyle = '#fef2f2';
+
+    ctx.beginPath();
+    ctx.arc(x - eyeOffset, y, r * 0.15, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.arc(x + eyeOffset, y, r * 0.15, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#450a0a';
+    ctx.beginPath();
+    ctx.arc(x - eyeOffset, y, r * 0.08, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(x + eyeOffset, y, r * 0.08, 0, Math.PI * 2);
+    ctx.fill();
 }
 
 function drawPuck(ctx: CanvasRenderingContext2D, puck: any) {
     const { x, y, r } = puck;
-    ctx.fillStyle = '#d1d5db';
+
+    const mainGlow = ctx.createRadialGradient(x - r * 0.3, y - r * 0.3, r * 0.2, x, y, r);
+    mainGlow.addColorStop(0, '#f0fdf4');
+    mainGlow.addColorStop(0.2, '#bbf7d0');
+    mainGlow.addColorStop(0.5, '#4ade80');
+    mainGlow.addColorStop(0.75, '#22c55e');
+    mainGlow.addColorStop(0.9, '#166534');
+    mainGlow.addColorStop(1, '#14532d');
+
+    ctx.fillStyle = mainGlow;
     ctx.beginPath();
     ctx.arc(x, y, r, 0, Math.PI * 2);
     ctx.fill();
+
+    ctx.fillStyle = '#14532d';
+    ctx.globalAlpha = 0.8;
+    for (let i = 0; i < 6; i++) {
+        const angle = (Math.PI * 2 * i) / 6;
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.arc(x, y, r * 0.9, angle, angle + Math.PI / 12);
+        ctx.closePath();
+        ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = '#14532d';
+    ctx.beginPath();
+    ctx.arc(x, y, r * 0.2, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#14532d';
+    for (let i = 0; i < 3; i++) {
+        const angle = (Math.PI * 2 * i) / 3;
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(angle);
+
+        ctx.beginPath();
+        ctx.moveTo(r * 0.25, 0);
+        ctx.quadraticCurveTo(r * 0.5, -r * 0.15, r * 0.6, 0);
+        ctx.quadraticCurveTo(r * 0.5, r * 0.15, r * 0.25, 0);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(r * 0.55, 0, r * 0.12, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.restore();
+    }
+    ctx.fillStyle = '#86efac';
+    ctx.globalAlpha = 0.7;
+    for (let i = 0; i < 4; i++) {
+        const dripAngle = (Math.PI * 2 * i) / 4;
+        const dripDist = r * 1.1;
+        ctx.beginPath();
+        ctx.arc(
+            x + Math.cos(dripAngle) * dripDist,
+            y + Math.sin(dripAngle) * dripDist,
+            r * 0.1,
+            0,
+            Math.PI * 2
+        );
+        ctx.fill();
+    }
+    ctx.globalAlpha = 1;
 }
 
 function drawTable(ctx: CanvasRenderingContext2D, w: number, h: number) {
