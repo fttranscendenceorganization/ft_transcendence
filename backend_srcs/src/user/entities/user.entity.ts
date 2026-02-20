@@ -4,6 +4,7 @@ import * as bcrypt from 'bcrypt';
 import { Conversation } from 'src/chat/entities/conversation.entity';
 import { Message } from 'src/chat/entities/message.entity';
 import { Block } from './block.entity';
+import { Game } from 'src/game/entities/game.entity';
 
 @Entity('users')
 
@@ -40,7 +41,7 @@ export class User
     @Column({ type: 'text', nullable: true })
     refreshTokenHash: string | null;
 
-   @Column({ type: 'text', nullable: true })
+    @Column({ type: 'text', nullable: true })
     avatarUrl: string | null;
 
     @Column({default: 0})
@@ -87,6 +88,16 @@ export class User
 
     @OneToMany(() => Block, (block) => block.blocked)
     blocksReceived: Block[];
+
+
+    @OneToMany(() => Game, (game) => game.playerA)
+    gamesAsPlayerA: Game[];
+
+    @OneToMany(() => Game, (game) => game.playerB)
+    gamesAsPlayerB: Game[];
+
+    @OneToMany(() => Game, (game) => game.winner)
+    gameWins: Game[];
 
     @BeforeInsert()
     @BeforeUpdate()
