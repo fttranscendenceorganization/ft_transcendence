@@ -1,0 +1,318 @@
+import { useEffect, useRef } from 'react';
+
+type Vec2 = { x: number; y: number }; // Creation of a type of a 2D vector (act as a bluePrint)
+
+type GameState = {
+    puck: { x: number; y: number; r: number };
+    player: { x: number; y: number; r: number };
+    ai: { x: number; y: number; r: number };
+    playerScore: number;
+    aiScore: number;
+}; // Same Create a bluePrint for the Game state (Need to be respected)
+
+export default function JokerHockey() {
+    const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+
+        const ctx = canvas.getContext('2d'); // Create the Canvas for the game
+        if (!ctx) return;
+
+        let worldWidth = 0;
+        let worldHeight = 0;
+
+        // Server Game state (as described in the BluePrint)
+        let gameState: GameState = {
+            puck: { x: 300, y: 200, r: 12 },
+            player: { x: 100, y: 200, r: 20 },
+            ai: { x: 500, y: 200, r: 20 },
+            playerScore: 0,
+            aiScore: 0,
+        };
+
+        // Here this function is responsable for the resize in all devices (Desktop, Mobile)
+        const resize = () => {
+            const dpr = window.devicePixelRatio || 1;
+            const rect = canvas.getBoundingClientRect();
+            worldWidth = rect.width;
+            worldHeight = rect.height;
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+            // Reset the size here to fix the new sizes espiselly the mobile size
+            const paddleRadius = worldHeight * 0.09; // 9% of table height
+            const puckRadius = worldHeight * 0.045;  // 4.5% of table height
+            gameState.player.r = paddleRadius;
+            gameState.ai.r = paddleRadius;
+            gameState.puck.r = puckRadius;
+            gameState.puck.x = worldWidth / 2;
+            gameState.puck.y = worldHeight / 2;
+            gameState.player.x = worldWidth * 0.15;
+            gameState.player.y = worldHeight / 2;
+            gameState.ai.x = worldWidth * 0.85;
+            gameState.ai.y = worldHeight / 2;
+
+        };
+
+        resize();
+        window.addEventListener('resize', resize);
+
+        // Input Keys comes from the user (Client)
+        const keys = { up: false, down: false, left: false, right: false };
+        const mouse = { x: 0, y: 0 };
+
+        const onKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'w' || e.key === 'ArrowUp') keys.up = true;
+            if (e.key === 's' || e.key === 'ArrowDown') keys.down = true;
+            if (e.key === 'a' || e.key === 'ArrowLeft') keys.left = true;
+            if (e.key === 'd' || e.key === 'ArrowRight') keys.right = true;
+        };
+
+        const onKeyUp = (e: KeyboardEvent) => {
+            if (e.key === 'w' || e.key === 'ArrowUp') keys.up = false;
+            if (e.key === 's' || e.key === 'ArrowDown') keys.down = false;
+            if (e.key === 'a' || e.key === 'ArrowLeft') keys.left = false;
+            if (e.key === 'd' || e.key === 'ArrowRight') keys.right = false;
+        };
+
+        // Input for The mouse moves
+        const onMouseMove = (e: MouseEvent) => {
+            const rect = canvas.getBoundingClientRect();
+            mouse.x = e.clientX - rect.left;
+            mouse.y = e.clientY - rect.top;
+
+        }
+
+        // Touche Moves (For mobile)
+        const onTouchMove = (e: TouchEvent) => {
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const touche = e.touches[0];
+            mouse.x = touche.clientX - rect.left;
+            mouse.y = touche.clientY - rect.top;
+        }
+
+        window.addEventListener('keydown', onKeyDown);
+        window.addEventListener('keyup', onKeyUp);
+        window.addEventListener('mousemove', onMouseMove);
+        window.addEventListener('touchmove', onTouchMove, { passive: false });
+
+        // Creation of WEBSOCKET
+        const socket = new WebSocket('ws://localhost:3001'); // use wss for HTTPS
+
+        socket.onmessage = (event) => {
+            try {
+                const serverState = JSON.parse(event.data);
+                gameState = serverState; // authoritative overwrite
+            } catch (err) {
+                console.error('Bad server state', err);
+            }
+        }; // For the server side (means what comes from the server to the client)
+
+        const sendInput = () => {
+            if (socket.readyState !== WebSocket.OPEN) return;
+
+            socket.send(
+                JSON.stringify({
+                    type: 'input',
+                    keys: { ...keys },
+                    mouse: { ...mouse },
+                })
+            );
+        }; // For client size (what client send to the server)
+
+        // Render Loop
+        const loop = () => {
+            sendInput();
+
+            draw(
+                ctx,
+                worldWidth,
+                worldHeight,
+                gameState.puck,
+                gameState.player,
+                gameState.ai,
+                gameState.playerScore,
+                gameState.aiScore
+            );
+
+            requestAnimationFrame(loop);
+        };
+
+        requestAnimationFrame(loop);
+
+        // Function for CleanUp
+        return () => {
+            window.removeEventListener('resize', resize);
+            window.removeEventListener('keydown', onKeyDown);
+            window.removeEventListener('keyup', onKeyUp);
+            window.removeEventListener('mousemove', onMouseMove);
+            window.removeEventListener('touchmove', onTouchMove);
+            socket.close();
+        };
+    }, []);
+
+    return (
+        <canvas
+            ref={canvasRef}
+            className="w-full h-full bg-slate-900 rounded-2xl md:cursor-none"
+        />
+    );
+}
+
+// Rendering function
+function draw(
+    ctx: CanvasRenderingContext2D,
+    w: number,
+    h: number,
+    puck: any,
+    player: any,
+    ai: any,
+    playerScore: number,
+    aiScore: number
+) {
+    ctx.clearRect(0, 0, w, h);
+    drawTable(ctx, w, h);
+
+    // Scoreboard
+    ctx.fillStyle = 'rgba(197, 8, 240, 0.2)';
+    ctx.font = 'bold 100px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(`${playerScore}`, w / 4, h / 2 + 30);
+    ctx.fillText(`${aiScore}`, (w * 3) / 4, h / 2 + 30);
+
+    // Player
+    drawPlayer(ctx, player);
+
+    // AI
+    drawAI(ctx, ai);
+
+    // Puck
+    drawPuck(ctx, puck);
+}
+
+function drawPlayer(ctx: CanvasRenderingContext2D, player: any) {
+    const { x, y, r } = player;
+
+    const gradient = ctx.createRadialGradient(x, y, r * 0.2, x, y, r);
+    gradient.addColorStop(0, '#d8b4fe');
+    gradient.addColorStop(0.4, '#a855f7');
+    gradient.addColorStop(0.8, '#6b21a8');
+    gradient.addColorStop(1, '#2e1065');
+
+    ctx.fillStyle = gradient;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = '#22c55e';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(x, y + r * 0.1, r * 0.5, 0.2 * Math.PI, 0.8 * Math.PI);
+    ctx.stroke();
+
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(x - r * 0.3, y - r * 0.2, r * 0.15, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.arc(x + r * 0.3, y - r * 0.2, r * 0.15, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#000';
+    ctx.beginPath();
+    ctx.arc(x - r * 0.3, y - r * 0.2, r * 0.07, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.arc(x + r * 0.3, y - r * 0.2, r * 0.07, 0, Math.PI * 2);
+    ctx.fill();
+}
+
+
+function drawAI(ctx: CanvasRenderingContext2D, ai: any) {
+    const { x, y, r } = ai;
+
+    const gradient = ctx.createRadialGradient(x, y, r * 0.2, x, y, r);
+    gradient.addColorStop(0, '#86efac');
+    gradient.addColorStop(0.4, '#22c55e');
+    gradient.addColorStop(0.8, '#166534');
+    gradient.addColorStop(1, '#052e16');
+
+    ctx.fillStyle = gradient;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = '#ef4444';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(x, y + r * 0.2, r * 0.6, 0.15 * Math.PI, 0.85 * Math.PI);
+    ctx.stroke();
+
+    ctx.fillStyle = '#ffffff';
+
+    ctx.beginPath();
+    ctx.ellipse(x - r * 0.3, y - r * 0.2, r * 0.18, r * 0.12, -0.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.ellipse(x + r * 0.3, y - r * 0.2, r * 0.18, r * 0.12, 0.5, 0, Math.PI * 2);
+    ctx.fill();
+}
+
+
+function drawPuck(ctx: CanvasRenderingContext2D, puck: any) {
+    const { x, y, r } = puck;
+
+    const gradient = ctx.createRadialGradient(
+        x - r * 0.3,
+        y - r * 0.3,
+        r * 0.2,
+        x,
+        y,
+        r
+    );
+
+    gradient.addColorStop(0, '#f5d0fe');
+    gradient.addColorStop(0.3, '#c084fc');
+    gradient.addColorStop(0.7, '#9333ea');
+    gradient.addColorStop(1, '#3b0764');
+
+    ctx.fillStyle = gradient;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
+}
+
+
+function drawTable(ctx: CanvasRenderingContext2D, w: number, h: number) {
+    const GOAL_HEIGHT = h * 0.35;
+    const goalTop = (h - GOAL_HEIGHT) / 2;
+
+    ctx.strokeStyle = '#e900f9ff';
+    ctx.lineWidth = 4;
+    ctx.strokeRect(0, 0, w, h);
+
+    ctx.setLineDash([15, 15]);
+    ctx.beginPath();
+    ctx.moveTo(w / 2, 0);
+    ctx.lineTo(w / 2, h);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.beginPath();
+    ctx.arc(w / 2, h / 2, 80, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.fillStyle = '#d70707ff';
+    ctx.shadowBlur = 20;
+    ctx.shadowColor = '#860422ff';
+    ctx.fillRect(0, goalTop, 10, GOAL_HEIGHT);
+    ctx.fillRect(w - 10, goalTop, 10, GOAL_HEIGHT);
+    ctx.shadowBlur = 0;
+}
