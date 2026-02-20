@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import JokerHeader from '../components/JokerHeader';
 
 export default function Joker() {
@@ -22,8 +23,10 @@ export default function Joker() {
 
     const [isHovering, setIsHovering] = useState(false);
 
+    const navigate = useNavigate();
+
     const handleStartGame = () => {
-        alert('Starting Joker Game!');
+        navigate('/Jplay');
     };
 
     return (
