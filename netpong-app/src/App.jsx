@@ -22,6 +22,7 @@ import FirstPage from './pages/FirstPage';
 import FirstContact from './pages/FirstContact';
 import Leaderboard from './pages/Leaderboard';
 import GamePlay from './pages/GamePlay';
+import GameJoker from './pages/GameJoker';
 import EditProfile from './pages/EditProfile';
 
 function Navigation() {
@@ -88,6 +89,7 @@ function App() {
             <Route path="/home" element={<Home />} />
             <Route path="/leaderboard" element={<Leaderboard />} />
             <Route path="/play" element={<GamePlay />} />
+            <Route path="/Jplay" element={<GameJoker />} />
             <Route path="/editprofile" element={<EditProfile />} />
 
             <Route path="*" element={<Error404 />} />
