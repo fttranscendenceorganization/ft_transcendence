@@ -1,70 +1,38 @@
 import { useEffect, useRef } from 'react';
-import { Socket } from 'socket.io-client';
 
-// ---------------------------------------------------------------------------
-// Types that match the BACKEND GameStateType exactly
-// ---------------------------------------------------------------------------
-type Vec2 = { x: number; y: number };
+type Vec2 = { x: number; y: number }; // Creation of a type of a 2D vector (act as a bluePrint)
 
-type BackendGameState = {
-    ballPosition: Vec2;
-    ballVelocity: Vec2;
-    ballSpeed: number;
-    paddleLeft: Vec2;
-    paddleRight: Vec2;
-    score: { left: number; right: number };
-    ballRadius: number;
-    paddleRadius: number;
-    elapsedTimeSeconds: number;
-};
-
-// Internal canvas state (stays in the old draw-function shape your teammate wrote)
-type DrawState = {
+type GameState = {
     puck: { x: number; y: number; r: number };
     player: { x: number; y: number; r: number };
-    opponent: { x: number; y: number; r: number };
+    ai: { x: number; y: number; r: number };
     playerScore: number;
-    opponentScore: number;
-};
+    aiScore: number;
+}; // Same Create a bluePrint for the Game state (Need to be respected)
 
-// ---------------------------------------------------------------------------
-// Backend world dimensions (fixed by the server physics)
-// ---------------------------------------------------------------------------
-const WORLD_W = 1000;
-const WORLD_H = 600;
-
-interface AirHockeyCanvasProps {
-    /** Which side this client is on ('left' | 'right'), received from gameFound event */
-    side: 'left' | 'right';
-    /** The socket instance managed by GamePlay */
-    socket: Socket;
-    /** Called when the game ends */
-    onGameOver: (data: { winnerId: string; score: { left: number; right: number } }) => void;
-    /** Called when the game is aborted */
-    onGameAborted: (data: { reason: string }) => void;
-}
-
-export default function AirHockeyCanvas({
-    side,
-    socket,
-    onGameOver,
-    onGameAborted,
-}: AirHockeyCanvasProps) {
+export default function AirHockeyCanvas() {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
     useEffect(() => {
         const canvas = canvasRef.current;
         if (!canvas) return;
 
-        const ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext('2d'); // Create the Canvas for the game
         if (!ctx) return;
 
         let worldWidth = 0;
         let worldHeight = 0;
 
-        // ---------------------------------------------------------------------------
-        // Canvas resize — keeps aspect ratio of 1000:600
-        // ---------------------------------------------------------------------------
+        // Server Game state (as described in the BluePrint)
+        let gameState: GameState = {
+            puck: { x: 300, y: 200, r: 12 },
+            player: { x: 100, y: 200, r: 20 },
+            ai: { x: 500, y: 200, r: 20 },
+            playerScore: 0,
+            aiScore: 0,
+        };
+
+        // Here this function is responsable for the resize in all devices (Desktop, Mobile)
         const resize = () => {
             const dpr = window.devicePixelRatio || 1;
             const rect = canvas.getBoundingClientRect();
@@ -73,61 +41,28 @@ export default function AirHockeyCanvas({
             canvas.width = rect.width * dpr;
             canvas.height = rect.height * dpr;
             ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+            // Reset the size here to fix the new sizes espiselly the mobile size
+            const paddleRadius = worldHeight * 0.09; // 9% of table height
+            const puckRadius = worldHeight * 0.045;  // 4.5% of table height
+            gameState.player.r = paddleRadius;
+            gameState.ai.r = paddleRadius;
+            gameState.puck.r = puckRadius;
+            gameState.puck.x = worldWidth / 2;
+            gameState.puck.y = worldHeight / 2;
+            gameState.player.x = worldWidth * 0.15;
+            gameState.player.y = worldHeight / 2;
+            gameState.ai.x = worldWidth * 0.85;
+            gameState.ai.y = worldHeight / 2;
+
         };
 
         resize();
         window.addEventListener('resize', resize);
 
-        // ---------------------------------------------------------------------------
-        // Scale helpers — map backend 1000×600 → canvas pixels
-        // ---------------------------------------------------------------------------
-        const sx = (x: number) => (x / WORLD_W) * worldWidth;
-        const sy = (y: number) => (y / WORLD_H) * worldHeight;
-        const sr = (r: number) => (r / WORLD_W) * worldWidth; // scale radius by width
-
-        // ---------------------------------------------------------------------------
-        // Draw state initialised to center
-        // ---------------------------------------------------------------------------
-        let drawState: DrawState = {
-            puck: { x: WORLD_W / 2, y: WORLD_H / 2, r: 25 },
-            player: { x: side === 'left' ? 50 : 950, y: WORLD_H / 2, r: 45 },
-            opponent: { x: side === 'left' ? 950 : 50, y: WORLD_H / 2, r: 45 },
-            playerScore: 0,
-            opponentScore: 0,
-        };
-
-        // ---------------------------------------------------------------------------
-        // Mouse / touch input — send movePaddle in world coordinates
-        // ---------------------------------------------------------------------------
-        const mouse = { x: 0, y: 0 };
-
-        const toWorldX = (canvasX: number) => (canvasX / worldWidth) * WORLD_W;
-        const toWorldY = (canvasY: number) => (canvasY / worldHeight) * WORLD_H;
-
-        const sendPaddleMove = () => {
-            socket.emit('movePaddle', {
-                x: toWorldX(mouse.x),
-                y: toWorldY(mouse.y),
-            });
-        };
-
-        const onMouseMove = (e: MouseEvent) => {
-            const rect = canvas.getBoundingClientRect();
-            mouse.x = e.clientX - rect.left;
-            mouse.y = e.clientY - rect.top;
-        };
-
-        const onTouchMove = (e: TouchEvent) => {
-            e.preventDefault();
-            const rect = canvas.getBoundingClientRect();
-            const touch = e.touches[0];
-            mouse.x = touch.clientX - rect.left;
-            mouse.y = touch.clientY - rect.top;
-        };
-
-        // Keyboard fallback (WASD / arrows) — moves paddle incrementally
+        // Input Keys comes from the user (Client)
         const keys = { up: false, down: false, left: false, right: false };
-        const KEYBOARD_SPEED = 8; // world units per frame
+        const mouse = { x: 0, y: 0 };
 
         const onKeyDown = (e: KeyboardEvent) => {
             if (e.key === 'w' || e.key === 'ArrowUp') keys.up = true;
@@ -143,103 +78,82 @@ export default function AirHockeyCanvas({
             if (e.key === 'd' || e.key === 'ArrowRight') keys.right = false;
         };
 
-        // Track current paddle world position for keyboard input
-        let paddleWorldX = side === 'left' ? 50 : 950;
-        let paddleWorldY = WORLD_H / 2;
+        // Input for The mouse moves
+        const onMouseMove = (e: MouseEvent) => {
+            const rect = canvas.getBoundingClientRect();
+            mouse.x = e.clientX - rect.left;
+            mouse.y = e.clientY - rect.top;
 
-        window.addEventListener('mousemove', onMouseMove);
-        window.addEventListener('touchmove', onTouchMove, { passive: false });
+        }
+
+        // Touche Moves (For mobile)
+        const onTouchMove = (e: TouchEvent) => {
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const touche = e.touches[0];
+            mouse.x = touche.clientX - rect.left;
+            mouse.y = touche.clientY - rect.top;
+        }
+
         window.addEventListener('keydown', onKeyDown);
         window.addEventListener('keyup', onKeyUp);
+        window.addEventListener('mousemove', onMouseMove);
+        window.addEventListener('touchmove', onTouchMove, { passive: false });
 
-        // ---------------------------------------------------------------------------
-        // Listen to backend gameState events
-        // ---------------------------------------------------------------------------
-        const handleGameState = (state: BackendGameState) => {
-            const myPaddle = side === 'left' ? state.paddleLeft : state.paddleRight;
-            const oppPaddle = side === 'left' ? state.paddleRight : state.paddleLeft;
-            const myScore = side === 'left' ? state.score.left : state.score.right;
-            const oppScore = side === 'left' ? state.score.right : state.score.left;
+        // Creation of WEBSOCKET
+        const socket = new WebSocket('ws://localhost:3001'); // use wss for HTTPS
 
-            // Keep keyboard-driven world position in sync with authoritative state
-            paddleWorldX = myPaddle.x;
-            paddleWorldY = myPaddle.y;
-
-            drawState = {
-                puck: {
-                    x: sx(state.ballPosition.x),
-                    y: sy(state.ballPosition.y),
-                    r: sr(state.ballRadius),
-                },
-                player: {
-                    x: sx(myPaddle.x),
-                    y: sy(myPaddle.y),
-                    r: sr(state.paddleRadius),
-                },
-                opponent: {
-                    x: sx(oppPaddle.x),
-                    y: sy(oppPaddle.y),
-                    r: sr(state.paddleRadius),
-                },
-                playerScore: myScore,
-                opponentScore: oppScore,
-            };
-        };
-
-        socket.on('gameState', handleGameState);
-        socket.on('gameOver', onGameOver);
-        socket.on('gameAborted', onGameAborted);
-
-        // ---------------------------------------------------------------------------
-        // Render + input loop at ~60fps
-        // ---------------------------------------------------------------------------
-        let animId: number;
-
-        const loop = () => {
-            // Keyboard movement → emit
-            if (keys.up) paddleWorldY = Math.max(0, paddleWorldY - KEYBOARD_SPEED);
-            if (keys.down) paddleWorldY = Math.min(WORLD_H, paddleWorldY + KEYBOARD_SPEED);
-            if (keys.left) paddleWorldX = Math.max(0, paddleWorldX - KEYBOARD_SPEED);
-            if (keys.right) paddleWorldX = Math.min(WORLD_W, paddleWorldX + KEYBOARD_SPEED);
-
-            const anyKey = keys.up || keys.down || keys.left || keys.right;
-            if (anyKey) {
-                socket.emit('movePaddle', { x: paddleWorldX, y: paddleWorldY });
-            } else {
-                sendPaddleMove(); // mouse / touch
+        socket.onmessage = (event) => {
+            try {
+                const serverState = JSON.parse(event.data);
+                gameState = serverState; // authoritative overwrite
+            } catch (err) {
+                console.error('Bad server state', err);
             }
+        }; // For the server side (means what comes from the server to the client)
+
+        const sendInput = () => {
+            if (socket.readyState !== WebSocket.OPEN) return;
+
+            socket.send(
+                JSON.stringify({
+                    type: 'input',
+                    keys: { ...keys },
+                    mouse: { ...mouse },
+                })
+            );
+        }; // For client size (what client send to the server)
+
+        // Render Loop
+        const loop = () => {
+            sendInput();
 
             draw(
                 ctx,
                 worldWidth,
                 worldHeight,
-                drawState.puck,
-                drawState.player,
-                drawState.opponent,
-                drawState.playerScore,
-                drawState.opponentScore
+                gameState.puck,
+                gameState.player,
+                gameState.ai,
+                gameState.playerScore,
+                gameState.aiScore
             );
 
-            animId = requestAnimationFrame(loop);
+            requestAnimationFrame(loop);
         };
 
-        animId = requestAnimationFrame(loop);
+        requestAnimationFrame(loop);
 
-        // ---------------------------------------------------------------------------
-        // Cleanup
-        // ---------------------------------------------------------------------------
+        // Function for CleanUp
         return () => {
-            cancelAnimationFrame(animId);
             window.removeEventListener('resize', resize);
-            window.removeEventListener('mousemove', onMouseMove);
-            window.removeEventListener('touchmove', onTouchMove);
             window.removeEventListener('keydown', onKeyDown);
             window.removeEventListener('keyup', onKeyUp);
-            socket.off('gameState', handleGameState);
-            socket.off('gameOver', onGameOver);
-            socket.off('gameAborted', onGameAborted);
+            window.removeEventListener('mousemove', onMouseMove);
+            window.removeEventListener('touchmove', onTouchMove);
+            socket.close();
         };
-    }, [side, socket, onGameOver, onGameAborted]);
+    }, []);
 
     return (
         <canvas
@@ -249,10 +163,7 @@ export default function AirHockeyCanvas({
     );
 }
 
-// ===========================================================================
-// Drawing functions — unchanged from your teammate's original work
-// ===========================================================================
-
+// Rendering function
 function draw(
     ctx: CanvasRenderingContext2D,
     w: number,
@@ -276,7 +187,7 @@ function draw(
     // Player
     drawPlayer(ctx, player);
 
-    // Opponent
+    // AI
     drawAI(ctx, ai);
 
     // Puck
@@ -285,39 +196,171 @@ function draw(
 
 function drawPlayer(ctx: CanvasRenderingContext2D, player: any) {
     const { x, y, r } = player;
-    const glow = ctx.createRadialGradient(x, y, r * 0.2, x, y, r);
-    glow.addColorStop(0, '#6ee7b7');
-    glow.addColorStop(1, '#064e3b');
-    ctx.shadowBlur = 25;
-    ctx.shadowColor = '#22c55e';
-    ctx.fillStyle = glow;
+
+    const mainGlow = ctx.createRadialGradient(x, y, r * 0.1, x, y, r);
+    mainGlow.addColorStop(0, '#dcfce7');
+    mainGlow.addColorStop(0.3, '#86efac');
+    mainGlow.addColorStop(0.6, '#22c55e');
+    mainGlow.addColorStop(0.85, '#166534');
+    mainGlow.addColorStop(1, '#052e16');
+
+    ctx.fillStyle = mainGlow;
     ctx.beginPath();
     ctx.arc(x, y, r, 0, Math.PI * 2);
     ctx.fill();
-    ctx.shadowBlur = 0;
+    ctx.strokeStyle = '#bbf7d0';
+    ctx.lineWidth = 2;
+    ctx.globalAlpha = 0.6;
+    for (let i = 0; i < 6; i++) {
+        const angle = (Math.PI * 2 * i) / 6;
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(
+            x + Math.cos(angle) * r * 0.8,
+            y + Math.sin(angle) * r * 0.8
+        );
+        ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = '#f0fdf4';
+    ctx.beginPath();
+    ctx.arc(x, y, r * 0.25, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#166534';
+    for (let i = 0; i < 3; i++) {
+        const angle = (Math.PI * 2 * i) / 3;
+        ctx.beginPath();
+        ctx.arc(
+            x + Math.cos(angle) * r * 0.4,
+            y + Math.sin(angle) * r * 0.4,
+            r * 0.15,
+            0,
+            Math.PI * 2
+        );
+        ctx.fill();
+    }
 }
 
 function drawAI(ctx: CanvasRenderingContext2D, ai: any) {
     const { x, y, r } = ai;
-    const pulse = 1 + Math.sin(performance.now() * 0.008) * 0.1;
-    const glow = ctx.createRadialGradient(x, y, r * 0.1, x, y, r * pulse);
-    glow.addColorStop(0, '#fecaca');
-    glow.addColorStop(1, '#450a0a');
-    ctx.shadowBlur = 35;
-    ctx.shadowColor = '#ef4444';
-    ctx.fillStyle = glow;
+
+    const mainGlow = ctx.createRadialGradient(x, y, r * 0.1, x, y, r);
+    mainGlow.addColorStop(0, '#fca5a5');
+    mainGlow.addColorStop(0.3, '#ef4444');
+    mainGlow.addColorStop(0.6, '#b91c1c');
+    mainGlow.addColorStop(0.85, '#7f1d1d');
+    mainGlow.addColorStop(1, '#450a0a');
+
+    ctx.fillStyle = mainGlow;
     ctx.beginPath();
-    ctx.arc(x, y, r * pulse, 0, Math.PI * 2);
+    ctx.arc(x, y, r, 0, Math.PI * 2);
     ctx.fill();
-    ctx.shadowBlur = 0;
+
+    ctx.fillStyle = '#7f1d1d';
+    ctx.globalAlpha = 0.7;
+    for (let i = 0; i < 8; i++) {
+        const angle = (Math.PI * 2 * i) / 8;
+        const distance = r * 0.6;
+        ctx.beginPath();
+        ctx.arc(
+            x + Math.cos(angle) * distance,
+            y + Math.sin(angle) * distance,
+            r * 0.08,
+            0,
+            Math.PI * 2
+        );
+        ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    const eyeOffset = r * 0.3;
+    ctx.fillStyle = '#fef2f2';
+
+    ctx.beginPath();
+    ctx.arc(x - eyeOffset, y, r * 0.15, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.arc(x + eyeOffset, y, r * 0.15, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#450a0a';
+    ctx.beginPath();
+    ctx.arc(x - eyeOffset, y, r * 0.08, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(x + eyeOffset, y, r * 0.08, 0, Math.PI * 2);
+    ctx.fill();
 }
 
 function drawPuck(ctx: CanvasRenderingContext2D, puck: any) {
     const { x, y, r } = puck;
-    ctx.fillStyle = '#d1d5db';
+
+    const mainGlow = ctx.createRadialGradient(x - r * 0.3, y - r * 0.3, r * 0.2, x, y, r);
+    mainGlow.addColorStop(0, '#f0fdf4');
+    mainGlow.addColorStop(0.2, '#bbf7d0');
+    mainGlow.addColorStop(0.5, '#4ade80');
+    mainGlow.addColorStop(0.75, '#22c55e');
+    mainGlow.addColorStop(0.9, '#166534');
+    mainGlow.addColorStop(1, '#14532d');
+
+    ctx.fillStyle = mainGlow;
     ctx.beginPath();
     ctx.arc(x, y, r, 0, Math.PI * 2);
     ctx.fill();
+
+    ctx.fillStyle = '#14532d';
+    ctx.globalAlpha = 0.8;
+    for (let i = 0; i < 6; i++) {
+        const angle = (Math.PI * 2 * i) / 6;
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.arc(x, y, r * 0.9, angle, angle + Math.PI / 12);
+        ctx.closePath();
+        ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = '#14532d';
+    ctx.beginPath();
+    ctx.arc(x, y, r * 0.2, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#14532d';
+    for (let i = 0; i < 3; i++) {
+        const angle = (Math.PI * 2 * i) / 3;
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(angle);
+
+        ctx.beginPath();
+        ctx.moveTo(r * 0.25, 0);
+        ctx.quadraticCurveTo(r * 0.5, -r * 0.15, r * 0.6, 0);
+        ctx.quadraticCurveTo(r * 0.5, r * 0.15, r * 0.25, 0);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(r * 0.55, 0, r * 0.12, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.restore();
+    }
+    ctx.fillStyle = '#86efac';
+    ctx.globalAlpha = 0.7;
+    for (let i = 0; i < 4; i++) {
+        const dripAngle = (Math.PI * 2 * i) / 4;
+        const dripDist = r * 1.1;
+        ctx.beginPath();
+        ctx.arc(
+            x + Math.cos(dripAngle) * dripDist,
+            y + Math.sin(dripAngle) * dripDist,
+            r * 0.1,
+            0,
+            Math.PI * 2
+        );
+        ctx.fill();
+    }
+    ctx.globalAlpha = 1;
 }
 
 function drawTable(ctx: CanvasRenderingContext2D, w: number, h: number) {
