@@ -14,6 +14,8 @@ import { Conversation } from './chat/entities/conversation.entity';
 import { Message } from './chat/entities/message.entity';
 import { MessageReaction } from './chat/entities/message-reaction.entity';
 import { HealthModule } from './health/health.module';
+import { Game } from './game/entities/game.entity';
+import { GameModule } from './game/game.module';
 
 @Module({
   imports: [
@@ -23,6 +25,7 @@ import { HealthModule } from './health/health.module';
     AuthModule,
     ChatModule,
     HealthModule,
+    GameModule,
     TypeOrmModule.forRoot({
     type: 'postgres',
     host: process.env.DB_HOST,
@@ -30,7 +33,7 @@ import { HealthModule } from './health/health.module';
     username : process.env.POSTGRES_USER,
     password : process.env.POSTGRES_PASSWORD,
     database : process.env.POSTGRES_DB,
-    entities : [User, Block, FriendRequest, Conversation, Message, MessageReaction],
+    entities : [User, Block, FriendRequest, Conversation, Message, MessageReaction, Game],
     synchronize : true,
     }),
   ],

@@ -206,7 +206,10 @@ export class AuthService {
         await this.userService.updateRefreshToken(user.id, null);
     }
 
-    async isRefreshTokenValid(inputRefrshToken, userRefreshTokenHash): Promise<boolean> {
+    async isRefreshTokenValid(inputRefrshToken: string | null, userRefreshTokenHash: string | null): Promise<boolean> {
+        if (!inputRefrshToken || !userRefreshTokenHash)
+            return false;
+
         const isTokenMatch = await bcrypt.compare(inputRefrshToken, userRefreshTokenHash);
         return isTokenMatch;
     }
