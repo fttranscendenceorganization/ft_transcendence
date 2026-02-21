@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import BarbiePinkHeader from "../components/BarbiePinkHeader";
 
 export default function BarbiePink() {
 
     useEffect(() => {
-        document.title = "Barbie Pink - NetPong";
+        document.title = "Kitty Cat - NetPong";
 
         const link = document.querySelector("link[rel~='icon']");
         if (link) {
@@ -22,8 +23,10 @@ export default function BarbiePink() {
 
     const [isHovering, setIsHovering] = useState(false);
 
+    const navigate = useNavigate();
+
     const handleStartGame = () => {
-        alert('Starting Barbie Pink!');
+        navigate('/Kplay');
     };
 
     return (
@@ -104,7 +107,7 @@ export default function BarbiePink() {
                                 <h2 className="text-2xl md:text-3xl font-extrabold text-white mb-4">A World To Love</h2>
 
                                 <p className="text-gray-300 text-base md:text-lg leading-relaxed mb-8">
-                                    Welcome to Barbie Pink, a magical world designed especially for girls. Play, create friendships, and make the world a better place through the power of air hockey and love.
+                                    Welcome to Kitty Cat, a magical world designed especially for girls. Play, create friendships, and make the world a better place through the power of air hockey and love.
                                 </p>
 
                                 <div className="space-y-3 mb-8">
