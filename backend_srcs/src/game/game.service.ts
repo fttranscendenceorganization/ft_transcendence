@@ -76,7 +76,7 @@ export class GameService implements OnModuleDestroy {
                 break;
 
             case PlayerStatusEnum.IN_GAME:
-                this.handlePlayerDisconnectFromGame(existingPlayer);
+                void this.handlePlayerDisconnectFromGame(existingPlayer);
                 this.players.delete(userId);
                 break;
         }
@@ -86,7 +86,7 @@ export class GameService implements OnModuleDestroy {
         return {
             ballPosition: { x: 500, y: 300 },
             ballVelocity: { x: 0, y: 0 },
-            ballSpeed: 15,
+            ballSpeed: 10,
             paddleLeft: { x: 50, y: 300 },
             paddleRight: { x: 950, y: 300 },
             score: { left: 0, right: 0 },
@@ -96,18 +96,6 @@ export class GameService implements OnModuleDestroy {
         };
     }
 
-    private launchBall(state: GameStateType, direction: 'left' | 'right' | 'random' = 'random') {
-        const angleRange = Math.PI / 3; // +/- 60 degrees around horizontal
-        const baseAngle = direction === 'left'
-            ? Math.PI
-            : direction === 'right'
-                ? 0
-                : (Math.random() < 0.5 ? 0 : Math.PI);
-
-        const angle = baseAngle + (Math.random() - 0.5) * angleRange;
-        state.ballVelocity.x = Math.cos(angle) * state.ballSpeed;
-        state.ballVelocity.y = Math.sin(angle) * state.ballSpeed;
-    }
 
     private handleGamesUpdate() {
         for (const [gameId, game] of this.games) {
@@ -138,7 +126,6 @@ export class GameService implements OnModuleDestroy {
 
         if (game.playerRight.isReady && game.playerLeft.isReady) {
             game.status = GameStatusEnum.IN_PROGRESS;
-            this.launchBall(game.state, 'random');
             console.log(`[Game] Both players ready! Game ${game.id} is starting...`);
         }
 
@@ -163,10 +150,9 @@ export class GameService implements OnModuleDestroy {
         }
 
         if (ballPosition.x <= ballRadius) {
-            if (ballPosition.y > (200 + ballRadius) && ballPosition.y < (400 - ballRadius)) {
+            if (ballPosition.y > 200 && ballPosition.y < 400) {
                 score.right += 1;
                 this.resetBall(game.state);
-                this.launchBall(game.state, 'right');
                 return;
             } else {
                 ballVelocity.x *= -1;
@@ -174,10 +160,9 @@ export class GameService implements OnModuleDestroy {
             }
         }
         else if (ballPosition.x >= 1000 - ballRadius) {
-            if (ballPosition.y > (200 + ballRadius) && ballPosition.y < (400 - ballRadius)) {
+            if (ballPosition.y > 200 && ballPosition.y < 400) {
                 score.left += 1;
                 this.resetBall(game.state);
-                this.launchBall(game.state, 'left');
                 return;
             } else {
                 ballVelocity.x *= -1;
@@ -329,7 +314,6 @@ export class GameService implements OnModuleDestroy {
             const winnerUser = winnerUserId === game.playerLeft.userId ? userA : userB;
 
             const gameRecord = this.gamerepo.create({
-                id: game.id,
                 mode: game.mode,
                 status: GameStatusEnum.FINISHED,
                 playerA: userA,
@@ -338,7 +322,6 @@ export class GameService implements OnModuleDestroy {
                 playerAScore: game.state.score.left,
                 playerBScore: game.state.score.right,
             });
-
             await this.gamerepo.save(gameRecord);
             console.log(`[Game] Game ${game.id} saved to database.`);
         }
@@ -347,7 +330,7 @@ export class GameService implements OnModuleDestroy {
         }
     }
 
-    private abortGame(gameId: string, reason: string) {
+    private async abortGame(gameId: string, reason: string) {
         const game = this.games.get(gameId);
         if (!game)
             return;
@@ -361,23 +344,51 @@ export class GameService implements OnModuleDestroy {
         if (this.notifyCallback) {
             const leftSocketId = this.getSocketId(game.playerLeft.userId);
             const rightSocketId = this.getSocketId(game.playerRight.userId);
-
             const payload = { reason };
-
-            if (leftSocketId)
-                this.notifyCallback(leftSocketId, 'gameAborted', payload);
-            if (rightSocketId)
-                this.notifyCallback(rightSocketId, 'gameAborted', payload);
+            if (leftSocketId) this.notifyCallback(leftSocketId, 'gameAborted', payload);
+            if (rightSocketId) this.notifyCallback(rightSocketId, 'gameAborted', payload);
         }
 
         this.cleanupGameSessions(game);
+
+        try {
+            const userA = await this.userService.findById(game.playerLeft.userId);
+            const userB = await this.userService.findById(game.playerRight.userId);
+
+            if (!userA || !userB) {
+                console.error(`[Game] Could not find users for aborted game ${game.id}. Skipping persistence.`);
+                return;
+            }
+
+            const gameRecord = this.gamerepo.create({
+                mode: game.mode,
+                status: GameStatusEnum.ABORTED,
+                playerA: userA,
+                playerB: userB,
+                winner: undefined,
+                playerAScore: game.state.score.left,
+                playerBScore: game.state.score.right,
+            });
+            await this.gamerepo.save(gameRecord);
+
+            console.log(`[Game] Aborted game ${game.id} saved to database.`);
+        }
+        catch (error) {
+            console.error(`[Game] Failed to save aborted game ${game.id}:`, error);
+        }
     }
 
-    private handlePlayerDisconnectFromGame(player: PlayerSessionType) {
+    private async handlePlayerDisconnectFromGame(player: PlayerSessionType) {
         if (!player.currentGameId)
             return;
 
-        this.abortGame(player.currentGameId, `Player ${player.userId} disconnected`);
+        try {
+            const user = await this.userService.findById(player.userId);
+            const displayName = user?.username ?? player.userId;
+            this.abortGame(player.currentGameId, `Player ${displayName} disconnected`);
+        } catch {
+            this.abortGame(player.currentGameId, `A player disconnected`);
+        }
     }
 
 
@@ -490,7 +501,39 @@ export class GameService implements OnModuleDestroy {
         return this.players.get(userId)?.socketId;
     }
 
+    forfeitGame(userId: string) {
+        const player = this.players.get(userId);
+        if (!player || !player.currentGameId)
+            return;
 
+        const game = this.games.get(player.currentGameId);
+        if (!game || game.status !== GameStatusEnum.IN_PROGRESS)
+            return;
+
+        const winnerId = game.playerLeft.userId === userId
+            ? game.playerRight.userId
+            : game.playerLeft.userId;
+
+        this.finishGame(game.id, winnerId);
+    }
+
+
+    async getPublicStats(userId: string) {
+        const games = await this.gamerepo.find({
+            where: [
+                { playerA: { id: userId } },
+                { playerB: { id: userId } },
+            ],
+            relations: ['winner'],
+        });
+
+        const total = games.length;
+        const wins = games.filter(g => g.winner?.id === userId).length;
+        const losses = total - wins;
+        const winRate = total === 0 ? 0 : Math.round((wins / total) * 100);
+
+        return { total, wins, losses, winRate };
+    }
     async getGameHistory(userId: string): Promise<Game[]> {
         return await this.gamerepo.find({
             where: [
