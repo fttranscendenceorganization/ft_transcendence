@@ -27,7 +27,7 @@ export default function JokerHeader() {
         }
         ,
         {
-            name: 'Pink Barbie',
+            name: 'Kitty Cat',
             path: '/barbie-pink',
             icon: '💖',
             color: 'pink',

@@ -27,7 +27,7 @@ export default function BarbiePinkHeader() {
         }
         ,
         {
-            name: 'Pink Barbie',
+            name: 'Kitty Cat',
             path: '/barbie-pink',
             icon: '💖',
             color: 'pink',
