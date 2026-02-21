@@ -1,7 +1,7 @@
-import { 
-    WebSocketGateway, 
-    WebSocketServer, 
-    OnGatewayConnection, 
+import {
+    WebSocketGateway,
+    WebSocketServer,
+    OnGatewayConnection,
     OnGatewayDisconnect,
     SubscribeMessage,
     MessageBody,
@@ -17,18 +17,11 @@ import { GameSessionType } from "./types/game-session.type";
 
 @WebSocketGateway({
     cors: {
-        origin: (origin: string, cb: Function) => {
-            const allowed = process.env.FRONTEND_URL;
-            if (!origin || origin === allowed)
-                cb(null, true);
-            else
-                cb(new Error('Not allowed by CORS'));
-        },
-        credentials: true
-    }
+        origin: true,
+        credentials: true,
+    },
 })
-export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, OnModuleInit
-{
+export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, OnModuleInit {
     @WebSocketServer()
     server: Server;
 
@@ -37,16 +30,13 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     constructor(
         private readonly gameService: GameService,
         private readonly configService: ConfigService
-    )
-    {
+    ) {
         const secret = this.configService.get<string>('JWT_ACCESS_SECRET');
         this.jwtService = new JwtService({ secret });
     }
 
-    onModuleInit()
-    {
-        this.gameService.setBroadcastCallback((gameId: string, game: GameSessionType) =>
-        {
+    onModuleInit() {
+        this.gameService.setBroadcastCallback((gameId: string, game: GameSessionType) => {
             const leftSocketId = this.gameService.getSocketId(game.playerLeft.userId);
             const rightSocketId = this.gameService.getSocketId(game.playerRight.userId);
 
@@ -56,20 +46,16 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
                 this.server.to(rightSocketId).emit('gameState', game.state);
         });
 
-        this.gameService.setNotifyCallback((socketId: string, event: string, data: any) =>
-        {
+        this.gameService.setNotifyCallback((socketId: string, event: string, data: any) => {
             this.server.to(socketId).emit(event, data);
         });
     }
 
-    handleConnection(client: Socket)
-    {
-        try
-        {
+    handleConnection(client: Socket) {
+        try {
             const token = client.handshake.auth?.token as string | undefined;
 
-            if (!token)
-            {
+            if (!token) {
                 client.disconnect(true);
                 return;
             }
@@ -77,8 +63,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
             const payload: any = this.jwtService.verify(token);
             const userId: string | undefined = payload?.sub;
 
-            if (!userId)
-            {
+            if (!userId) {
                 client.disconnect(true);
                 return;
             }
@@ -91,17 +76,14 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
             this.gameService.registerPlayer(userId, client.id);
             console.log(`[Gateway] Player ${userId} connected. Socket: ${client.id}`);
         }
-        catch (error)
-        {
+        catch (error) {
             client.disconnect(true);
         }
     }
 
-    handleDisconnect(client: Socket)
-    {
+    handleDisconnect(client: Socket) {
         const user = client.data?.user;
-        if (user?.id)
-        {
+        if (user?.id) {
             this.gameService.unregisterPlayer(user.id);
             console.log(`[Gateway] Player ${user.id} disconnected.`);
         }
@@ -111,13 +93,11 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     handleJoinQueue(
         @ConnectedSocket() client: Socket,
         @MessageBody() data: { mode: GameModeEnum }
-    )
-    {
+    ) {
         const userId = client.data?.user?.id;
         if (!userId) return;
 
-        if (!Object.values(GameModeEnum).includes(data?.mode))
-        {
+        if (!Object.values(GameModeEnum).includes(data?.mode)) {
             client.emit('error', { message: 'Invalid game mode' });
             return;
         }
@@ -125,9 +105,9 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
         this.gameService.joinQueue(userId, data.mode);
         client.emit('queueJoined', { mode: data.mode });
 
+
         const game = this.gameService.getPlayerGame(userId);
-        if (game)
-        {
+        if (game) {
             const leftSocketId = this.gameService.getSocketId(game.playerLeft.userId);
             const rightSocketId = this.gameService.getSocketId(game.playerRight.userId);
 
@@ -135,20 +115,21 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
                 this.server.to(leftSocketId).emit('gameFound', {
                     gameId: game.id,
                     side: 'left',
-                    mode: game.mode
+                    mode: game.mode,
+                    opponentId: game.playerRight.userId,
                 });
             if (rightSocketId)
                 this.server.to(rightSocketId).emit('gameFound', {
                     gameId: game.id,
                     side: 'right',
-                    mode: game.mode
+                    mode: game.mode,
+                    opponentId: game.playerLeft.userId,
                 });
         }
     }
 
     @SubscribeMessage('leaveQueue')
-    handleLeaveQueue(@ConnectedSocket() client: Socket)
-    {
+    handleLeaveQueue(@ConnectedSocket() client: Socket) {
         const userId = client.data?.user?.id;
         if (!userId) return;
 
@@ -157,8 +138,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     }
 
     @SubscribeMessage('setReady')
-    handleSetReady(@ConnectedSocket() client: Socket)
-    {
+    handleSetReady(@ConnectedSocket() client: Socket) {
         const userId = client.data?.user?.id;
         if (!userId) return;
 
@@ -169,8 +149,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     handleMovePaddle(
         @ConnectedSocket() client: Socket,
         @MessageBody() data: { x: number, y: number }
-    )
-    {
+    ) {
         const userId = client.data?.user?.id;
         if (!userId) return;
 
@@ -180,5 +159,12 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
         if (!game) return;
 
         this.gameService.updatePaddlePosition(game, userId, data.x, data.y);
+    }
+    @SubscribeMessage('forfeit')
+    handleForfeit(@ConnectedSocket() client: Socket) {
+        const userId = client.data?.user?.id;
+        if (!userId) return;
+
+        this.gameService.forfeitGame(userId);
     }
 }

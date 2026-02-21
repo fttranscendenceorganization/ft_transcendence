@@ -1,8 +1,8 @@
-import { 
-    Controller, 
-    Get, 
-    Param, 
-    UseGuards, 
+import {
+    Controller,
+    Get,
+    Param,
+    UseGuards,
     NotFoundException,
     Logger
 } from '@nestjs/common';
@@ -12,15 +12,13 @@ import { GameService } from './game.service';
 
 @Controller('game')
 @UseGuards(AuthGuard('jwt'))
-export class GameController
-{
+export class GameController {
     private readonly logger = new Logger(GameController.name);
 
-    constructor(private readonly gameService: GameService) {}
+    constructor(private readonly gameService: GameService) { }
 
     @Get('history')
-    async getGameHistory(@CurrentUser('id') userId: string)
-    {
+    async getGameHistory(@CurrentUser('id') userId: string) {
         try {
             const games = await this.gameService.getGameHistory(userId);
             return games.map(game => ({
@@ -41,8 +39,7 @@ export class GameController
     }
 
     @Get('stats')
-    async getPlayerStats(@CurrentUser('id') userId: string)
-    {
+    async getPlayerStats(@CurrentUser('id') userId: string) {
         try {
             return await this.gameService.getPlayerStats(userId);
         } catch (error) {
@@ -51,12 +48,20 @@ export class GameController
         }
     }
 
+    @Get('stats/:userId')
+    async getPublicPlayerStats(@Param('userId') userId: string) {
+        try {
+            return await this.gameService.getPublicStats(userId);
+        } catch (error) {
+            this.logger.error(`Error in getPublicPlayerStats: ${error.message}`, error.stack);
+            throw error;
+        }
+    }
     @Get(':id')
     async getGameById(
         @CurrentUser('id') userId: string,
         @Param('id') gameId: string
-    )
-    {
+    ) {
         try {
             const game = await this.gameService.getGameById(gameId);
 
