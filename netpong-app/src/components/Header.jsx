@@ -26,7 +26,7 @@ export default function Header() {
             description: 'Soul Protector'
         },
         {
-            name: 'Pink Barbie',
+            name: 'Kitty Cat',
             path: '/barbie-pink',
             icon: '💖',
             color: 'pink',
