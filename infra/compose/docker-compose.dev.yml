@@ -25,6 +25,11 @@ services:
     depends_on:
       - backend_api
       - front_end
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
     restart: always
 
   front_end:
@@ -52,6 +57,11 @@ services:
     depends_on:
       database:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
     restart: always
 
 
@@ -69,6 +79,27 @@ services:
       timeout: 5s
       retries: 5
     restart: always
+  
+  status_service:
+    build: ../status
+    image: status_service
+    container_name: status_service
+    networks:
+      - internal_net
+      - monitoring_net
+    restart: always
+  
+  backup:
+    build: ../backup
+    env_file:
+      - ../env/backup.env
+    volumes:
+      - /opt/netpong/backups/postgres:/local-backups
+    networks:
+      - internal_net
+    depends_on:
+      database:
+        condition: service_healthy
 
 volumes:
   db_data:
