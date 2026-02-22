@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 
 export default function GameModes() {
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [hoveredCard, setHoveredCard] = useState(null);
     const dropdownRef = useRef(null);
 
@@ -47,7 +46,7 @@ export default function GameModes() {
             hoverBorder: 'hover:border-green-400'
         },
         {
-            name: 'Barbie Pink',
+            name: 'Kitty Cat',
             url: '/barbie-pink',
             category: 'Lovely',
             icon: '💖',

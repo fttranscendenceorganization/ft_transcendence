@@ -24,6 +24,7 @@ import Leaderboard from './pages/Leaderboard';
 import GamePlay from './pages/GamePlay';
 import GameJoker from './pages/GameJoker';
 import GameKitty from './pages/GameKitty';
+import GameSoul from './pages/GameSoul';
 import EditProfile from './pages/EditProfile';
 
 function Navigation() {
@@ -92,6 +93,7 @@ function App() {
             <Route path="/play" element={<GamePlay />} />
             <Route path="/Jplay" element={<GameJoker />} />
             <Route path="/Kplay" element={<GameKitty />} />
+            <Route path="/Splay" element={<GameSoul />} />
             <Route path="/editprofile" element={<EditProfile />} />
 
             <Route path="*" element={<Error404 />} />

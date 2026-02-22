@@ -10,7 +10,7 @@ type GameState = {
     aiScore: number;
 }; // Same Create a bluePrint for the Game state (Need to be respected)
 
-export default function KittyHockey() {
+export default function SoulHockey() {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
     useEffect(() => {
@@ -163,7 +163,6 @@ export default function KittyHockey() {
     );
 }
 
-// Rendering function
 function draw(
     ctx: CanvasRenderingContext2D,
     w: number,
@@ -177,120 +176,103 @@ function draw(
     ctx.clearRect(0, 0, w, h);
     drawTable(ctx, w, h);
 
-    // Scoreboard
-    ctx.fillStyle = 'rgba(245, 8, 194, 0.41)';
-    ctx.font = 'bold 100px sans-serif';
+    ctx.fillStyle = 'rgba(180, 150, 80, 0.25)';
+    ctx.font = 'bold 100px serif';
     ctx.textAlign = 'center';
     ctx.fillText(`${playerScore}`, w / 4, h / 2 + 30);
     ctx.fillText(`${aiScore}`, (w * 3) / 4, h / 2 + 30);
 
-    // Player
     drawPlayer(ctx, player);
-
-    // AI
     drawAI(ctx, ai);
-
-    // Puck
     drawPuck(ctx, puck);
 }
 
 function drawPlayer(ctx: CanvasRenderingContext2D, player: any) {
     const { x, y, r } = player;
 
-    const gradient = ctx.createRadialGradient(
-        x - r * 0.3,
-        y - r * 0.3,
-        r * 0.2,
-        x,
-        y,
-        r
-    );
+    ctx.shadowBlur = 24;
+    ctx.shadowColor = '#00e5ff';
 
-    gradient.addColorStop(0, '#fff0f6');
-    gradient.addColorStop(0.4, '#ff9bd2');
-    gradient.addColorStop(0.8, '#ff4db8');
-    gradient.addColorStop(1, '#c2188b');
+    const gradient = ctx.createRadialGradient(x - r * 0.3, y - r * 0.3, r * 0.1, x, y, r);
+    gradient.addColorStop(0, '#e0ffff');
+    gradient.addColorStop(0.35, '#00bcd4');
+    gradient.addColorStop(0.75, '#006064');
+    gradient.addColorStop(1, '#002a2e');
 
     ctx.fillStyle = gradient;
-
-    ctx.shadowBlur = 15;
-    ctx.shadowColor = '#ff4db8';
     ctx.beginPath();
     ctx.arc(x, y, r, 0, Math.PI * 2);
     ctx.fill();
     ctx.shadowBlur = 0;
 
-    ctx.fillStyle = 'rgba(255,255,255,0.6)';
+    ctx.strokeStyle = 'rgba(0, 229, 255, 0.55)';
+    ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.arc(x - r * 0.3, y - r * 0.3, r * 0.25, 0, Math.PI * 2);
+    ctx.arc(x, y, r * 0.6, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.fillStyle = 'rgba(255,255,255,0.55)';
+    ctx.beginPath();
+    ctx.arc(x - r * 0.3, y - r * 0.3, r * 0.22, 0, Math.PI * 2);
     ctx.fill();
 }
 
 function drawAI(ctx: CanvasRenderingContext2D, ai: any) {
     const { x, y, r } = ai;
 
-    const gradient = ctx.createRadialGradient(
-        x - r * 0.3,
-        y - r * 0.3,
-        r * 0.2,
-        x,
-        y,
-        r
-    );
+    ctx.shadowBlur = 24;
+    ctx.shadowColor = '#ff1744';
 
-    gradient.addColorStop(0, '#ffffff');
-    gradient.addColorStop(0.4, '#ffc1e3');
-    gradient.addColorStop(0.8, '#ff80c8');
-    gradient.addColorStop(1, '#d81b90');
+    const gradient = ctx.createRadialGradient(x - r * 0.3, y - r * 0.3, r * 0.1, x, y, r);
+    gradient.addColorStop(0, '#fff5f5');
+    gradient.addColorStop(0.35, '#ef9a9a');
+    gradient.addColorStop(0.75, '#b71c1c');
+    gradient.addColorStop(1, '#1a0000');
 
     ctx.fillStyle = gradient;
-
-    ctx.shadowBlur = 15;
-    ctx.shadowColor = '#ff80c8';
-
     ctx.beginPath();
     ctx.arc(x, y, r, 0, Math.PI * 2);
     ctx.fill();
-
     ctx.shadowBlur = 0;
-    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+
+    ctx.strokeStyle = 'rgba(255, 100, 100, 0.5)';
+    ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.arc(x - r * 0.25, y - r * 0.25, r * 0.2, 0, Math.PI * 2);
+    ctx.arc(x, y, r * 0.6, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.fillStyle = 'rgba(0,0,0,0.45)';
+    ctx.beginPath();
+    ctx.arc(x, y, r * 0.18, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = 'rgba(255,255,255,0.45)';
+    ctx.beginPath();
+    ctx.arc(x - r * 0.28, y - r * 0.28, r * 0.18, 0, Math.PI * 2);
     ctx.fill();
 }
-
 
 function drawPuck(ctx: CanvasRenderingContext2D, puck: any) {
     const { x, y, r } = puck;
 
-    const gradient = ctx.createRadialGradient(
-        x - r * 0.4,
-        y - r * 0.4,
-        r * 0.1,
-        x,
-        y,
-        r
-    );
+    ctx.shadowBlur = 18;
+    ctx.shadowColor = '#ffd700';
 
-    gradient.addColorStop(0, '#ffffff');
-    gradient.addColorStop(0.3, '#ffb3e6');
-    gradient.addColorStop(0.7, '#ff4db8');
-    gradient.addColorStop(1, '#ad1457');
+    const gradient = ctx.createRadialGradient(x - r * 0.35, y - r * 0.35, r * 0.05, x, y, r);
+    gradient.addColorStop(0, '#fffde7');
+    gradient.addColorStop(0.3, '#ffd54f');
+    gradient.addColorStop(0.7, '#e65100');
+    gradient.addColorStop(1, '#1a0a00');
 
     ctx.fillStyle = gradient;
-
-    ctx.shadowBlur = 12;
-    ctx.shadowColor = '#ff4db8';
-
     ctx.beginPath();
     ctx.arc(x, y, r, 0, Math.PI * 2);
     ctx.fill();
-
     ctx.shadowBlur = 0;
 
-    ctx.fillStyle = 'rgba(255,255,255,0.8)';
+    ctx.fillStyle = 'rgba(255,255,255,0.75)';
     ctx.beginPath();
-    ctx.arc(x - r * 0.35, y - r * 0.35, r * 0.15, 0, Math.PI * 2);
+    ctx.arc(x - r * 0.32, y - r * 0.32, r * 0.14, 0, Math.PI * 2);
     ctx.fill();
 }
 
@@ -299,7 +281,7 @@ function drawTable(ctx: CanvasRenderingContext2D, w: number, h: number) {
     const GOAL_HEIGHT = h * 0.35;
     const goalTop = (h - GOAL_HEIGHT) / 2;
 
-    ctx.strokeStyle = '#f518c8ff';
+    ctx.strokeStyle = '#86869bff';
     ctx.lineWidth = 4;
     ctx.strokeRect(0, 0, w, h);
 
@@ -314,9 +296,9 @@ function drawTable(ctx: CanvasRenderingContext2D, w: number, h: number) {
     ctx.arc(w / 2, h / 2, 80, 0, Math.PI * 2);
     ctx.stroke();
 
-    ctx.fillStyle = '#eb6cbaff';
+    ctx.fillStyle = '#9190c0ff';
     ctx.shadowBlur = 20;
-    ctx.shadowColor = '#f132bfff';
+    ctx.shadowColor = '#635d7aff';
     ctx.fillRect(0, goalTop, 10, GOAL_HEIGHT);
     ctx.fillRect(w - 10, goalTop, 10, GOAL_HEIGHT);
     ctx.shadowBlur = 0;
