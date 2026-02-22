@@ -63,6 +63,26 @@ services:
       retries: 5
     restart: always
 
+  status_service:
+    image: ghcr.io/fttranscendenceorganization/ft_status_service:latest
+    container_name: status_service
+    networks:
+      - internal_net
+      - monitoring_net
+    restart: always
+
+  backup:
+    image: ghcr.io/fttranscendenceorganization/ft_backup:latest
+    env_file:
+      - /etc/netpong/backup.env
+    volumes:
+      - /opt/netpong/backups/postgres:/local-backups
+    networks:
+      - internal_net
+    depends_on:
+      database:
+        condition: service_healthy
+
 volumes:
   db_data:
 
