@@ -139,7 +139,7 @@ jobs:
       - name: Build & push status_service image
         run: |
           docker buildx build \
-            -f infra/status_service/Dockerfile \
+            -f infra/status/Dockerfile \
             -t $IMAGE_PREFIX/ft_status_service:${{ github.sha }} \
             -t $IMAGE_PREFIX/ft_status_service:latest \
             --push \
