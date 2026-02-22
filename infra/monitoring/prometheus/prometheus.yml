@@ -27,3 +27,9 @@ scrape_configs:
       - targets: ["cadvisor:8080"]
         labels:
           instance: "production-vm"
+  
+  - job_name: "status-service"
+    static_configs:
+      - targets: ["status_service:3000"]
+        labels:
+          instance: "production-vm"
