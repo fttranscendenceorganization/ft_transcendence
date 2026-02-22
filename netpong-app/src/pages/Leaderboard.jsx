@@ -26,7 +26,7 @@ export default function Leaderboard() {
             const newPlayers = (data.items || []).map(u => ({
                 id: u.id,
                 username: u.username,
-                avatar: u.avatarUrl || '/images/avatar.jpg',
+                avatar: u.avatarUrl || '/images/avatar.png',
                 level: u.level,
                 wins: u.wins,
                 losses: u.losses,
@@ -267,7 +267,7 @@ function PodiumCard({ player, position, getRankColor, getRankBadge, isWinner = f
                         src={player.avatar}
                         alt={player.username}
                         className={`w-24 h-24 rounded-full object-cover border-4 ${isWinner ? 'border-yellow-400' : 'border-white/30'} shadow-xl`}
-                        onError={e => { e.target.src = '/images/avatar.jpg'; }}
+                        onError={e => { e.target.src = '/images/avatar.png'; }}
                     />
                     <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-full border-4 border-slate-900 flex items-center justify-center">
                         <span className="text-white text-xs font-bold">{player.level}</span>
@@ -313,7 +313,7 @@ const PlayerRow = forwardRef(function PlayerRow({ player, position, getRankColor
                         src={player.avatar}
                         alt={player.username}
                         className="w-12 h-12 md:w-14 md:h-14 rounded-full object-cover border-2 border-violet-500/40 shadow-lg group-hover:border-orange-500/60 transition-all"
-                        onError={e => { e.target.src = '/images/avatar.jpg'; }}
+                        onError={e => { e.target.src = '/images/avatar.png'; }}
                     />
                     <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-gradient-to-br from-green-500 to-green-600 rounded-full border-2 border-slate-900 flex items-center justify-center">
                         <span className="text-white text-xs font-bold">{player.level}</span>
