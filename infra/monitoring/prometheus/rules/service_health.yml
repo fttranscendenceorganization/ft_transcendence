@@ -1,0 +1,21 @@
+groups:
+- name: service-health
+  rules:
+
+  - alert: ServiceDown
+    expr: netpong_service_up == 0
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      summary: "{{ $labels.service }} is DOWN"
+      description: "The {{ $labels.service }} service is not responding."
+
+  - alert: ServiceDegraded
+    expr: netpong_service_degraded == 1
+    for: 2m
+    labels:
+      severity: warning
+    annotations:
+      summary: "⚠️ {{ $labels.service }} is DEGRADED"
+      description: "The {{ $labels.service }} service is partially unavailable."

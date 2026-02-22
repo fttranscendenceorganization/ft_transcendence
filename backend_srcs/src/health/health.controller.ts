@@ -14,7 +14,14 @@ export class HealthController
 
     @Get()
     @HealthCheck()
-    check()
+    liveness() {
+        return this.health.check([
+        () => this.db.pingCheck('database'),
+        ]);
+    }
+    @Get('ready')
+    @HealthCheck()
+    readiness()
     {
         return this.health.check([
             () => this.db.pingCheck('database'),

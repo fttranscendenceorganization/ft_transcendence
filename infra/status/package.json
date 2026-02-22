@@ -1,0 +1,11 @@
+{
+  "name": "status-service",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "dependencies": {
+    "express": "^4.19.2",
+    "axios": "^1.6.8",
+    "prom-client": "^15.1.0"
+  }
+}

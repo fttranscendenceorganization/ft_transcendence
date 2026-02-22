@@ -10,3 +10,12 @@ groups:
     annotations:
       summary: "cAdvisor Monitoring Service is Down"
       description: "cAdvisor exporter is not reachable on production VM"
+  
+  - alert: Status_service_Down
+    expr: up{job="status-service"} == 0
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      summary: "status_service Monitoring Service is Down"
+      description: "status_service exporter is not reachable on production VM"
