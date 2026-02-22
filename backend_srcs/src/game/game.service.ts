@@ -324,6 +324,27 @@ export class GameService implements OnModuleDestroy {
             });
             await this.gamerepo.save(gameRecord);
             console.log(`[Game] Game ${game.id} saved to database.`);
+
+            try {
+                const leftScore = game.state.score.left;
+                const rightScore = game.state.score.right;
+                const winnerIdStr = winnerUserId ?? '';
+                const loserUser = winnerUserId === game.playerLeft.userId ? userB : userA;
+                const loserIdStr = loserUser.id;
+                const winnerScore = winnerUserId === game.playerLeft.userId ? leftScore : rightScore;
+                const loserScore = winnerUserId === game.playerLeft.userId ? rightScore : leftScore;
+
+                await this.userService.updateUserAfterGame(
+                    winnerIdStr,
+                    loserIdStr,
+                    winnerScore,
+                    loserScore,
+                    game.mode,
+                );
+            }
+            catch (err) {
+                console.error(`[Game] Failed to update user stats for game ${game.id}:`, err);
+            }
         }
         catch (error) {
             console.error(`[Game] Failed to save game ${game.id} to database:`, error);
