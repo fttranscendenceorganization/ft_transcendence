@@ -40,10 +40,10 @@ export default function GamePlay() {
     const [side, setSide] = useState<'left' | 'right'>('left');
 
     const [myProfile, setMyProfile] = useState<UserProfile | null>(null);
-    const [myAvatarSrc, setMyAvatarSrc] = useState('/images/avatar.jpg');
+    const [myAvatarSrc, setMyAvatarSrc] = useState('/images/avatar.png');
 
     const [opponentUser, setOpponentUser] = useState<UserProfile | null>(null);
-    const [opponentAvatarSrc, setOpponentAvatarSrc] = useState('/images/avatar.jpg');
+    const [opponentAvatarSrc, setOpponentAvatarSrc] = useState('/images/avatar.png');
     const [opponentStats, setOpponentStats] = useState<{ total: number; wins: number; losses: number; winRate: number } | null>(null);
     const [isFriend, setIsFriend] = useState<boolean | null>(null);
 
@@ -105,7 +105,7 @@ export default function GamePlay() {
             .then(data => {
                 if (!data) return;
                 setMyProfile({ id: data.id, username: data.username, avatarUrl: data.avatarUrl });
-                setMyAvatarSrc(data.avatarUrl || '/images/avatar.jpg');
+                setMyAvatarSrc(data.avatarUrl || '/images/avatar.png');
             })
             .catch(() => {});
     }, []);
@@ -176,11 +176,11 @@ export default function GamePlay() {
                 try {
                     const oppUser = await getUserById(data.opponentId);
                     setOpponentUser({ id: data.opponentId, username: oppUser.username, avatarUrl: oppUser.avatarUrl });
-                    setOpponentAvatarSrc(oppUser.avatarUrl || '/images/avatar.jpg');
+                    setOpponentAvatarSrc(oppUser.avatarUrl || '/images/avatar.png');
                     setIsFriend(friendsIds.includes(data.opponentId));
                 } catch {
                     setOpponentUser({ id: data.opponentId, username: 'Opponent', avatarUrl: null });
-                    setOpponentAvatarSrc('/images/avatar.jpg');
+                    setOpponentAvatarSrc('/images/avatar.png');
                     setIsFriend(null);
                 }
 
@@ -255,7 +255,7 @@ export default function GamePlay() {
         setAbortData(null);
         setOpponentUser(null);
         setOpponentStats(null);
-        setOpponentAvatarSrc('/images/avatar.jpg');
+        setOpponentAvatarSrc('/images/avatar.png');
         setIsFriend(null);
         setProfileError(null);
         setScreen('MODE_SELECT');
@@ -297,7 +297,7 @@ export default function GamePlay() {
                     src={myAvatarSrc}
                     alt={myName}
                     className="w-16 h-16 rounded-full border-4 border-green-400 shadow-lg object-cover"
-                    onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/avatar.jpg'; }}
+                    onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/avatar.png'; }}
                 />
                 <span className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-slate-900" />
             </div>
@@ -322,7 +322,7 @@ export default function GamePlay() {
                     src={opponentAvatarSrc}
                     alt={opponentUser.username}
                     className="w-16 h-16 rounded-full border-4 border-red-400 shadow-lg object-cover"
-                    onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/avatar.jpg'; }}
+                    onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/avatar.png'; }}
                 />
                 <span className="absolute -bottom-1 -right-1 w-4 h-4 bg-red-400 rounded-full border-2 border-slate-900" />
             </div>
@@ -426,7 +426,7 @@ export default function GamePlay() {
                                     src={opponentAvatarSrc}
                                     alt={opponentUser.username}
                                     className="w-10 h-10 rounded-full border-2 border-red-400 object-cover"
-                                    onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/avatar.jpg'; }}
+                                    onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/avatar.png'; }}
                                 />
                                 <span className="text-gray-200 text-sm">vs <span className="font-bold text-white">{opponentUser.username}</span></span>
                             </div>
@@ -487,7 +487,7 @@ export default function GamePlay() {
                                     src={myAvatarSrc}
                                     alt={myName}
                                     className="w-12 h-12 rounded-full border-2 border-green-400 object-cover"
-                                    onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/avatar.jpg'; }}
+                                    onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/avatar.png'; }}
                                 />
                                 <span className="text-sm font-bold text-white">{myName}</span>
                                 <span className="text-3xl font-extrabold text-green-400">{myScore}</span>
@@ -498,7 +498,7 @@ export default function GamePlay() {
                                     src={opponentAvatarSrc}
                                     alt={opponentUser?.username || 'Opponent'}
                                     className="w-12 h-12 rounded-full border-2 border-red-400 object-cover"
-                                    onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/avatar.jpg'; }}
+                                    onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/avatar.png'; }}
                                 />
                                 <span className="text-sm font-bold text-red-300">{opponentUser?.username || 'Opponent'}</span>
                                 <span className="text-3xl font-extrabold text-red-400">{opponentScore}</span>
@@ -532,7 +532,7 @@ export default function GamePlay() {
                                     src={opponentAvatarSrc}
                                     alt={opponentUser.username}
                                     className="w-12 h-12 rounded-full border-2 border-red-500 object-cover grayscale"
-                                    onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/avatar.jpg'; }}
+                                    onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/avatar.png'; }}
                                 />
                                 <div className="flex flex-col">
                                     <span className="text-red-300 text-xs uppercase tracking-widest">Player fled</span>
