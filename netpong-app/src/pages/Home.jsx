@@ -30,7 +30,7 @@ export default function UserHome() {
                 setUser({
                     firstName: data.firstName,
                     username: data.username,
-                    avatar: data.avatarUrl ?? '/images/avatar.jpg',
+                    avatar: data.avatarUrl ?? '/images/avatar.png',
                     level,
                     xp,
                     xpNext,

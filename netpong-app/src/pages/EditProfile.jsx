@@ -21,7 +21,7 @@ export default function EditProfile() {
     });
 
 
-    const [previewImage, setPreviewImage] = useState('/images/avatar.jpg');
+    const [previewImage, setPreviewImage] = useState('/images/avatar.png');
     const [isLoading, setIsLoading] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
 
@@ -64,7 +64,7 @@ export default function EditProfile() {
 
     const handleRemoveImage = () => {
         setProfileData({ ...profileData, profileImage: null });
-        setPreviewImage('/images/avatar.jpg');
+        setPreviewImage('/images/avatar.png');
         if (fileInputRef.current) {
             fileInputRef.current.value = '';
         }
