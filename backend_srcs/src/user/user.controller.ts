@@ -21,6 +21,7 @@ export class UserController {
         });
     }
 
+    @UseGuards(AuthGuard('jwt'))
     @Get()
     async showAllUsers(
         @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,

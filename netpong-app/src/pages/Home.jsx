@@ -19,17 +19,25 @@ export default function UserHome() {
                 }
                 const data = await res.json();
 
+                const wins = data.wins;
+                const losses = data.losses;
+                const winRate = data.winrate;
+                const xp = data.points;
+                const level = data.level ?? 1;
+                const xpNext = level * 100;
+                const totalXp= data.totalXp;
+
                 setUser({
                     firstName: data.firstName,
                     username: data.username,
                     avatar: data.avatarUrl ?? '/images/avatar.jpg',
-                    level: data.level ?? 0,
-                    xp: data.xp ?? 0,
-                    xpNext: data.xpNext ?? 100,
-                    rank: data.rank ?? 'Unranked',
-                    wins: data.wins ?? 0,
-                    losses: data.losses ?? 0,
-                    points: data.points ?? 0,
+                    level,
+                    xp,
+                    xpNext,
+                    wins,
+                    losses,
+                    winRate,
+                    totalXp,
                     online: true,
                 });
 
@@ -84,10 +92,9 @@ export default function UserHome() {
 
                                     <div className="flex flex-wrap justify-center md:justify-start gap-3 mt-5">
                                         <StatChip label="Level" value={user.level} color="orange" />
-                                        <StatChip label="Rank" value={user.rank} color="violet" />
+                                        <StatChip label="Win Rate" value={`${user.winRate}%`} color="violet" />
                                         <StatChip label="Wins" value={user.wins} color="green" />
                                         <StatChip label="Losses" value={user.losses} color="red" />
-                                        <StatChip label="Points" value={user.points} color="pink" />
                                     </div>
                                 </div>
                             </div>
@@ -120,7 +127,7 @@ export default function UserHome() {
                             </div>
 
                             <p className="text-right text-xs text-gray-400 mt-1">
-                                {xpPercent}% to next level
+                                {xpPercent}%
                             </p>
                         </div>
                     </div>
