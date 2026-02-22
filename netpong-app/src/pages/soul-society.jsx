@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import SoulHeader from '../components/SoulHeader';
 
 
@@ -23,8 +24,10 @@ export default function SoulSociety() {
 
     const [isHovering, setIsHovering] = useState(false);
 
+    const navigate = useNavigate();
+
     const handleStartGame = () => {
-        alert('Starting Soul Society!');
+        navigate('/Splay')
     };
 
     return (
