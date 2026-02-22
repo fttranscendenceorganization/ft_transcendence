@@ -15,7 +15,7 @@ export class UserService {
         private readonly blockrepo: Repository<Block>,
         @InjectRepository(FriendRequest)
         private readonly friendRequestRepo: Repository<FriendRequest>,
-    ) {}
+    ) { }
 
     async findAll(page = 1, limit = 20): Promise<{ items: User[]; total: number }> {
         const maxLimit = 100;
@@ -127,7 +127,7 @@ export class UserService {
         lastName: string;
         avatarUrl: string | null;
     }): Promise<User> {
-       
+
         const user = this.userrepo.create(data);
         try {
             return await this.userrepo.save(user);
@@ -190,9 +190,40 @@ export class UserService {
         }
     }
 
+    async updateUserAfterGame(winnerId: string, loserId: string, winnerScore: number, loserScore: number, GameMode: string) {
+        const winner = await this.findById(winnerId);
+        const loser = await this.findById(loserId);
+        if (!winner || !loser)
+            throw new NotFoundException("One or more users not found");
 
-    async checkBlockStatus(senderId: string, recipientId: string)
-    {
+        const winXP = 20 + (winnerScore - loserScore) * 5;
+        const loseXP = loserScore * 0.5;
+
+        winner.wins += 1;
+        winner.totalXp += winXP; 
+        winner.points += winXP;  
+
+        while (winner.points >= winner.level * 100) {
+            winner.points -= winner.level * 100;
+            winner.level += 1;
+        }
+
+        winner.winrate = (winner.wins / (winner.wins + winner.losses)) * 100;
+
+        loser.losses += 1;
+        loser.totalXp += loseXP;
+        loser.points += loseXP;
+
+        while (loser.points >= loser.level * 100) {
+            loser.points -= loser.level * 100;
+            loser.level += 1;
+        }
+
+        loser.winrate = (loser.wins / (loser.wins + loser.losses)) * 100;
+        await this.userrepo.save([winner, loser]);
+    }
+
+    async checkBlockStatus(senderId: string, recipientId: string) {
         const block = await this.blockrepo
             .createQueryBuilder('block')
             .where('(block.blockerId = :senderId AND block.blockedId = :recipientId)', {
@@ -207,12 +238,11 @@ export class UserService {
 
         if (!block)
             return null;
-        
+
         return block.blockerId === senderId ? 'SENT_BY_ME' : 'SENT_BY_THEM';
     }
 
-    async blockUser(blockerId: string, blockedId: string): Promise<void>
-    {
+    async blockUser(blockerId: string, blockedId: string): Promise<void> {
         if (blockerId === blockedId)
             throw new BadRequestException('You cannot block yourself');
 
@@ -235,13 +265,11 @@ export class UserService {
         }
     }
 
-    async unblockUser(blockerId: string, blockedId: string): Promise<void>
-    {
+    async unblockUser(blockerId: string, blockedId: string): Promise<void> {
         await this.blockrepo.delete({ blockerId, blockedId });
     }
 
-    async getBlockedUsers(blockerId: string): Promise<User[]>
-    {
+    async getBlockedUsers(blockerId: string): Promise<User[]> {
         const blocks = await this.blockrepo.find({
             where: { blockerId },
             relations: ['blocked'],
@@ -252,8 +280,7 @@ export class UserService {
             .filter((user): user is User => !!user);
     }
 
-    async sendFriendRequest(requesterId: string, targetUsername: string)
-    {
+    async sendFriendRequest(requesterId: string, targetUsername: string) {
         const requester = await this.findById(requesterId);
         if (!requester)
             throw new NotFoundException('Requester not found');
@@ -279,13 +306,11 @@ export class UserService {
             ],
         });
 
-        if (existing)
-        {
+        if (existing) {
             if (existing.status === 'ACCEPTED')
                 throw new BadRequestException('You are already friends with this user');
 
-            if (existing.status === 'PENDING')
-            {
+            if (existing.status === 'PENDING') {
                 if (existing.requesterId === requesterId)
                     throw new BadRequestException('Friend request already sent');
 
@@ -293,8 +318,7 @@ export class UserService {
                 return await this.friendRequestRepo.save(existing);
             }
 
-            if (existing.status === 'REJECTED')
-            {
+            if (existing.status === 'REJECTED') {
                 existing.status = 'PENDING';
                 existing.requesterId = requesterId;
                 existing.receiverId = target.id;
@@ -311,8 +335,7 @@ export class UserService {
         return await this.friendRequestRepo.save(friendRequest);
     }
 
-    async getFriends(userId: string): Promise<User[]>
-    {
+    async getFriends(userId: string): Promise<User[]> {
         const requests = await this.friendRequestRepo.find({
             where: [
                 { requesterId: userId, status: 'ACCEPTED' },
@@ -336,8 +359,7 @@ export class UserService {
         return friends;
     }
 
-    async getIncomingFriendRequests(userId: string)
-    {
+    async getIncomingFriendRequests(userId: string) {
         const requests = await this.friendRequestRepo.find({
             where: { receiverId: userId, status: 'PENDING' },
             relations: ['requester'],
@@ -347,8 +369,7 @@ export class UserService {
         return requests;
     }
 
-    async respondToFriendRequest(userId: string, requestId: string, action: 'ACCEPT' | 'REJECT')
-    {
+    async respondToFriendRequest(userId: string, requestId: string, action: 'ACCEPT' | 'REJECT') {
         const request = await this.friendRequestRepo.findOne({
             where: { id: requestId, receiverId: userId },
         });

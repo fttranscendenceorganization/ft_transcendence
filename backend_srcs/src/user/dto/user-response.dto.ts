@@ -33,6 +33,12 @@ export class UserResponseDto
     points: number;
 
     @Expose()
+    totalXp: number;
+
+    @Expose()
+    winrate: number;
+
+    @Expose()
     rank: string;
 
     @Expose()

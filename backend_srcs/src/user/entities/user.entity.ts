@@ -53,8 +53,14 @@ export class User
     @Column({default: 1})
     level: number;
 
-    @Column({default: 0})
+    @Column({ type: 'float', default: 0 })
     points: number;
+   
+    @Column({ type: 'float', default: 0 })
+    totalXp: number; 
+
+    @Column({ type: 'float', default: 0 })
+    winrate: number;
 
     @Column({ type: 'varchar', nullable: true })
     rank: string | null;
