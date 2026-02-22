@@ -92,7 +92,7 @@ services:
   backup:
     build: ../backup
     env_file:
-      - ../env/env.backup
+      - ../env/backup.env
     volumes:
       - /opt/netpong/backups/postgres:/local-backups
     networks:
