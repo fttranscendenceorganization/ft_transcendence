@@ -57,7 +57,7 @@ export default function ChatPage() {
     const onlinePlayers = friends.filter(player => onlineUserIds.includes(player.id));
 
     const liveMatches = [
-        { type: 'live', title: 'Final Game', description: 'Ahmed vs Mohammed - Zombie Land', badge: 'LIVE NOW', badgeColor: 'green' },
+        { type: 'last', title: 'Last Match', description: 'Ahmed vs Mohammed - Zombie Land', badge: 'Winner Chicken Dinner !!', badgeColor: 'green' },
         { type: 'recent', title: 'Recent Match', description: 'Houdaifa wins Barbie Pink tournament', badge: 'Winner Chicken Dinner !!', badgeColor: 'orange' },
         { type: 'top', title: 'Top Player', description: 'Youssef - 10 wins streak', badge: 'MVP', badgeColor: 'yellow' }
     ];
@@ -923,31 +923,31 @@ export default function ChatPage() {
                             return (
                                 <div className="flex-1 overflow-y-auto p-4 space-y-2">
                                     {/* Global entry */}
-                            <div
-                                className={`bg-slate-700/60 hover:bg-slate-700 rounded-lg p-3 transition cursor-pointer flex items-center gap-3 ${activeConversation.type === 'GLOBAL' ? 'ring-2 ring-purple-500/70' : ''}`}
-                                onClick={() => {
-                                    if (!globalConversationId) return;
-                                    setActiveConversation({
-                                        type: 'GLOBAL',
-                                        title: 'Global Chat',
-                                        subtitle: isSocketConnected ? `${onlinePlayers.length} members online` : 'Offline',
-                                        avatarInitial: 'G',
-                                        avatarColor: 'from-orange-500 to-red-600',
-                                        targetUserId: null,
-                                    });
-                                    setActiveConversationId(globalConversationId);
-                                }}
-                            >
-                                <div className="relative">
-                                    <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-600 rounded-full flex items-center justify-center font-bold text-white">
-                                        G
+                                    <div
+                                        className={`bg-slate-700/60 hover:bg-slate-700 rounded-lg p-3 transition cursor-pointer flex items-center gap-3 ${activeConversation.type === 'GLOBAL' ? 'ring-2 ring-purple-500/70' : ''}`}
+                                        onClick={() => {
+                                            if (!globalConversationId) return;
+                                            setActiveConversation({
+                                                type: 'GLOBAL',
+                                                title: 'Global Chat',
+                                                subtitle: isSocketConnected ? `${onlinePlayers.length} members online` : 'Offline',
+                                                avatarInitial: 'G',
+                                                avatarColor: 'from-orange-500 to-red-600',
+                                                targetUserId: null,
+                                            });
+                                            setActiveConversationId(globalConversationId);
+                                        }}
+                                    >
+                                        <div className="relative">
+                                            <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-600 rounded-full flex items-center justify-center font-bold text-white">
+                                                G
+                                            </div>
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-white font-bold text-sm truncate">Global Chat</p>
+                                            <p className="text-gray-400 text-xs truncate">{isSocketConnected ? `${onlinePlayers.length} members online` : 'Offline'}</p>
+                                        </div>
                                     </div>
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <p className="text-white font-bold text-sm truncate">Global Chat</p>
-                                    <p className="text-gray-400 text-xs truncate">{isSocketConnected ? `${onlinePlayers.length} members online` : 'Offline'}</p>
-                                </div>
-                            </div>
 
                                     {/* Friends + DM contacts list */}
                                     {allContacts.map((player) => (
@@ -1109,16 +1109,16 @@ export default function ChatPage() {
                         </div>
                     </div>
 
-                        <div
-                            ref={messagesContainerRef}
-                            onScroll={handleMessagesScroll}
-                            className="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-slate-900 to-slate-800 relative"
-                        >
-                            {isLoadingMessages && (
-                                <div className="absolute inset-0 flex items-center justify-center bg-slate-900/60 z-10">
-                                    <div className="w-10 h-10 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
-                                </div>
-                            )}
+                    <div
+                        ref={messagesContainerRef}
+                        onScroll={handleMessagesScroll}
+                        className="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-slate-900 to-slate-800 relative"
+                    >
+                        {isLoadingMessages && (
+                            <div className="absolute inset-0 flex items-center justify-center bg-slate-900/60 z-10">
+                                <div className="w-10 h-10 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+                            </div>
+                        )}
                         {filteredMessages.length === 0 ? (
                             <div className="flex flex-col items-center justify-center h-full text-center py-12">
                                 <div className="w-20 h-20 bg-slate-700/50 rounded-full flex items-center justify-center mb-4">
