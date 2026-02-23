@@ -173,7 +173,7 @@ export default function UserHome() {
                                     Exclusive Features
                                 </h2>
                                 <p className="text-gray-300 mt-2">
-                                    Tournaments & leaderboard
+                                    History & leaderboard
                                 </p>
                                 <div className="mt-4 text-violet-400 font-bold flex items-center gap-2">
                                     <span>Explore</span>
