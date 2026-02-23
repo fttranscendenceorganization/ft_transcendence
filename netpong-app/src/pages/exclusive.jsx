@@ -122,7 +122,7 @@ export default function Exclusive() {
 
                         <div className="mt-8 md:mt-10">
                             <a
-                                href="/login"
+                                href="/modes"
                                 className="relative overflow-hidden group/btn border-2 border-violet-500 bg-gradient-to-r from-violet-600 to-violet-500 hover:from-violet-500 hover:to-violet-400 text-white py-4 px-8 md:px-12 text-lg md:text-xl font-bold rounded-2xl shadow-[0_0_30px_rgba(139,92,246,0.4)] transition-all duration-300 inline-flex items-center gap-3 hover:scale-105 hover:shadow-[0_0_50px_rgba(139,92,246,0.6)] active:scale-95"
                             >
                                 <span className="relative z-10">GET STARTED</span>
