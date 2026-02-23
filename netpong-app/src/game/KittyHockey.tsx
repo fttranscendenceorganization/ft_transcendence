@@ -1,38 +1,68 @@
 import { useEffect, useRef } from 'react';
+import { Socket } from 'socket.io-client';
 
-type Vec2 = { x: number; y: number }; // Creation of a type of a 2D vector (act as a bluePrint)
+// ---------------------------------------------------------------------------
+// Types that match the BACKEND GameStateType exactly
+// ---------------------------------------------------------------------------
+type Vec2 = { x: number; y: number };
 
-type GameState = {
+type BackendGameState = {
+    ballPosition: Vec2;
+    ballVelocity: Vec2;
+    ballSpeed: number;
+    paddleLeft: Vec2;
+    paddleRight: Vec2;
+    score: { left: number; right: number };
+    ballRadius: number;
+    paddleRadius: number;
+    elapsedTimeSeconds: number;
+};
+
+type DrawState = {
     puck: { x: number; y: number; r: number };
     player: { x: number; y: number; r: number };
-    ai: { x: number; y: number; r: number };
+    opponent: { x: number; y: number; r: number };
     playerScore: number;
-    aiScore: number;
-}; // Same Create a bluePrint for the Game state (Need to be respected)
+    opponentScore: number;
+};
 
-export default function KittyHockey() {
+// ---------------------------------------------------------------------------
+// Backend world dimensions (fixed by the server physics)
+// ---------------------------------------------------------------------------
+const WORLD_W = 1000;
+const WORLD_H = 600;
+
+const BALL_RADIUS = 25;
+const PADDLE_RADIUS = 45;
+
+interface KittyHockeyProps {
+    side: 'left' | 'right';
+    socket: Socket;
+    onGameOver: (data: { winnerId: string; score: { left: number; right: number } }) => void;
+    onGameAborted: (data: { reason: string }) => void;
+}
+
+export default function KittyHockey({
+    side,
+    socket,
+    onGameOver,
+    onGameAborted,
+}: KittyHockeyProps) {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
     useEffect(() => {
         const canvas = canvasRef.current;
         if (!canvas) return;
 
-        const ctx = canvas.getContext('2d'); // Create the Canvas for the game
+        const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
         let worldWidth = 0;
         let worldHeight = 0;
 
-        // Server Game state (as described in the BluePrint)
-        let gameState: GameState = {
-            puck: { x: 300, y: 200, r: 12 },
-            player: { x: 100, y: 200, r: 20 },
-            ai: { x: 500, y: 200, r: 20 },
-            playerScore: 0,
-            aiScore: 0,
-        };
-
-        // Here this function is responsable for the resize in all devices (Desktop, Mobile)
+        // ---------------------------------------------------------------------------
+        // Canvas resize
+        // ---------------------------------------------------------------------------
         const resize = () => {
             const dpr = window.devicePixelRatio || 1;
             const rect = canvas.getBoundingClientRect();
@@ -41,28 +71,69 @@ export default function KittyHockey() {
             canvas.width = rect.width * dpr;
             canvas.height = rect.height * dpr;
             ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-            // Reset the size here to fix the new sizes espiselly the mobile size
-            const paddleRadius = worldHeight * 0.09; // 9% of table height
-            const puckRadius = worldHeight * 0.045;  // 4.5% of table height
-            gameState.player.r = paddleRadius;
-            gameState.ai.r = paddleRadius;
-            gameState.puck.r = puckRadius;
-            gameState.puck.x = worldWidth / 2;
-            gameState.puck.y = worldHeight / 2;
-            gameState.player.x = worldWidth * 0.15;
-            gameState.player.y = worldHeight / 2;
-            gameState.ai.x = worldWidth * 0.85;
-            gameState.ai.y = worldHeight / 2;
-
         };
 
         resize();
         window.addEventListener('resize', resize);
 
-        // Input Keys comes from the user (Client)
-        const keys = { up: false, down: false, left: false, right: false };
+        // ---------------------------------------------------------------------------
+        // Scale helpers — map backend 1000×600 → canvas pixels
+        // ---------------------------------------------------------------------------
+        const sx = (x: number) => (x / WORLD_W) * worldWidth;
+        const sy = (y: number) => (y / WORLD_H) * worldHeight;
+        const sr = (r: number) => (r / WORLD_W) * worldWidth;
+
+        // ---------------------------------------------------------------------------
+        // Draw state initialised to center
+        // ---------------------------------------------------------------------------
+        let drawState: DrawState = {
+            puck: { x: sx(WORLD_W / 2), y: sy(WORLD_H / 2), r: sr(BALL_RADIUS) },
+            player: {
+                x: sx(side === 'left' ? PADDLE_RADIUS : WORLD_W - PADDLE_RADIUS),
+                y: sy(WORLD_H / 2),
+                r: sr(PADDLE_RADIUS),
+            },
+            opponent: {
+                x: sx(side === 'left' ? WORLD_W - PADDLE_RADIUS : PADDLE_RADIUS),
+                y: sy(WORLD_H / 2),
+                r: sr(PADDLE_RADIUS),
+            },
+            playerScore: 0,
+            opponentScore: 0,
+        };
+
+        // ---------------------------------------------------------------------------
+        // Mouse / touch input
+        // ---------------------------------------------------------------------------
         const mouse = { x: 0, y: 0 };
+
+        const toWorldX = (canvasX: number) => (canvasX / worldWidth) * WORLD_W;
+        const toWorldY = (canvasY: number) => (canvasY / worldHeight) * WORLD_H;
+
+        const sendPaddleMove = () => {
+            socket.emit('movePaddle', {
+                x: toWorldX(mouse.x),
+                y: toWorldY(mouse.y),
+            });
+        };
+
+        const onMouseMove = (e: MouseEvent) => {
+            const rect = canvas.getBoundingClientRect();
+            mouse.x = e.clientX - rect.left;
+            mouse.y = e.clientY - rect.top;
+        };
+
+        const onTouchMove = (e: TouchEvent) => {
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.touches[0];
+            mouse.x = touch.clientX - rect.left;
+            mouse.y = touch.clientY - rect.top;
+        };
+
+        // Keyboard fallback (WASD / arrows)
+        const keys = { up: false, down: false, left: false, right: false };
+        const KEYBOARD_SPEED = 16;
 
         const onKeyDown = (e: KeyboardEvent) => {
             if (e.key === 'w' || e.key === 'ArrowUp') keys.up = true;
@@ -78,141 +149,148 @@ export default function KittyHockey() {
             if (e.key === 'd' || e.key === 'ArrowRight') keys.right = false;
         };
 
-        // Input for The mouse moves
-        const onMouseMove = (e: MouseEvent) => {
-            const rect = canvas.getBoundingClientRect();
-            mouse.x = e.clientX - rect.left;
-            mouse.y = e.clientY - rect.top;
+        let paddleWorldX = side === 'left' ? 50 : 950;
+        let paddleWorldY = WORLD_H / 2;
 
-        }
-
-        // Touche Moves (For mobile)
-        const onTouchMove = (e: TouchEvent) => {
-            e.preventDefault();
-            const rect = canvas.getBoundingClientRect();
-            const touche = e.touches[0];
-            mouse.x = touche.clientX - rect.left;
-            mouse.y = touche.clientY - rect.top;
-        }
-
-        window.addEventListener('keydown', onKeyDown);
-        window.addEventListener('keyup', onKeyUp);
         window.addEventListener('mousemove', onMouseMove);
         window.addEventListener('touchmove', onTouchMove, { passive: false });
+        window.addEventListener('keydown', onKeyDown);
+        window.addEventListener('keyup', onKeyUp);
 
-        // Creation of WEBSOCKET
-        const socket = new WebSocket('ws://localhost:3001'); // use wss for HTTPS
+        // ---------------------------------------------------------------------------
+        // Backend gameState events
+        // ---------------------------------------------------------------------------
+        const handleGameState = (state: BackendGameState) => {
+            const myPaddle = side === 'left' ? state.paddleLeft : state.paddleRight;
+            const oppPaddle = side === 'left' ? state.paddleRight : state.paddleLeft;
 
-        socket.onmessage = (event) => {
-            try {
-                const serverState = JSON.parse(event.data);
-                gameState = serverState; // authoritative overwrite
-            } catch (err) {
-                console.error('Bad server state', err);
-            }
-        }; // For the server side (means what comes from the server to the client)
+            paddleWorldX = myPaddle.x;
+            paddleWorldY = myPaddle.y;
 
-        const sendInput = () => {
-            if (socket.readyState !== WebSocket.OPEN) return;
+            drawState = {
+                puck: {
+                    x: sx(state.ballPosition.x),
+                    y: sy(state.ballPosition.y),
+                    r: sr(state.ballRadius),
+                },
+                player: {
+                    x: sx(myPaddle.x),
+                    y: sy(myPaddle.y),
+                    r: sr(state.paddleRadius),
+                },
+                opponent: {
+                    x: sx(oppPaddle.x),
+                    y: sy(oppPaddle.y),
+                    r: sr(state.paddleRadius),
+                },
+                playerScore: state.score.left,
+                opponentScore: state.score.right,
+            };
+        };
 
-            socket.send(
-                JSON.stringify({
-                    type: 'input',
-                    keys: { ...keys },
-                    mouse: { ...mouse },
-                })
-            );
-        }; // For client size (what client send to the server)
+        socket.on('gameState', handleGameState);
+        socket.on('gameOver', onGameOver);
+        socket.on('gameAborted', onGameAborted);
 
-        // Render Loop
+        // ---------------------------------------------------------------------------
+        // Render + input loop at ~60fps
+        // ---------------------------------------------------------------------------
+        let animId: number;
+
         const loop = () => {
-            sendInput();
+            if (keys.up) paddleWorldY = Math.max(0, paddleWorldY - KEYBOARD_SPEED);
+            if (keys.down) paddleWorldY = Math.min(WORLD_H, paddleWorldY + KEYBOARD_SPEED);
+            if (keys.left) paddleWorldX = Math.max(0, paddleWorldX - KEYBOARD_SPEED);
+            if (keys.right) paddleWorldX = Math.min(WORLD_W, paddleWorldX + KEYBOARD_SPEED);
+
+            const anyKey = keys.up || keys.down || keys.left || keys.right;
+            if (anyKey) {
+                socket.emit('movePaddle', { x: paddleWorldX, y: paddleWorldY });
+            } else {
+                sendPaddleMove();
+            }
 
             draw(
                 ctx,
                 worldWidth,
                 worldHeight,
-                gameState.puck,
-                gameState.player,
-                gameState.ai,
-                gameState.playerScore,
-                gameState.aiScore
+                drawState.puck,
+                drawState.player,
+                drawState.opponent,
+                drawState.playerScore,
+                drawState.opponentScore,
             );
 
-            requestAnimationFrame(loop);
+            animId = requestAnimationFrame(loop);
         };
 
-        requestAnimationFrame(loop);
+        animId = requestAnimationFrame(loop);
 
-        // Function for CleanUp
+        // ---------------------------------------------------------------------------
+        // Cleanup
+        // ---------------------------------------------------------------------------
         return () => {
+            cancelAnimationFrame(animId);
             window.removeEventListener('resize', resize);
-            window.removeEventListener('keydown', onKeyDown);
-            window.removeEventListener('keyup', onKeyUp);
             window.removeEventListener('mousemove', onMouseMove);
             window.removeEventListener('touchmove', onTouchMove);
-            socket.close();
+            window.removeEventListener('keydown', onKeyDown);
+            window.removeEventListener('keyup', onKeyUp);
+            socket.off('gameState', handleGameState);
+            socket.off('gameOver', onGameOver);
+            socket.off('gameAborted', onGameAborted);
         };
-    }, []);
+    }, [side, socket, onGameOver, onGameAborted]);
 
     return (
         <canvas
             ref={canvasRef}
-            className="w-full h-full bg-slate-900 rounded-2xl md:cursor-none"
+            className="w-full h-full bg-black rounded-2xl md:cursor-none"
         />
     );
 }
 
-// Rendering function
+// ===========================================================================
+// Draw orchestrator
+// ===========================================================================
 function draw(
     ctx: CanvasRenderingContext2D,
     w: number,
     h: number,
     puck: any,
     player: any,
-    ai: any,
+    opponent: any,
     playerScore: number,
-    aiScore: number
+    opponentScore: number,
 ) {
     ctx.clearRect(0, 0, w, h);
     drawTable(ctx, w, h);
 
-    // Scoreboard
     ctx.fillStyle = 'rgba(245, 8, 194, 0.41)';
-    ctx.font = 'bold 100px sans-serif';
+    ctx.font = 'bold 80px sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText(`${playerScore}`, w / 4, h / 2 + 30);
-    ctx.fillText(`${aiScore}`, (w * 3) / 4, h / 2 + 30);
+    ctx.fillText(`${opponentScore}`, (w * 3) / 4, h / 2 + 30);
 
-    // Player
     drawPlayer(ctx, player);
-
-    // AI
-    drawAI(ctx, ai);
-
-    // Puck
+    drawOpponent(ctx, opponent);
     drawPuck(ctx, puck);
 }
+
+// ===========================================================================
+// Draw functions — Kitty theme (pink / rose / hot pink)
+// ===========================================================================
 
 function drawPlayer(ctx: CanvasRenderingContext2D, player: any) {
     const { x, y, r } = player;
 
-    const gradient = ctx.createRadialGradient(
-        x - r * 0.3,
-        y - r * 0.3,
-        r * 0.2,
-        x,
-        y,
-        r
-    );
-
+    const gradient = ctx.createRadialGradient(x - r * 0.3, y - r * 0.3, r * 0.2, x, y, r);
     gradient.addColorStop(0, '#fff0f6');
     gradient.addColorStop(0.4, '#ff9bd2');
     gradient.addColorStop(0.8, '#ff4db8');
     gradient.addColorStop(1, '#c2188b');
 
     ctx.fillStyle = gradient;
-
     ctx.shadowBlur = 15;
     ctx.shadowColor = '#ff4db8';
     ctx.beginPath();
@@ -224,68 +302,108 @@ function drawPlayer(ctx: CanvasRenderingContext2D, player: any) {
     ctx.beginPath();
     ctx.arc(x - r * 0.3, y - r * 0.3, r * 0.25, 0, Math.PI * 2);
     ctx.fill();
+
+    ctx.fillStyle = '#ff4db8';
+    ctx.shadowBlur = 8;
+    ctx.shadowColor = '#ff4db8';
+    ctx.beginPath();
+    ctx.moveTo(x - r * 0.55, y - r * 0.7);
+    ctx.lineTo(x - r * 0.75, y - r * 1.1);
+    ctx.lineTo(x - r * 0.25, y - r * 0.85);
+    ctx.closePath();
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(x + r * 0.55, y - r * 0.7);
+    ctx.lineTo(x + r * 0.75, y - r * 1.1);
+    ctx.lineTo(x + r * 0.25, y - r * 0.85);
+    ctx.closePath();
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    ctx.fillStyle = '#ffd6ec';
+    ctx.beginPath();
+    ctx.moveTo(x - r * 0.55, y - r * 0.75);
+    ctx.lineTo(x - r * 0.68, y - r * 1.0);
+    ctx.lineTo(x - r * 0.32, y - r * 0.88);
+    ctx.closePath();
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(x + r * 0.55, y - r * 0.75);
+    ctx.lineTo(x + r * 0.68, y - r * 1.0);
+    ctx.lineTo(x + r * 0.32, y - r * 0.88);
+    ctx.closePath();
+    ctx.fill();
 }
 
-function drawAI(ctx: CanvasRenderingContext2D, ai: any) {
-    const { x, y, r } = ai;
+function drawOpponent(ctx: CanvasRenderingContext2D, opponent: any) {
+    const { x, y, r } = opponent;
 
-    const gradient = ctx.createRadialGradient(
-        x - r * 0.3,
-        y - r * 0.3,
-        r * 0.2,
-        x,
-        y,
-        r
-    );
-
+    const gradient = ctx.createRadialGradient(x - r * 0.3, y - r * 0.3, r * 0.2, x, y, r);
     gradient.addColorStop(0, '#ffffff');
     gradient.addColorStop(0.4, '#ffc1e3');
     gradient.addColorStop(0.8, '#ff80c8');
     gradient.addColorStop(1, '#d81b90');
 
     ctx.fillStyle = gradient;
-
     ctx.shadowBlur = 15;
     ctx.shadowColor = '#ff80c8';
-
     ctx.beginPath();
     ctx.arc(x, y, r, 0, Math.PI * 2);
     ctx.fill();
-
     ctx.shadowBlur = 0;
+
     ctx.fillStyle = 'rgba(255,255,255,0.5)';
     ctx.beginPath();
     ctx.arc(x - r * 0.25, y - r * 0.25, r * 0.2, 0, Math.PI * 2);
     ctx.fill();
-}
 
+    ctx.fillStyle = '#ff80c8';
+    ctx.shadowBlur = 8;
+    ctx.shadowColor = '#ff80c8';
+    ctx.beginPath();
+    ctx.moveTo(x - r * 0.55, y - r * 0.7);
+    ctx.lineTo(x - r * 0.75, y - r * 1.1);
+    ctx.lineTo(x - r * 0.25, y - r * 0.85);
+    ctx.closePath();
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(x + r * 0.55, y - r * 0.7);
+    ctx.lineTo(x + r * 0.75, y - r * 1.1);
+    ctx.lineTo(x + r * 0.25, y - r * 0.85);
+    ctx.closePath();
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    ctx.fillStyle = '#ffe4f3';
+    ctx.beginPath();
+    ctx.moveTo(x - r * 0.55, y - r * 0.75);
+    ctx.lineTo(x - r * 0.68, y - r * 1.0);
+    ctx.lineTo(x - r * 0.32, y - r * 0.88);
+    ctx.closePath();
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(x + r * 0.55, y - r * 0.75);
+    ctx.lineTo(x + r * 0.68, y - r * 1.0);
+    ctx.lineTo(x + r * 0.32, y - r * 0.88);
+    ctx.closePath();
+    ctx.fill();
+}
 
 function drawPuck(ctx: CanvasRenderingContext2D, puck: any) {
     const { x, y, r } = puck;
 
-    const gradient = ctx.createRadialGradient(
-        x - r * 0.4,
-        y - r * 0.4,
-        r * 0.1,
-        x,
-        y,
-        r
-    );
-
+    const gradient = ctx.createRadialGradient(x - r * 0.4, y - r * 0.4, r * 0.1, x, y, r);
     gradient.addColorStop(0, '#ffffff');
     gradient.addColorStop(0.3, '#ffb3e6');
     gradient.addColorStop(0.7, '#ff4db8');
     gradient.addColorStop(1, '#ad1457');
 
     ctx.fillStyle = gradient;
-
     ctx.shadowBlur = 12;
     ctx.shadowColor = '#ff4db8';
-
     ctx.beginPath();
     ctx.arc(x, y, r, 0, Math.PI * 2);
     ctx.fill();
-
     ctx.shadowBlur = 0;
 
     ctx.fillStyle = 'rgba(255,255,255,0.8)';
@@ -294,12 +412,11 @@ function drawPuck(ctx: CanvasRenderingContext2D, puck: any) {
     ctx.fill();
 }
 
-
 function drawTable(ctx: CanvasRenderingContext2D, w: number, h: number) {
     const GOAL_HEIGHT = h * 0.35;
     const goalTop = (h - GOAL_HEIGHT) / 2;
 
-    ctx.strokeStyle = '#f518c8ff';
+    ctx.strokeStyle = '#f518c8';
     ctx.lineWidth = 4;
     ctx.strokeRect(0, 0, w, h);
 
@@ -314,9 +431,9 @@ function drawTable(ctx: CanvasRenderingContext2D, w: number, h: number) {
     ctx.arc(w / 2, h / 2, 80, 0, Math.PI * 2);
     ctx.stroke();
 
-    ctx.fillStyle = '#eb6cbaff';
+    ctx.fillStyle = '#eb6cba';
     ctx.shadowBlur = 20;
-    ctx.shadowColor = '#f132bfff';
+    ctx.shadowColor = '#f132bf';
     ctx.fillRect(0, goalTop, 10, GOAL_HEIGHT);
     ctx.fillRect(w - 10, goalTop, 10, GOAL_HEIGHT);
     ctx.shadowBlur = 0;
