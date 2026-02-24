@@ -12,7 +12,7 @@ export default function FirstHeader() {
         } catch (error) {
             console.error('Logout error:', error);
         } finally {
-            // Clear local token and session
+            
             clearToken();
             sessionStorage.removeItem('user');
             setIsLoggedIn(false);
