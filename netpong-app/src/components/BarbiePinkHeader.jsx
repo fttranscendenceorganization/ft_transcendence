@@ -103,7 +103,7 @@ export default function BarbiePinkHeader() {
                                 <a
                                     key={mode.path}
                                     href={mode.path}
-                                    className={`flex items-center gap-3 px-4 py-3 rounded-xl ${mode.hoverBg} hover:text-black transition-all duration-300 group/item relative overflow-hidden`}
+                                    className={`flex items-center gap-3 px-4 py-3 rounded-xl ${mode.hoverBg} transition-all duration-300 group/item relative overflow-hidden`}
                                     style={{
                                         animationDelay: `${index * 50}ms`,
                                         animation: isDropdownOpen ? 'slideIn 0.3s ease-out forwards' : 'none'
@@ -114,8 +114,8 @@ export default function BarbiePinkHeader() {
                                     </span>
 
                                     <div className="flex-1">
-                                        <div className="font-bold text-sm">{mode.name}</div>
-                                        <div className="text-xs opacity-70">{mode.description}</div>
+                                        <div className="font-bold text-sm text-white">{mode.name}</div>
+                                        <div className="text-xs text-white/60">{mode.description}</div>
                                     </div>
 
                                     <svg
