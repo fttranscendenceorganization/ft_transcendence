@@ -87,8 +87,9 @@ export class GameService implements OnModuleDestroy {
             ballPosition: { x: 500, y: 300 },
             ballVelocity: { x: 0, y: 0 },
             ballSpeed: 10,
-            paddleLeft: { x: 50, y: 300 },
-            paddleRight: { x: 950, y: 300 },
+            // Add both current and target positions for smoothing
+            paddleLeft: { x: 50, y: 300, targetX: 50, targetY: 300 },
+            paddleRight: { x: 950, y: 300, targetX: 950, targetY: 300 },
             score: { left: 0, right: 0 },
             ballRadius: 25,
             paddleRadius: 45,
@@ -136,6 +137,24 @@ export class GameService implements OnModuleDestroy {
 
         const { ballPosition, ballVelocity, score } = game.state;
         const { ballSpeed, ballRadius, paddleLeft, paddleRight, paddleRadius } = game.state;
+
+     
+        const PADDLE_SPEED = 18; 
+        function smoothPaddle(paddle) {
+            if (paddle.targetX === undefined) return; 
+            const dx = paddle.targetX - paddle.x;
+            const dy = paddle.targetY - paddle.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < PADDLE_SPEED) {
+                paddle.x = paddle.targetX;
+                paddle.y = paddle.targetY;
+            } else {
+                paddle.x += (dx / dist) * PADDLE_SPEED;
+                paddle.y += (dy / dist) * PADDLE_SPEED;
+            }
+        }
+        smoothPaddle(paddleLeft);
+        smoothPaddle(paddleRight);
 
         ballPosition.x += ballVelocity.x;
         ballPosition.y += ballVelocity.y;
@@ -219,7 +238,6 @@ export class GameService implements OnModuleDestroy {
         if (valY > 600 - paddleRadius) valY = 600 - paddleRadius;
 
         let valX = newX;
-
         if (isLeft) {
             if (valX < paddleRadius) valX = paddleRadius;
             if (valX > 500 - paddleRadius) valX = 500 - paddleRadius;
@@ -228,8 +246,9 @@ export class GameService implements OnModuleDestroy {
             if (valX > 1000 - paddleRadius) valX = 1000 - paddleRadius;
         }
 
-        paddle.x = valX;
-        paddle.y = valY;
+        // Set target position for smoothing
+        paddle.targetX = valX;
+        paddle.targetY = valY;
     }
 
 
