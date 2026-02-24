@@ -396,7 +396,7 @@ export default function GameKitty() {
                             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
                             🏒 CLASSIC MATCH
                         </button>
-                        <button onClick={() => navigate('/barbie-pink')} className="text-gray-600 hover:text-gray-300 text-sm transition-colors">
+                        <button onClick={() => navigate('/kitty-cat')} className="text-gray-600 hover:text-gray-300 text-sm transition-colors">
                             ← Back
                         </button>
                     </div>
@@ -551,7 +551,7 @@ export default function GameKitty() {
                         >
                             🐱 Play Again
                         </button>
-                        <button onClick={() => navigate('/barbie-pink')} className="text-gray-600 hover:text-gray-300 text-sm transition-colors">
+                        <button onClick={() => navigate('/kitty-cat')} className="text-gray-600 hover:text-gray-300 text-sm transition-colors">
                             ← RETURN TO PINK WORLD
                         </button>
                     </div>
@@ -614,7 +614,7 @@ export default function GameKitty() {
                             🐱 Play Again
                         </button>
                         <button
-                            onClick={() => navigate('/barbie-pink')}
+                            onClick={() => navigate('/kitty-cat')}
                             className="w-full bg-slate-900/60 hover:bg-slate-800/60 border border-slate-700/40 text-gray-500 hover:text-white font-bold py-3 rounded-xl transition-all text-sm"
                         >
                             Leave the Stage

@@ -47,7 +47,7 @@ export default function GameModes() {
         },
         {
             name: 'Kitty Cat',
-            url: '/barbie-pink',
+            url: '/kitty-cat',
             category: 'Lovely',
             icon: '💖',
             gradient: 'from-pink-600 via-pink-500 to-rose-600',
