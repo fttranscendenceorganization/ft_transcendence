@@ -189,7 +189,7 @@ export default function UserHome() {
     );
 }
 
-// I will use this function here later as a components 
+ 
 function StatChip({ label, value, color }) {
     const colorMap = {
         orange: 'bg-orange-500/20 text-orange-300 border-orange-500/40',
