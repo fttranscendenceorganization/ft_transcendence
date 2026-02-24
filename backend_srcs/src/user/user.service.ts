@@ -26,7 +26,7 @@ export class UserService {
             where: { isActive: true },
             take,
             skip,
-            order: { createdAt: 'DESC' },
+            order: { level: 'DESC', totalXp: 'DESC' },
         });
         return { items, total };
     }
