@@ -208,7 +208,7 @@ export class UserService {
             winner.level += 1;
         }
 
-        winner.winrate = (winner.wins / (winner.wins + winner.losses)) * 100;
+        winner.winrate = (winner.wins + winner.losses > 0 ? Math.round((winner.wins / (winner.wins + winner.losses)) * 100) : 0);
 
         loser.losses += 1;
         loser.totalXp += loseXP;
@@ -219,7 +219,7 @@ export class UserService {
             loser.level += 1;
         }
 
-        loser.winrate = (loser.wins / (loser.wins + loser.losses)) * 100;
+        loser.winrate = (loser.wins + loser.losses > 0 ? Math.round((loser.wins / (loser.wins + loser.losses)) * 100) : 0);
         await this.userrepo.save([winner, loser]);
     }
 
