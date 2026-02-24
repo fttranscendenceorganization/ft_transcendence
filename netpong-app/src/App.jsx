@@ -6,7 +6,7 @@ import SignUp from './pages/signup';
 import SoulSociety from './pages/soul-society';
 import ZombieLand from './pages/zombie-land';
 import Joker from './pages/joker';
-import BarbiePink from './pages/kitty-cat';
+import BarbiePink from './pages/barbie-pink';
 import Exclusive from './pages/exclusive';
 import Contact from './pages/contact';
 import AuthCallback from './pages/AuthCallback';
