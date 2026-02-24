@@ -54,17 +54,17 @@ export default function GamePlay() {
     const [error, setError] = useState<string | null>(null);
     const [profileError, setProfileError] = useState<string | null>(null);
 
-    // ---------------------------------------------------------------------------
-    // Lock page scroll entirely — arrow keys won't move the page
-    // ---------------------------------------------------------------------------
+    
+    
+    
     useEffect(() => {
-        // Prevent the page from scrolling at all
+        
         document.documentElement.style.overflow = 'hidden';
         document.body.style.overflow = 'hidden';
         document.body.style.height = '100%';
         document.documentElement.style.height = '100%';
 
-        // Prevent arrow keys + spacebar from scrolling the page
+        
         const preventScrollKeys = (e: KeyboardEvent) => {
             const scrollKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '];
             if (scrollKeys.includes(e.key)) {
@@ -74,7 +74,7 @@ export default function GamePlay() {
         window.addEventListener('keydown', preventScrollKeys, { passive: false });
 
         return () => {
-            // Restore scroll when leaving the page
+            
             document.documentElement.style.overflow = '';
             document.body.style.overflow = '';
             document.body.style.height = '';
@@ -83,9 +83,9 @@ export default function GamePlay() {
         };
     }, []);
 
-    // ---------------------------------------------------------------------------
-    // Page title / favicon
-    // ---------------------------------------------------------------------------
+    
+    
+    
     useEffect(() => {
         document.title = 'Zombie Land - NetGame';
         const link = document.querySelector("link[rel~='icon']") as HTMLLinkElement | null;
@@ -96,9 +96,9 @@ export default function GamePlay() {
         };
     }, []);
 
-    // ---------------------------------------------------------------------------
-    // Fetch MY profile
-    // ---------------------------------------------------------------------------
+    
+    
+    
     useEffect(() => {
         authFetch('/api/auth/me', { method: 'GET' })
             .then(r => r.ok ? r.json() : null)
@@ -110,9 +110,9 @@ export default function GamePlay() {
             .catch(() => { });
     }, []);
 
-    // ---------------------------------------------------------------------------
-    // Load player stats and friends once
-    // ---------------------------------------------------------------------------
+    
+    
+    
     useEffect(() => {
         (async () => {
             try {
@@ -129,7 +129,7 @@ export default function GamePlay() {
         })();
     }, []);
 
-    // Refresh my stats after game ends
+    
     useEffect(() => {
         if (screen === 'GAME_OVER' || screen === 'GAME_ABORTED') {
             authFetch('/api/game/stats', { method: 'GET' })
@@ -139,9 +139,9 @@ export default function GamePlay() {
         }
     }, [screen]);
 
-    // ---------------------------------------------------------------------------
-    // Socket setup
-    // ---------------------------------------------------------------------------
+    
+    
+    
     useEffect(() => {
         let isMounted = true;
 
@@ -209,17 +209,17 @@ export default function GamePlay() {
         };
     }, [navigate]);
 
-    // ---------------------------------------------------------------------------
-    // Derived values
-    // ---------------------------------------------------------------------------
+    
+    
+    
     const myName = myProfile?.username ? `${myProfile.username} (You)` : 'You';
     const myScore = gameOverData ? (side === 'left' ? gameOverData.score.left : gameOverData.score.right) : 0;
     const opponentScore = gameOverData ? (side === 'left' ? gameOverData.score.right : gameOverData.score.left) : 0;
     const iWon = !!myProfile && gameOverData?.winnerId === myProfile.id;
 
-    // ---------------------------------------------------------------------------
-    // Actions
-    // ---------------------------------------------------------------------------
+    
+    
+    
     const joinQueue = useCallback(() => {
         if (!socketRef.current) {
             setError('Could not connect to game server. Please try again.');
@@ -287,9 +287,9 @@ export default function GamePlay() {
         }
     }, [opponentUser, isFriend]);
 
-    // ---------------------------------------------------------------------------
-    // Profile cards
-    // ---------------------------------------------------------------------------
+    
+    
+    
     const MyCard = (
         <div className="flex items-center gap-4">
             <div className="relative">

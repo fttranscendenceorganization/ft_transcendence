@@ -54,9 +54,7 @@ export default function GameJoker() {
     const [error, setError] = useState<string | null>(null);
     const [profileError, setProfileError] = useState<string | null>(null);
 
-    // ---------------------------------------------------------------------------
-    // Lock page scroll entirely — arrow keys won't move the page
-    // ---------------------------------------------------------------------------
+    
     useEffect(() => {
         document.documentElement.style.overflow = 'hidden';
         document.body.style.overflow = 'hidden';
@@ -80,9 +78,7 @@ export default function GameJoker() {
         };
     }, []);
 
-    // ---------------------------------------------------------------------------
-    // Page title / favicon
-    // ---------------------------------------------------------------------------
+    
     useEffect(() => {
         document.title = 'Joker - NetGame';
         const link = document.querySelector("link[rel~='icon']") as HTMLLinkElement | null;
@@ -93,9 +89,7 @@ export default function GameJoker() {
         };
     }, []);
 
-    // ---------------------------------------------------------------------------
-    // Fetch MY profile
-    // ---------------------------------------------------------------------------
+    
     useEffect(() => {
         authFetch('/api/auth/me', { method: 'GET' })
             .then(r => r.ok ? r.json() : null)
@@ -107,9 +101,7 @@ export default function GameJoker() {
             .catch(() => { });
     }, []);
 
-    // ---------------------------------------------------------------------------
-    // Load player stats and friends once
-    // ---------------------------------------------------------------------------
+    
     useEffect(() => {
         (async () => {
             try {
@@ -126,7 +118,7 @@ export default function GameJoker() {
         })();
     }, []);
 
-    // Refresh my stats after game ends
+    
     useEffect(() => {
         if (screen === 'GAME_OVER' || screen === 'GAME_ABORTED') {
             authFetch('/api/game/stats', { method: 'GET' })
@@ -136,9 +128,7 @@ export default function GameJoker() {
         }
     }, [screen]);
 
-    // ---------------------------------------------------------------------------
-    // Socket setup
-    // ---------------------------------------------------------------------------
+    
     useEffect(() => {
         let isMounted = true;
 
@@ -206,17 +196,13 @@ export default function GameJoker() {
         };
     }, [navigate]);
 
-    // ---------------------------------------------------------------------------
-    // Derived values
-    // ---------------------------------------------------------------------------
+    
     const myName = myProfile?.username ? `${myProfile.username} (You)` : 'You';
     const myScore = gameOverData ? (side === 'left' ? gameOverData.score.left : gameOverData.score.right) : 0;
     const opponentScore = gameOverData ? (side === 'left' ? gameOverData.score.right : gameOverData.score.left) : 0;
     const iWon = !!myProfile && gameOverData?.winnerId === myProfile.id;
 
-    // ---------------------------------------------------------------------------
-    // Actions
-    // ---------------------------------------------------------------------------
+    
     const joinQueue = useCallback(() => {
         if (!socketRef.current) {
             setError('Could not connect to game server. Please try again.');
@@ -284,9 +270,7 @@ export default function GameJoker() {
         }
     }, [opponentUser, isFriend]);
 
-    // ---------------------------------------------------------------------------
-    // Profile cards
-    // ---------------------------------------------------------------------------
+    
     const MyCard = (
         <div className="flex items-center gap-4">
             <div className="relative">

@@ -1,9 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Socket } from 'socket.io-client';
 
-// ---------------------------------------------------------------------------
-// Types that match the BACKEND GameStateType exactly
-// ---------------------------------------------------------------------------
+ 
 type Vec2 = { x: number; y: number };
 
 type BackendGameState = {
@@ -26,13 +24,11 @@ type DrawState = {
     opponentScore: number;
 };
 
-// ---------------------------------------------------------------------------
-// Backend world dimensions (fixed by the server physics)
-// ---------------------------------------------------------------------------
+ 
 const WORLD_W = 1000;
 const WORLD_H = 600;
 
-// These must match the backend exactly — ball radius 25, paddle radius 45
+ 
 const BALL_RADIUS = 25;
 const PADDLE_RADIUS = 45;
 
@@ -61,9 +57,7 @@ export default function AirHockeyCanvas({
         let worldWidth = 0;
         let worldHeight = 0;
 
-        // ---------------------------------------------------------------------------
-        // Canvas resize — keeps aspect ratio of 1000:600
-        // ---------------------------------------------------------------------------
+        
         const resize = () => {
             const dpr = window.devicePixelRatio || 1;
             const rect = canvas.getBoundingClientRect();
@@ -77,20 +71,12 @@ export default function AirHockeyCanvas({
         resize();
         window.addEventListener('resize', resize);
 
-        // ---------------------------------------------------------------------------
-        // Scale helpers — map backend 1000×600 → canvas pixels
-        // ---------------------------------------------------------------------------
+        
         const sx = (x: number) => (x / WORLD_W) * worldWidth;
         const sy = (y: number) => (y / WORLD_H) * worldHeight;
         const sr = (r: number) => (r / WORLD_W) * worldWidth;
 
-        // ---------------------------------------------------------------------------
-        // Draw state initialised to center
-        // Radii pass through sr() so they scale with canvas size and match
-        // the backend's BALL_RADIUS=25 and PADDLE_RADIUS=45 world-unit values.
-        // The backend's state.ballRadius / state.paddleRadius take over on the
-        // first gameState event — these are just safe initial values.
-        // ---------------------------------------------------------------------------
+        
         let drawState: DrawState = {
             puck: { x: sx(WORLD_W / 2), y: sy(WORLD_H / 2), r: sr(BALL_RADIUS) },
             player: {
@@ -107,9 +93,7 @@ export default function AirHockeyCanvas({
             opponentScore: 0,
         };
 
-        // ---------------------------------------------------------------------------
-        // Mouse / touch input
-        // ---------------------------------------------------------------------------
+        
         const mouse = { x: 0, y: 0 };
 
         const toWorldX = (canvasX: number) => (canvasX / worldWidth) * WORLD_W;
@@ -136,7 +120,7 @@ export default function AirHockeyCanvas({
             mouse.y = touch.clientY - rect.top;
         };
 
-        // Keyboard fallback (WASD / arrows) — increased speed from 8 → 16
+        
         const keys = { up: false, down: false, left: false, right: false };
         const KEYBOARD_SPEED = 16;
 
@@ -162,9 +146,7 @@ export default function AirHockeyCanvas({
         window.addEventListener('keydown', onKeyDown);
         window.addEventListener('keyup', onKeyUp);
 
-        // ---------------------------------------------------------------------------
-        // Backend gameState events
-        // ---------------------------------------------------------------------------
+        
         const handleGameState = (state: BackendGameState) => {
             const myPaddle = side === 'left' ? state.paddleLeft : state.paddleRight;
             const oppPaddle = side === 'left' ? state.paddleRight : state.paddleLeft;
@@ -197,9 +179,7 @@ export default function AirHockeyCanvas({
         socket.on('gameOver', onGameOver);
         socket.on('gameAborted', onGameAborted);
 
-        // ---------------------------------------------------------------------------
-        // Render + input loop at ~60fps
-        // ---------------------------------------------------------------------------
+        
         let animId: number;
 
         const loop = () => {
@@ -231,9 +211,7 @@ export default function AirHockeyCanvas({
 
         animId = requestAnimationFrame(loop);
 
-        // ---------------------------------------------------------------------------
-        // Cleanup
-        // ---------------------------------------------------------------------------
+        
         return () => {
             cancelAnimationFrame(animId);
             window.removeEventListener('resize', resize);
@@ -255,9 +233,7 @@ export default function AirHockeyCanvas({
     );
 }
 
-// ===========================================================================
-// Draw orchestrator
-// ===========================================================================
+ 
 function draw(
     ctx: CanvasRenderingContext2D,
     w: number,
@@ -271,7 +247,7 @@ function draw(
     ctx.clearRect(0, 0, w, h);
     drawTable(ctx, w, h);
 
-    // Scoreboard
+    
     ctx.fillStyle = 'rgba(238, 11, 11, 0.2)';
     ctx.font = 'bold 80px sans-serif';
     ctx.textAlign = 'center';
@@ -283,9 +259,7 @@ function draw(
     drawPuck(ctx, puck);
 }
 
-// ===========================================================================
-// Draw functions
-// ===========================================================================
+ 
 
 function drawPlayer(ctx: CanvasRenderingContext2D, player: any) {
     const { x, y, r } = player;
@@ -438,7 +412,7 @@ function drawPuck(ctx: CanvasRenderingContext2D, puck: any) {
         ctx.restore();
     }
 
-    // Removed the 4 outer drip dots that were causing the pointy edges
+    
 }
 
 function drawTable(ctx: CanvasRenderingContext2D, w: number, h: number) {
