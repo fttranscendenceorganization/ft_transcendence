@@ -1,16 +1,53 @@
 import { useEffect, useRef } from 'react';
+import { Socket } from 'socket.io-client';
 
+// ---------------------------------------------------------------------------
+// Types that match the BACKEND GameStateType exactly
+// ---------------------------------------------------------------------------
 type Vec2 = { x: number; y: number };
 
-type GameState = {
-    puck: { x: number; y: number; r: number };
-    player: { x: number; y: number; r: number };
-    ai: { x: number; y: number; r: number };
-    playerScore: number;
-    aiScore: number;
+type BackendGameState = {
+    ballPosition: Vec2;
+    ballVelocity: Vec2;
+    ballSpeed: number;
+    paddleLeft: Vec2;
+    paddleRight: Vec2;
+    score: { left: number; right: number };
+    ballRadius: number;
+    paddleRadius: number;
+    elapsedTimeSeconds: number;
 };
 
-export default function SoulHockey() {
+type DrawState = {
+    puck: { x: number; y: number; r: number };
+    player: { x: number; y: number; r: number };
+    opponent: { x: number; y: number; r: number };
+    playerScore: number;
+    opponentScore: number;
+};
+
+// ---------------------------------------------------------------------------
+// Backend world dimensions (fixed by the server physics)
+// ---------------------------------------------------------------------------
+const WORLD_W = 1000;
+const WORLD_H = 600;
+
+const BALL_RADIUS = 25;
+const PADDLE_RADIUS = 45;
+
+interface SoulHockeyProps {
+    side: 'left' | 'right';
+    socket: Socket;
+    onGameOver: (data: { winnerId: string; score: { left: number; right: number } }) => void;
+    onGameAborted: (data: { reason: string }) => void;
+}
+
+export default function SoulHockey({
+    side,
+    socket,
+    onGameOver,
+    onGameAborted,
+}: SoulHockeyProps) {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
     useEffect(() => {
@@ -23,16 +60,9 @@ export default function SoulHockey() {
         let worldWidth = 0;
         let worldHeight = 0;
 
-        
-        let gameState: GameState = {
-            puck: { x: 300, y: 200, r: 12 },
-            player: { x: 100, y: 200, r: 20 },
-            ai: { x: 500, y: 200, r: 20 },
-            playerScore: 0,
-            aiScore: 0,
-        };
-
-        
+        // ---------------------------------------------------------------------------
+        // Canvas resize
+        // ---------------------------------------------------------------------------
         const resize = () => {
             const dpr = window.devicePixelRatio || 1;
             const rect = canvas.getBoundingClientRect();
@@ -41,28 +71,69 @@ export default function SoulHockey() {
             canvas.width = rect.width * dpr;
             canvas.height = rect.height * dpr;
             ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-            
-            const paddleRadius = worldHeight * 0.09;
-            const puckRadius = worldHeight * 0.045;
-            gameState.player.r = paddleRadius;
-            gameState.ai.r = paddleRadius;
-            gameState.puck.r = puckRadius;
-            gameState.puck.x = worldWidth / 2;
-            gameState.puck.y = worldHeight / 2;
-            gameState.player.x = worldWidth * 0.15;
-            gameState.player.y = worldHeight / 2;
-            gameState.ai.x = worldWidth * 0.85;
-            gameState.ai.y = worldHeight / 2;
-
         };
 
         resize();
         window.addEventListener('resize', resize);
 
-        
-        const keys = { up: false, down: false, left: false, right: false };
+        // ---------------------------------------------------------------------------
+        // Scale helpers — map backend 1000×600 → canvas pixels
+        // ---------------------------------------------------------------------------
+        const sx = (x: number) => (x / WORLD_W) * worldWidth;
+        const sy = (y: number) => (y / WORLD_H) * worldHeight;
+        const sr = (r: number) => (r / WORLD_W) * worldWidth;
+
+        // ---------------------------------------------------------------------------
+        // Draw state initialised to center
+        // ---------------------------------------------------------------------------
+        let drawState: DrawState = {
+            puck: { x: sx(WORLD_W / 2), y: sy(WORLD_H / 2), r: sr(BALL_RADIUS) },
+            player: {
+                x: sx(side === 'left' ? PADDLE_RADIUS : WORLD_W - PADDLE_RADIUS),
+                y: sy(WORLD_H / 2),
+                r: sr(PADDLE_RADIUS),
+            },
+            opponent: {
+                x: sx(side === 'left' ? WORLD_W - PADDLE_RADIUS : PADDLE_RADIUS),
+                y: sy(WORLD_H / 2),
+                r: sr(PADDLE_RADIUS),
+            },
+            playerScore: 0,
+            opponentScore: 0,
+        };
+
+        // ---------------------------------------------------------------------------
+        // Mouse / touch input
+        // ---------------------------------------------------------------------------
         const mouse = { x: 0, y: 0 };
+
+        const toWorldX = (canvasX: number) => (canvasX / worldWidth) * WORLD_W;
+        const toWorldY = (canvasY: number) => (canvasY / worldHeight) * WORLD_H;
+
+        const sendPaddleMove = () => {
+            socket.emit('movePaddle', {
+                x: toWorldX(mouse.x),
+                y: toWorldY(mouse.y),
+            });
+        };
+
+        const onMouseMove = (e: MouseEvent) => {
+            const rect = canvas.getBoundingClientRect();
+            mouse.x = e.clientX - rect.left;
+            mouse.y = e.clientY - rect.top;
+        };
+
+        const onTouchMove = (e: TouchEvent) => {
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.touches[0];
+            mouse.x = touch.clientX - rect.left;
+            mouse.y = touch.clientY - rect.top;
+        };
+
+        // Keyboard fallback (WASD / arrows)
+        const keys = { up: false, down: false, left: false, right: false };
+        const KEYBOARD_SPEED = 16;
 
         const onKeyDown = (e: KeyboardEvent) => {
             if (e.key === 'w' || e.key === 'ArrowUp') keys.up = true;
@@ -78,82 +149,98 @@ export default function SoulHockey() {
             if (e.key === 'd' || e.key === 'ArrowRight') keys.right = false;
         };
 
-        
-        const onMouseMove = (e: MouseEvent) => {
-            const rect = canvas.getBoundingClientRect();
-            mouse.x = e.clientX - rect.left;
-            mouse.y = e.clientY - rect.top;
+        let paddleWorldX = side === 'left' ? 50 : 950;
+        let paddleWorldY = WORLD_H / 2;
 
-        }
-
-        
-        const onTouchMove = (e: TouchEvent) => {
-            e.preventDefault();
-            const rect = canvas.getBoundingClientRect();
-            const touche = e.touches[0];
-            mouse.x = touche.clientX - rect.left;
-            mouse.y = touche.clientY - rect.top;
-        }
-
-        window.addEventListener('keydown', onKeyDown);
-        window.addEventListener('keyup', onKeyUp);
         window.addEventListener('mousemove', onMouseMove);
         window.addEventListener('touchmove', onTouchMove, { passive: false });
+        window.addEventListener('keydown', onKeyDown);
+        window.addEventListener('keyup', onKeyUp);
 
-        
-        const socket = new WebSocket('ws://localhost:3001');
+        // ---------------------------------------------------------------------------
+        // Backend gameState events
+        // ---------------------------------------------------------------------------
+        const handleGameState = (state: BackendGameState) => {
+            const myPaddle = side === 'left' ? state.paddleLeft : state.paddleRight;
+            const oppPaddle = side === 'left' ? state.paddleRight : state.paddleLeft;
 
-        socket.onmessage = (event) => {
-            try {
-                const serverState = JSON.parse(event.data);
-                gameState = serverState;
-            } catch (err) {
-                console.error('Bad server state', err);
-            }
+            paddleWorldX = myPaddle.x;
+            paddleWorldY = myPaddle.y;
+
+            drawState = {
+                puck: {
+                    x: sx(state.ballPosition.x),
+                    y: sy(state.ballPosition.y),
+                    r: sr(state.ballRadius),
+                },
+                player: {
+                    x: sx(myPaddle.x),
+                    y: sy(myPaddle.y),
+                    r: sr(state.paddleRadius),
+                },
+                opponent: {
+                    x: sx(oppPaddle.x),
+                    y: sy(oppPaddle.y),
+                    r: sr(state.paddleRadius),
+                },
+                playerScore: state.score.left,
+                opponentScore: state.score.right,
+            };
         };
 
-        const sendInput = () => {
-            if (socket.readyState !== WebSocket.OPEN) return;
+        socket.on('gameState', handleGameState);
+        socket.on('gameOver', onGameOver);
+        socket.on('gameAborted', onGameAborted);
 
-            socket.send(
-                JSON.stringify({
-                    type: 'input',
-                    keys: { ...keys },
-                    mouse: { ...mouse },
-                })
-            );
-        };
+        // ---------------------------------------------------------------------------
+        // Render + input loop at ~60fps
+        // ---------------------------------------------------------------------------
+        let animId: number;
 
-        
         const loop = () => {
-            sendInput();
+            if (keys.up) paddleWorldY = Math.max(0, paddleWorldY - KEYBOARD_SPEED);
+            if (keys.down) paddleWorldY = Math.min(WORLD_H, paddleWorldY + KEYBOARD_SPEED);
+            if (keys.left) paddleWorldX = Math.max(0, paddleWorldX - KEYBOARD_SPEED);
+            if (keys.right) paddleWorldX = Math.min(WORLD_W, paddleWorldX + KEYBOARD_SPEED);
+
+            const anyKey = keys.up || keys.down || keys.left || keys.right;
+            if (anyKey) {
+                socket.emit('movePaddle', { x: paddleWorldX, y: paddleWorldY });
+            } else {
+                sendPaddleMove();
+            }
 
             draw(
                 ctx,
                 worldWidth,
                 worldHeight,
-                gameState.puck,
-                gameState.player,
-                gameState.ai,
-                gameState.playerScore,
-                gameState.aiScore
+                drawState.puck,
+                drawState.player,
+                drawState.opponent,
+                drawState.playerScore,
+                drawState.opponentScore,
             );
 
-            requestAnimationFrame(loop);
+            animId = requestAnimationFrame(loop);
         };
 
-        requestAnimationFrame(loop);
+        animId = requestAnimationFrame(loop);
 
-        
+        // ---------------------------------------------------------------------------
+        // Cleanup
+        // ---------------------------------------------------------------------------
         return () => {
+            cancelAnimationFrame(animId);
             window.removeEventListener('resize', resize);
-            window.removeEventListener('keydown', onKeyDown);
-            window.removeEventListener('keyup', onKeyUp);
             window.removeEventListener('mousemove', onMouseMove);
             window.removeEventListener('touchmove', onTouchMove);
-            socket.close();
+            window.removeEventListener('keydown', onKeyDown);
+            window.removeEventListener('keyup', onKeyUp);
+            socket.off('gameState', handleGameState);
+            socket.off('gameOver', onGameOver);
+            socket.off('gameAborted', onGameAborted);
         };
-    }, []);
+    }, [side, socket, onGameOver, onGameAborted]);
 
     return (
         <canvas
@@ -163,27 +250,30 @@ export default function SoulHockey() {
     );
 }
 
+// ===========================================================================
+// Draw orchestrator
+// ===========================================================================
 function draw(
     ctx: CanvasRenderingContext2D,
     w: number,
     h: number,
     puck: any,
     player: any,
-    ai: any,
+    opponent: any,
     playerScore: number,
-    aiScore: number
+    opponentScore: number,
 ) {
     ctx.clearRect(0, 0, w, h);
     drawTable(ctx, w, h);
 
     ctx.fillStyle = 'rgba(180, 150, 80, 0.25)';
-    ctx.font = 'bold 100px serif';
+    ctx.font = 'bold 80px serif';
     ctx.textAlign = 'center';
     ctx.fillText(`${playerScore}`, w / 4, h / 2 + 30);
-    ctx.fillText(`${aiScore}`, (w * 3) / 4, h / 2 + 30);
+    ctx.fillText(`${opponentScore}`, (w * 3) / 4, h / 2 + 30);
 
     drawPlayer(ctx, player);
-    drawAI(ctx, ai);
+    drawOpponent(ctx, opponent);
     drawPuck(ctx, puck);
 }
 
@@ -217,8 +307,8 @@ function drawPlayer(ctx: CanvasRenderingContext2D, player: any) {
     ctx.fill();
 }
 
-function drawAI(ctx: CanvasRenderingContext2D, ai: any) {
-    const { x, y, r } = ai;
+function drawOpponent(ctx: CanvasRenderingContext2D, opponent: any) {
+    const { x, y, r } = opponent;
 
     ctx.shadowBlur = 24;
     ctx.shadowColor = '#ff1744';
@@ -235,6 +325,7 @@ function drawAI(ctx: CanvasRenderingContext2D, ai: any) {
     ctx.fill();
     ctx.shadowBlur = 0;
 
+    // Inner ring
     ctx.strokeStyle = 'rgba(255, 100, 100, 0.5)';
     ctx.lineWidth = 2;
     ctx.beginPath();
@@ -276,12 +367,11 @@ function drawPuck(ctx: CanvasRenderingContext2D, puck: any) {
     ctx.fill();
 }
 
-
 function drawTable(ctx: CanvasRenderingContext2D, w: number, h: number) {
     const GOAL_HEIGHT = h * 0.35;
     const goalTop = (h - GOAL_HEIGHT) / 2;
 
-    ctx.strokeStyle = '#86869bff';
+    ctx.strokeStyle = '#86869b';
     ctx.lineWidth = 4;
     ctx.strokeRect(0, 0, w, h);
 
@@ -296,9 +386,9 @@ function drawTable(ctx: CanvasRenderingContext2D, w: number, h: number) {
     ctx.arc(w / 2, h / 2, 80, 0, Math.PI * 2);
     ctx.stroke();
 
-    ctx.fillStyle = '#9190c0ff';
+    ctx.fillStyle = '#9190c0';
     ctx.shadowBlur = 20;
-    ctx.shadowColor = '#635d7aff';
+    ctx.shadowColor = '#635d7a';
     ctx.fillRect(0, goalTop, 10, GOAL_HEIGHT);
     ctx.fillRect(w - 10, goalTop, 10, GOAL_HEIGHT);
     ctx.shadowBlur = 0;
