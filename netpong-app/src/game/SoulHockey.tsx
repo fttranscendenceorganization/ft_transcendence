@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 
-type Vec2 = { x: number; y: number }; // Creation of a type of a 2D vector (act as a bluePrint)
+type Vec2 = { x: number; y: number };
 
 type GameState = {
     puck: { x: number; y: number; r: number };
@@ -8,7 +8,7 @@ type GameState = {
     ai: { x: number; y: number; r: number };
     playerScore: number;
     aiScore: number;
-}; // Same Create a bluePrint for the Game state (Need to be respected)
+};
 
 export default function SoulHockey() {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -17,13 +17,13 @@ export default function SoulHockey() {
         const canvas = canvasRef.current;
         if (!canvas) return;
 
-        const ctx = canvas.getContext('2d'); // Create the Canvas for the game
+        const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
         let worldWidth = 0;
         let worldHeight = 0;
 
-        // Server Game state (as described in the BluePrint)
+        
         let gameState: GameState = {
             puck: { x: 300, y: 200, r: 12 },
             player: { x: 100, y: 200, r: 20 },
@@ -32,7 +32,7 @@ export default function SoulHockey() {
             aiScore: 0,
         };
 
-        // Here this function is responsable for the resize in all devices (Desktop, Mobile)
+        
         const resize = () => {
             const dpr = window.devicePixelRatio || 1;
             const rect = canvas.getBoundingClientRect();
@@ -42,9 +42,9 @@ export default function SoulHockey() {
             canvas.height = rect.height * dpr;
             ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-            // Reset the size here to fix the new sizes espiselly the mobile size
-            const paddleRadius = worldHeight * 0.09; // 9% of table height
-            const puckRadius = worldHeight * 0.045;  // 4.5% of table height
+            
+            const paddleRadius = worldHeight * 0.09;
+            const puckRadius = worldHeight * 0.045;
             gameState.player.r = paddleRadius;
             gameState.ai.r = paddleRadius;
             gameState.puck.r = puckRadius;
@@ -60,7 +60,7 @@ export default function SoulHockey() {
         resize();
         window.addEventListener('resize', resize);
 
-        // Input Keys comes from the user (Client)
+        
         const keys = { up: false, down: false, left: false, right: false };
         const mouse = { x: 0, y: 0 };
 
@@ -78,7 +78,7 @@ export default function SoulHockey() {
             if (e.key === 'd' || e.key === 'ArrowRight') keys.right = false;
         };
 
-        // Input for The mouse moves
+        
         const onMouseMove = (e: MouseEvent) => {
             const rect = canvas.getBoundingClientRect();
             mouse.x = e.clientX - rect.left;
@@ -86,7 +86,7 @@ export default function SoulHockey() {
 
         }
 
-        // Touche Moves (For mobile)
+        
         const onTouchMove = (e: TouchEvent) => {
             e.preventDefault();
             const rect = canvas.getBoundingClientRect();
@@ -100,17 +100,17 @@ export default function SoulHockey() {
         window.addEventListener('mousemove', onMouseMove);
         window.addEventListener('touchmove', onTouchMove, { passive: false });
 
-        // Creation of WEBSOCKET
-        const socket = new WebSocket('ws://localhost:3001'); // use wss for HTTPS
+        
+        const socket = new WebSocket('ws://localhost:3001');
 
         socket.onmessage = (event) => {
             try {
                 const serverState = JSON.parse(event.data);
-                gameState = serverState; // authoritative overwrite
+                gameState = serverState;
             } catch (err) {
                 console.error('Bad server state', err);
             }
-        }; // For the server side (means what comes from the server to the client)
+        };
 
         const sendInput = () => {
             if (socket.readyState !== WebSocket.OPEN) return;
@@ -122,9 +122,9 @@ export default function SoulHockey() {
                     mouse: { ...mouse },
                 })
             );
-        }; // For client size (what client send to the server)
+        };
 
-        // Render Loop
+        
         const loop = () => {
             sendInput();
 
@@ -144,7 +144,7 @@ export default function SoulHockey() {
 
         requestAnimationFrame(loop);
 
-        // Function for CleanUp
+        
         return () => {
             window.removeEventListener('resize', resize);
             window.removeEventListener('keydown', onKeyDown);

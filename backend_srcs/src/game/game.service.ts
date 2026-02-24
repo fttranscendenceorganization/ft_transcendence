@@ -20,7 +20,7 @@ export class GameService implements OnModuleDestroy {
     ) {
         this.physicsInterval = setInterval(() => {
             this.handleGamesUpdate();
-        }, 16);
+        }, 10);
     }
 
     private readonly players = new Map<string, PlayerSessionType>();
@@ -86,8 +86,7 @@ export class GameService implements OnModuleDestroy {
         return {
             ballPosition: { x: 500, y: 300 },
             ballVelocity: { x: 0, y: 0 },
-            ballSpeed: 10,
-            // Add both current and target positions for smoothing
+            ballSpeed: 8,
             paddleLeft: { x: 50, y: 300, targetX: 50, targetY: 300 },
             paddleRight: { x: 950, y: 300, targetX: 950, targetY: 300 },
             score: { left: 0, right: 0 },
@@ -139,7 +138,7 @@ export class GameService implements OnModuleDestroy {
         const { ballSpeed, ballRadius, paddleLeft, paddleRight, paddleRadius } = game.state;
 
      
-        const PADDLE_SPEED = 18; 
+        const PADDLE_SPEED = 18 
         function smoothPaddle(paddle) {
             if (paddle.targetX === undefined) return; 
             const dx = paddle.targetX - paddle.x;
@@ -213,7 +212,7 @@ export class GameService implements OnModuleDestroy {
             ballVelocity.x * ballVelocity.x +
             ballVelocity.y * ballVelocity.y
         );
-        const MIN_BALL_SPEED = 8;
+        const MIN_BALL_SPEED = 6;
         if (currentSpeed > 0.5 && currentSpeed < MIN_BALL_SPEED) {
             const scale = MIN_BALL_SPEED / currentSpeed;
             ballVelocity.x *= scale;
@@ -246,7 +245,6 @@ export class GameService implements OnModuleDestroy {
             if (valX > 1000 - paddleRadius) valX = 1000 - paddleRadius;
         }
 
-        // Set target position for smoothing
         paddle.targetX = valX;
         paddle.targetY = valY;
     }

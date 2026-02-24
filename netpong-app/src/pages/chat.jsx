@@ -922,7 +922,7 @@ export default function ChatPage() {
 
                             return (
                                 <div className="flex-1 overflow-y-auto p-4 space-y-2">
-                                    {/* Global entry */}
+                                    
                                     <div
                                         className={`bg-slate-700/60 hover:bg-slate-700 rounded-lg p-3 transition cursor-pointer flex items-center gap-3 ${activeConversation.type === 'GLOBAL' ? 'ring-2 ring-purple-500/70' : ''}`}
                                         onClick={() => {
@@ -949,7 +949,7 @@ export default function ChatPage() {
                                         </div>
                                     </div>
 
-                                    {/* Friends + DM contacts list */}
+                                    
                                     {allContacts.map((player) => (
                                         <div
                                             key={player.id}
