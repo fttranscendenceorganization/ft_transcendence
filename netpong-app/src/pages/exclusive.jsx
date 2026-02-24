@@ -75,7 +75,7 @@ export default function Exclusive() {
                                 className="group/card bg-gradient-to-br from-orange-500/10 to-red-500/10 backdrop-blur-sm rounded-2xl p-6 border-2 border-orange-500/30 hover:border-orange-500 transition-all duration-300 hover:scale-105 hover:shadow-[0_0_40px_rgba(249,115,22,0.4)] cursor-pointer text-left"
                             >
                                 <div className="text-5xl mb-4 transition-transform duration-300 group-hover/card:scale-110">🏆</div>
-                                <h3 className="font-bold text-xl md:text-2xl text-white mb-3">Exclusive History</h3>
+                                <h3 className="font-bold text-xl md:text-2xl text-white mb-3">Players History</h3>
                                 <p className="text-white/70 text-sm md:text-base mb-4">
                                     Join to see latest competitions state, see your opponent points, and earn your place in NETPONG history
                                 </p>

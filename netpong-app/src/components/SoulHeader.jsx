@@ -28,7 +28,7 @@ export default function SoulHeader() {
         ,
         {
             name: 'Kitty Cat',
-            path: '/barbie-pink',
+            path: '/kitty-cat',
             icon: '💖',
             color: 'pink',
             hoverBg: 'hover:bg-pink-400',

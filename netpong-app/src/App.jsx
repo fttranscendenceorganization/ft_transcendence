@@ -6,7 +6,7 @@ import SignUp from './pages/signup';
 import SoulSociety from './pages/soul-society';
 import ZombieLand from './pages/zombie-land';
 import Joker from './pages/joker';
-import BarbiePink from './pages/barbie-pink';
+import BarbiePink from './pages/kitty-cat';
 import Exclusive from './pages/exclusive';
 import Contact from './pages/contact';
 import AuthCallback from './pages/AuthCallback';
@@ -36,7 +36,7 @@ function Navigation() {
     '/soul-society',
     '/zombie-land',
     '/joker',
-    '/barbie-pink',
+    '/kitty-cat',
     '/chat',
     '/forgot-password',
     '/reset-password',
@@ -79,7 +79,7 @@ function App() {
             <Route path="/soul-society" element={<SoulSociety />} />
             <Route path="/zombie-land" element={<ZombieLand />} />
             <Route path="/joker" element={<Joker />} />
-            <Route path="/barbie-pink" element={<BarbiePink />} />
+            <Route path="/kitty-cat" element={<BarbiePink />} />
             <Route path="/exclusive" element={<Exclusive />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/chat" element={<Chat />} />
