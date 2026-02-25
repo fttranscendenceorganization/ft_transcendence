@@ -32,6 +32,20 @@ export default function EditProfile() {
         }));
     };
 
+    const handleFirstNameChange = (e) => {
+        setProfileData(prev => ({
+            ...prev,
+            firstName: e.target.value
+        }));
+    };
+
+    const handleLastNameChange = (e) => {
+        setProfileData(prev => ({
+            ...prev,
+            lastName: e.target.value
+        }));
+    };
+
     const handleImageClick = () => {
         fileInputRef.current?.click();
     };
@@ -193,33 +207,37 @@ export default function EditProfile() {
                             <div className="space-y-6">
                                 <div>
                                     <label className="flex items-center gap-2 text-white font-bold text-sm mb-2">
-                                        <svg className="w-4 h-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0ZM12 14a7 7 0 0 0-7 7h14a7 7 0 0 0-7-7Z" />
+                                        <svg className="w-4 h-4 text-orange-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
                                         </svg>
                                         First Name
-                                        <span className="ml-auto text-xs text-gray-400 font-normal">(Cannot be changed)</span>
+                                        <span className="ml-auto text-xs text-green-400 font-normal">✓ Editable</span>
                                     </label>
                                     <input
                                         type="text"
                                         value={profileData.firstName}
-                                        disabled
-                                        className="w-full bg-slate-700/50 text-gray-400 placeholder-gray-500 rounded-lg px-4 py-3 border-2 border-slate-600/50 cursor-not-allowed text-sm md:text-base"
+                                        onChange={handleFirstNameChange}
+                                        placeholder="Enter your first name"
+                                        required
+                                        className="w-full bg-slate-700 text-white placeholder-gray-400 rounded-lg px-4 py-3 border-2 border-slate-600 focus:outline-none focus:border-orange-500 transition text-sm md:text-base hover:border-orange-500/50"
                                     />
                                 </div>
 
                                 <div>
                                     <label className="flex items-center gap-2 text-white font-bold text-sm mb-2">
-                                        <svg className="w-4 h-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
+                                        <svg className="w-4 h-4 text-orange-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
                                         </svg>
                                         Last Name
-                                        <span className="ml-auto text-xs text-gray-400 font-normal">(Cannot be changed)</span>
+                                        <span className="ml-auto text-xs text-green-400 font-normal">✓ Editable</span>
                                     </label>
                                     <input
                                         type="text"
                                         value={profileData.lastName}
-                                        disabled
-                                        className="w-full bg-slate-700/50 text-gray-400 placeholder-gray-500 rounded-lg px-4 py-3 border-2 border-slate-600/50 cursor-not-allowed text-sm md:text-base"
+                                        onChange={handleLastNameChange}
+                                        placeholder="Enter your last name"
+                                        required
+                                        className="w-full bg-slate-700 text-white placeholder-gray-400 rounded-lg px-4 py-3 border-2 border-slate-600 focus:outline-none focus:border-orange-500 transition text-sm md:text-base hover:border-orange-500/50"
                                     />
                                 </div>
 
