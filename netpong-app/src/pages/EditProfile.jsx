@@ -1,123 +1,164 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { authFetch } from '../utils/api';
 
 export default function EditProfile() {
     const navigate = useNavigate();
     const fileInputRef = useRef(null);
 
-    useEffect(() => {
-        document.title = "Edit Profile - NetPong";
-
-
-    }, []);
-
-    // This is a user data (some fields here are unchangeable)
     const [profileData, setProfileData] = useState({
         firstName: '',
         lastName: '',
         email: '',
         username: '',
-        profileImage: null
+        profileImage: null,
     });
-
 
     const [previewImage, setPreviewImage] = useState('/images/avatar.png');
     const [isLoading, setIsLoading] = useState(false);
+    const [isFetching, setIsFetching] = useState(true);
     const [showSuccess, setShowSuccess] = useState(false);
+    const [errorMsg, setErrorMsg] = useState('');
 
-    const handleUsernameChange = (e) => {
-        setProfileData(prev => ({
-            ...prev,
-            username: e.target.value
-        }));
-    };
+    useEffect(() => {
+        document.title = 'Edit Profile - NetPong';
 
-    const handleFirstNameChange = (e) => {
-        setProfileData(prev => ({
-            ...prev,
-            firstName: e.target.value
-        }));
-    };
+        (async () => {
+            try {
+                const res = await authFetch('/api/auth/me', { method: 'GET' });
+                if (!res.ok) {
+                    navigate('/login');
+                    return;
+                }
+                const data = await res.json();
 
-    const handleLastNameChange = (e) => {
-        setProfileData(prev => ({
-            ...prev,
-            lastName: e.target.value
-        }));
-    };
+                setProfileData({
+                    firstName: data.firstName ?? '',
+                    lastName: data.lastName ?? '',
+                    email: data.email ?? '',
+                    username: data.username ?? '',
+                    profileImage: null,
+                });
 
-    const handleImageClick = () => {
-        fileInputRef.current?.click();
-    };
+                if (data.avatarUrl) {
+                    setPreviewImage(data.avatarUrl);
+                }
+            } catch (err) {
+                console.error('Failed to load profile', err);
+                navigate('/login');
+            } finally {
+                setIsFetching(false);
+            }
+        })();
+    }, [navigate]);
+
+
+    const handleUsernameChange = (e) => setProfileData(prev => ({ ...prev, username: e.target.value }));
+    const handleFirstNameChange = (e) => setProfileData(prev => ({ ...prev, firstName: e.target.value }));
+    const handleLastNameChange = (e) => setProfileData(prev => ({ ...prev, lastName: e.target.value }));
+
+    const handleImageClick = () => fileInputRef.current?.click();
 
     const handleImageChange = (e) => {
         const file = e.target.files[0];
-        if (file) {
-            // This section is for Validation of file type
-            if (!file.type.startsWith('image/')) {
-                alert('Please select a valid image file');
-                return;
-            }
-            // This section is for Validate file size (max 5MB optional you can change it)
-            if (file.size > 5 * 1024 * 1024) {
-                alert('Image size should be less than 5MB');
-                return;
-            }
-            setProfileData(prev => ({
-                ...prev,
-                profileImage: file
-            }));
-            // Create preview
-            const reader = new FileReader(); // This is a browser API that reads files
-            reader.onloadend = () => {
-                setPreviewImage(reader.result);
-            };
-            reader.readAsDataURL(file);
+        if (!file) return;
+
+        if (!file.type.startsWith('image/')) {
+            setErrorMsg('Please select a valid image file.');
+            return;
         }
+        if (file.size > 5 * 1024 * 1024) {
+            setErrorMsg('Image size should be less than 5MB.');
+            return;
+        }
+
+        setErrorMsg('');
+        setProfileData(prev => ({ ...prev, profileImage: file }));
+
+        const reader = new FileReader();
+        reader.onloadend = () => setPreviewImage(reader.result);
+        reader.readAsDataURL(file);
     };
 
     const handleRemoveImage = () => {
-        setProfileData({ ...profileData, profileImage: null });
+        setProfileData(prev => ({ ...prev, profileImage: null }));
         setPreviewImage('/images/avatar.png');
-        if (fileInputRef.current) {
-            fileInputRef.current.value = '';
-        }
+        if (fileInputRef.current) fileInputRef.current.value = '';
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsLoading(true);
+        setErrorMsg('');
 
-        // Simulate API call
-        setTimeout(() => {
-            setIsLoading(false);
+        try {
+            const formData = new FormData();
+            formData.append('firstName', profileData.firstName);
+            formData.append('lastName', profileData.lastName);
+            formData.append('username', profileData.username);
+            if (profileData.profileImage) {
+                formData.append('avatar', profileData.profileImage);
+            }
+
+            const res = await authFetch('/api/auth/profile', {
+                method: 'PATCH',
+                body: formData,
+                // Do NOT set Content-Type here — the browser sets it with the boundary automatically
+            });
+
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                setErrorMsg(err.message ?? 'Failed to update profile. Please try again.');
+                return;
+            }
+
+            const updated = await res.json();
+
+            if (updated.avatarUrl) {
+                setPreviewImage(updated.avatarUrl);
+            }
+
+            setProfileData(prev => ({
+                ...prev,
+                firstName: updated.firstName ?? prev.firstName,
+                lastName: updated.lastName ?? prev.lastName,
+                username: updated.username ?? prev.username,
+                profileImage: null,
+            }));
+
             setShowSuccess(true);
-
-            // Hide The success message after 3 seconds
-            setTimeout(() => {
-                setShowSuccess(false);
-            }, 3000);
-            console.log('Updated profile:', profileData);
-        }, 1500);
+            setTimeout(() => setShowSuccess(false), 3000);
+        } catch (err) {
+            console.error('Submit error', err);
+            setErrorMsg('Network error. Please check your connection.');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
-    const handleCancel = () => {
-        navigate('/home');
-    };
+    const handleCancel = () => navigate('/home');
+
+    if (isFetching) {
+        return (
+            <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+                <div className="text-white text-xl animate-pulse">Loading Profile...</div>
+            </div>
+        );
+    }
 
     return (
         <div className="antialiased bg-[url('/images/user.jpg')] w-full min-h-screen bg-cover bg-center bg-no-repeat bg-fixed text-white relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-b from-slate-900/40 via-slate-900/30 to-slate-900/50 pointer-events-none"></div>
+            <div className="absolute inset-0 bg-gradient-to-b from-slate-900/40 via-slate-900/30 to-slate-900/50 pointer-events-none" />
 
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute top-20 left-[10%] w-2 h-2 bg-orange-500/40 rounded-full animate-ping"></div>
-                <div className="absolute top-40 right-[15%] w-3 h-3 bg-violet-500/30 rounded-full animate-pulse" style={{ animationDelay: '1s' }}></div>
-                <div className="absolute bottom-40 left-[20%] w-2 h-2 bg-white/20 rounded-full animate-ping" style={{ animationDelay: '2s' }}></div>
-                <div className="absolute top-60 right-[25%] w-2 h-2 bg-orange-400/30 rounded-full animate-pulse" style={{ animationDelay: '1.5s' }}></div>
+                <div className="absolute top-20 left-[10%] w-2 h-2 bg-orange-500/40 rounded-full animate-ping" />
+                <div className="absolute top-40 right-[15%] w-3 h-3 bg-violet-500/30 rounded-full animate-pulse" style={{ animationDelay: '1s' }} />
+                <div className="absolute bottom-40 left-[20%] w-2 h-2 bg-white/20 rounded-full animate-ping" style={{ animationDelay: '2s' }} />
+                <div className="absolute top-60 right-[25%] w-2 h-2 bg-orange-400/30 rounded-full animate-pulse" style={{ animationDelay: '1.5s' }} />
             </div>
 
             {showSuccess && (
-                <div className="fixed top-8 left-1/2 -translate-x-1/2 z-50 animate-fade-in">
+                <div className="fixed top-8 left-1/2 -translate-x-1/2 z-50">
                     <div className="bg-green-600 text-white px-6 py-3 rounded-xl shadow-2xl border-2 border-green-400 flex items-center gap-3">
                         <svg className="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
@@ -129,6 +170,7 @@ export default function EditProfile() {
 
             <div className="relative px-4 py-12 md:py-16">
                 <div className="max-w-3xl mx-auto">
+
                     <div className="flex justify-center mb-8">
                         <div className="bg-slate-900/50 backdrop-blur-sm rounded-3xl px-8 md:px-12 py-6 md:py-8 shadow-2xl border border-white/40 hover:border-orange-500/70 transition-all duration-500">
                             <h1 className="font-sans text-3xl md:text-4xl lg:text-5xl text-center">
@@ -137,12 +179,11 @@ export default function EditProfile() {
                                     Profile
                                 </span>
                             </h1>
-
                             <div className="flex justify-center mt-4">
                                 <div className="flex items-center gap-2">
-                                    <div className="w-12 h-1 bg-gradient-to-r from-transparent via-orange-500 to-orange-500 rounded-full"></div>
-                                    <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                                    <div className="w-12 h-1 bg-gradient-to-l from-transparent via-orange-500 to-orange-500 rounded-full"></div>
+                                    <div className="w-12 h-1 bg-gradient-to-r from-transparent via-orange-500 to-orange-500 rounded-full" />
+                                    <div className="w-2 h-2 bg-orange-500 rounded-full" />
+                                    <div className="w-12 h-1 bg-gradient-to-l from-transparent via-orange-500 to-orange-500 rounded-full" />
                                 </div>
                             </div>
                         </div>
@@ -150,6 +191,7 @@ export default function EditProfile() {
 
                     <div className="bg-slate-900/50 backdrop-blur-xl rounded-3xl p-6 md:p-10 shadow-2xl border border-white/30 hover:border-orange-500/50 transition-all duration-500">
                         <form onSubmit={handleSubmit}>
+
                             <div className="flex flex-col items-center mb-10 pb-8 border-b border-white/10">
                                 <div className="relative group">
                                     <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-4 border-orange-500 shadow-[0_0_30px_rgba(249,115,22,0.4)] group-hover:border-violet-500 group-hover:shadow-[0_0_40px_rgba(139,92,246,0.5)] transition-all duration-300">
@@ -157,6 +199,7 @@ export default function EditProfile() {
                                             src={previewImage}
                                             alt="Profile"
                                             className="w-full h-full object-cover"
+                                            onError={(e) => { e.currentTarget.src = '/images/avatar.png'; }}
                                         />
                                     </div>
 
@@ -204,7 +247,17 @@ export default function EditProfile() {
                                 <p className="text-gray-400 text-xs mt-3">Max size: 5MB • JPG, PNG, GIF</p>
                             </div>
 
+                            {errorMsg && (
+                                <div className="mb-6 bg-red-900/40 border border-red-500/50 text-red-300 rounded-xl px-4 py-3 text-sm font-semibold flex items-center gap-2">
+                                    <svg className="w-5 h-5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+                                    </svg>
+                                    {errorMsg}
+                                </div>
+                            )}
+
                             <div className="space-y-6">
+
                                 <div>
                                     <label className="flex items-center gap-2 text-white font-bold text-sm mb-2">
                                         <svg className="w-4 h-4 text-orange-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
@@ -275,6 +328,7 @@ export default function EditProfile() {
                                     />
                                     <p className="text-gray-400 text-xs mt-2">Your unique username for NETPONG</p>
                                 </div>
+
                             </div>
 
                             <div className="flex flex-col sm:flex-row gap-4 mt-10 pt-8 border-t border-white/10">
@@ -286,15 +340,15 @@ export default function EditProfile() {
                                     {isLoading ? (
                                         <span className="relative z-10 flex items-center justify-center gap-2">
                                             <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                                             </svg>
                                             Saving...
                                         </span>
                                     ) : (
                                         <>
                                             <span className="relative z-10">SAVE CHANGES</span>
-                                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+                                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
                                         </>
                                     )}
                                 </button>
@@ -308,6 +362,7 @@ export default function EditProfile() {
                                     CANCEL
                                 </button>
                             </div>
+
                         </form>
                     </div>
 
@@ -316,13 +371,12 @@ export default function EditProfile() {
                             <svg className="w-6 h-6 text-blue-400 flex-shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
                             </svg>
-                            <div>
-                                <p className="text-blue-200 text-sm md:text-base leading-relaxed">
-                                    <span className="font-bold">Note:</span> Your first name, last name, and email address cannot be changed for security reasons. Only your username and profile picture can be updated.
-                                </p>
-                            </div>
+                            <p className="text-blue-200 text-sm md:text-base leading-relaxed">
+                                <span className="font-bold">Note:</span> Your email address cannot be changed for security reasons. Only your first name, last name, username and profile picture can be updated.
+                            </p>
                         </div>
                     </div>
+
                 </div>
             </div>
         </div>
