@@ -5,7 +5,7 @@ services:
     volumes:
       - ../monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - ../monitoring/prometheus/rules:/etc/prometheus/rules:ro
-      - prometheus_data:/prometheus
+      - /opt/netpong/monitoring/prometheus_data:/prometheus
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
       - "--storage.tsdb.retention.time=15d"
@@ -19,7 +19,7 @@ services:
     env_file:
       - /etc/netpong/grafana.env
     volumes:
-      - grafana_data:/var/lib/grafana
+      - /opt/netpong/monitoring/grafana_data:/var/lib/grafana
     networks:
       - internal_net
       - monitoring_net
@@ -77,7 +77,3 @@ services:
     networks:
       - internal_net
     restart: always
-
-volumes:
-  prometheus_data:
-  grafana_data:
