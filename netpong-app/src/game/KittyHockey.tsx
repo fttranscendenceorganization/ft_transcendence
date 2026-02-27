@@ -263,7 +263,7 @@ function drawPlayer(ctx: CanvasRenderingContext2D, player: any) {
     const { x, y, r } = player;
 
     const gradient = ctx.createRadialGradient(x - r * 0.3, y - r * 0.3, r * 0.2, x, y, r);
-    gradient.addColorStop(0, '#f61d05ff');
+    gradient.addColorStop(0, '#e98ed5ff');
     gradient.addColorStop(0.4, '#e27725ff');
     gradient.addColorStop(0.8, '#e78c15ff');
     gradient.addColorStop(1, '#ed940fff');
@@ -298,7 +298,7 @@ function drawPlayer(ctx: CanvasRenderingContext2D, player: any) {
     ctx.fill();
     ctx.shadowBlur = 0;
 
-    ctx.fillStyle = '#ffd6ec';
+    ctx.fillStyle = '#f81004ff';
     ctx.beginPath();
     ctx.moveTo(x - r * 0.55, y - r * 0.75);
     ctx.lineTo(x - r * 0.68, y - r * 1.0);
