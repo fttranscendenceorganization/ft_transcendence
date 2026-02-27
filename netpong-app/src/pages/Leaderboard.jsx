@@ -153,7 +153,7 @@ export default function Leaderboard() {
                 {topThree.length > 0 && (
                     <div className="mb-12">
                         <div className="text-center mb-8">
-                            <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">👑 Champions</h2>
+                            <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">👑 Champion</h2>
                             <div className="w-24 h-1 bg-gradient-to-r from-transparent via-yellow-500 to-transparent mx-auto rounded-full"></div>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
