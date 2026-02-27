@@ -263,7 +263,7 @@ function drawPlayer(ctx: CanvasRenderingContext2D, player: any) {
     const { x, y, r } = player;
 
     const gradient = ctx.createRadialGradient(x - r * 0.3, y - r * 0.3, r * 0.2, x, y, r);
-    gradient.addColorStop(0, '#fff0f6');
+    gradient.addColorStop(0, '#f61d05ff');
     gradient.addColorStop(0.4, '#e27725ff');
     gradient.addColorStop(0.8, '#e78c15ff');
     gradient.addColorStop(1, '#ed940fff');
