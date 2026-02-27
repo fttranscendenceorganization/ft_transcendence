@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-type GameResult = 'WIN' | 'LOSS' | 'DRAW';
+type GameResult = 'WIN' | 'LOSS';
 type GameMode = 'ZOMBIE_LAND' | 'SOUL_SOCIETY' | 'KITTY_CAT' | 'JOKER';
 type OpponentType = 'PLAYER' | 'AI';
 
@@ -65,8 +65,7 @@ const MODE_CONFIG: Record<GameMode, { label: string; icon: string; color: string
 
 const RESULT_CONFIG: Record<GameResult, { label: string; color: string; bg: string; glow: string }> = {
     WIN: { label: 'Victory', color: 'text-emerald-400', bg: 'bg-emerald-500/15', glow: 'shadow-emerald-500/20' },
-    LOSS: { label: 'Defeat', color: 'text-red-400', bg: 'bg-red-500/15', glow: 'shadow-red-500/20' },
-    DRAW: { label: 'Draw', color: 'text-yellow-400', bg: 'bg-yellow-500/15', glow: 'shadow-yellow-500/20' },
+    LOSS: { label: 'Defeat', color: 'text-red-400', bg: 'bg-red-500/15', glow: 'shadow-red-500/20' }
 };
 
 const MOCK_PLAYER: PlayerInfo = {
@@ -80,11 +79,10 @@ const MOCK_HISTORY: HistoryEntry[] = [
     { id: '1', createdAt: '2026-02-24T18:32:00Z', mode: 'ZOMBIE_LAND', result: 'WIN', myScore: 7, opponentScore: 3, opponentType: 'PLAYER', opponentName: 'Amr', opponentAvatarUrl: null, xpEarned: 20 },
     { id: '2', createdAt: '2026-02-24T17:10:00Z', mode: 'JOKER', result: 'LOSS', myScore: 2, opponentScore: 7, opponentType: 'PLAYER', opponentName: 'Houdaifa', opponentAvatarUrl: null, xpEarned: 30 },
     { id: '3', createdAt: '2026-02-23T21:55:00Z', mode: 'SOUL_SOCIETY', result: 'WIN', myScore: 7, opponentScore: 5, opponentType: 'AI', opponentName: 'AI Opponent', opponentAvatarUrl: null, xpEarned: 80 },
-    { id: '4', createdAt: '2026-02-23T20:14:00Z', mode: 'KITTY_CAT', result: 'DRAW', myScore: 5, opponentScore: 5, opponentType: 'PLAYER', opponentName: 'Arwa', opponentAvatarUrl: null, xpEarned: 50 },
-    { id: '5', createdAt: '2026-02-22T15:40:00Z', mode: 'ZOMBIE_LAND', result: 'WIN', myScore: 7, opponentScore: 1, opponentType: 'AI', opponentName: 'AI Opponent', opponentAvatarUrl: null, xpEarned: 80 },
-    { id: '6', createdAt: '2026-02-22T14:20:00Z', mode: 'JOKER', result: 'WIN', myScore: 7, opponentScore: 4, opponentType: 'PLAYER', opponentName: 'Mohammed', opponentAvatarUrl: null, xpEarned: 100 },
-    { id: '7', createdAt: '2026-02-21T22:05:00Z', mode: 'SOUL_SOCIETY', result: 'LOSS', myScore: 3, opponentScore: 7, opponentType: 'PLAYER', opponentName: 'Youssef', opponentAvatarUrl: null, xpEarned: 30 },
-    { id: '8', createdAt: '2026-02-21T20:30:00Z', mode: 'KITTY_CAT', result: 'WIN', myScore: 7, opponentScore: 2, opponentType: 'AI', opponentName: 'AI Opponent', opponentAvatarUrl: null, xpEarned: 80 },
+    { id: '4', createdAt: '2026-02-22T15:40:00Z', mode: 'ZOMBIE_LAND', result: 'WIN', myScore: 7, opponentScore: 1, opponentType: 'AI', opponentName: 'AI Opponent', opponentAvatarUrl: null, xpEarned: 80 },
+    { id: '5', createdAt: '2026-02-22T14:20:00Z', mode: 'JOKER', result: 'WIN', myScore: 7, opponentScore: 4, opponentType: 'PLAYER', opponentName: 'Mohammed', opponentAvatarUrl: null, xpEarned: 100 },
+    { id: '6', createdAt: '2026-02-21T22:05:00Z', mode: 'SOUL_SOCIETY', result: 'LOSS', myScore: 3, opponentScore: 7, opponentType: 'PLAYER', opponentName: 'Youssef', opponentAvatarUrl: null, xpEarned: 30 },
+    { id: '7', createdAt: '2026-02-21T20:30:00Z', mode: 'KITTY_CAT', result: 'WIN', myScore: 7, opponentScore: 2, opponentType: 'AI', opponentName: 'AI Opponent', opponentAvatarUrl: null, xpEarned: 80 },
 ];
 
 const SIZE_CLASSES = {
@@ -100,11 +98,11 @@ function getFilterActiveClass(f: 'ALL' | GameResult): string {
     return 'bg-yellow-500/20 border-yellow-500/50 text-yellow-400';
 }
 
-function getFilterLabel(f: 'ALL' | GameResult, total: number, wins: number, losses: number, draws: number): string {
+function getFilterLabel(f: 'ALL' | GameResult, total: number, wins: number, losses: number): string {
     if (f === 'ALL') return `All (${total})`;
     if (f === 'WIN') return `Wins (${wins})`;
     if (f === 'LOSS') return `Losses (${losses})`;
-    return `Draws (${draws})`;
+    return '';
 }
 
 function getOpponentAvatarClass(type: OpponentType): string {
@@ -135,7 +133,6 @@ function getResultEmoji(result: GameResult): string {
 
 function getXpColor(result: GameResult): string {
     if (result === 'WIN') return 'text-orange-400';
-    if (result === 'DRAW') return 'text-yellow-500';
     return 'text-gray-600';
 }
 
@@ -196,7 +193,6 @@ export default function GameHistory() {
 
     const wins = history.filter(h => h.result === 'WIN').length;
     const losses = history.filter(h => h.result === 'LOSS').length;
-    const draws = history.filter(h => h.result === 'DRAW').length;
     const totalXpEarned = history.reduce((s, h) => s + h.xpEarned, 0);
 
     const xpInLevel = player.totalXp % xpForLevel(1);
@@ -315,7 +311,6 @@ export default function GameHistory() {
                                 {[
                                     { label: 'Wins', val: wins, color: 'text-emerald-400' },
                                     { label: 'Losses', val: losses, color: 'text-red-400' },
-                                    { label: 'Draws', val: draws, color: 'text-yellow-400' },
                                 ].map(s => (
                                     <div key={s.label} className="text-center">
                                         <p className={`text-2xl font-black ${s.color}`}>{s.val}</p>
@@ -329,7 +324,7 @@ export default function GameHistory() {
                 </div>
 
                 <div className={filterRowClass}>
-                    {(['ALL', 'WIN', 'LOSS', 'DRAW'] as const).map(f => {
+                    {(['ALL', 'WIN', 'LOSS'] as const).map(f => {
                         let btnClass = 'px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider border transition-all duration-200 ';
                         if (filter === f) {
                             btnClass += getFilterActiveClass(f);
@@ -339,7 +334,7 @@ export default function GameHistory() {
 
                         return (
                             <button key={f} onClick={() => setFilter(f)} className={btnClass}>
-                                {getFilterLabel(f, history.length, wins, losses, draws)}
+                                {getFilterLabel(f, history.length, wins, losses)}
                             </button>
                         );
                     })}
