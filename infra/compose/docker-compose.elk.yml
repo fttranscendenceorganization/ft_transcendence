@@ -5,7 +5,7 @@ services:
     env_file:
       - /etc/netpong/elk.env
     volumes:
-      - es_data:/usr/share/elasticsearch/data
+      - /opt/netpong/elk/es_data:/usr/share/elasticsearch/data
     networks:
       - elk_net
     healthcheck:
@@ -40,7 +40,3 @@ services:
     networks:
       - elk_net
     restart: always
-
-volumes:
-  es_data:
-
