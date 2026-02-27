@@ -77,7 +77,7 @@ export default function Exclusive() {
                                 <div className="text-5xl mb-4 transition-transform duration-300 group-hover/card:scale-110">🏆</div>
                                 <h3 className="font-bold text-xl md:text-2xl text-white mb-3">Player History</h3>
                                 <p className="text-white/70 text-sm md:text-base mb-4">
-                                    Join to see latest competitions state, see your opponent points, and earn your place in NETPONG history
+                                    Enter to see latest game state, see your Xp points earned during the game, and earn your place in NETPONG history
                                 </p>
                                 <div className="flex items-center gap-2 text-orange-400 font-semibold text-sm">
                                     <span>Enter Now</span>

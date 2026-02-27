@@ -79,6 +79,8 @@ function App() {
             <Route path="/auth-callback" element={<AuthCallback />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/policy" element={<PrivacyPolicy />} />
+            <Route path="/terms" element={<TermsPage />} />
             <Route path="/soul-society" element={<PrivateRoute><SoulSociety /></PrivateRoute>} />
             <Route path="/zombie-land" element={<PrivateRoute><ZombieLand /></PrivateRoute>} />
             <Route path="/joker" element={<PrivateRoute><Joker /></PrivateRoute>} />
