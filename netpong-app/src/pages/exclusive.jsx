@@ -71,7 +71,7 @@ export default function Exclusive() {
                         <div className="grid md:grid-cols-2 gap-6 mt-12 mb-10">
 
                             <button
-                                onClick={() => navigate('/tournaments')}
+                                onClick={() => navigate('/history')}
                                 className="group/card bg-gradient-to-br from-orange-500/10 to-red-500/10 backdrop-blur-sm rounded-2xl p-6 border-2 border-orange-500/30 hover:border-orange-500 transition-all duration-300 hover:scale-105 hover:shadow-[0_0_40px_rgba(249,115,22,0.4)] cursor-pointer text-left"
                             >
                                 <div className="text-5xl mb-4 transition-transform duration-300 group-hover/card:scale-110">🏆</div>

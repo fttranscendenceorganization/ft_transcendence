@@ -27,6 +27,7 @@ import GameJoker from './pages/GameJoker';
 import GameKitty from './pages/GameKitty';
 import GameSoul from './pages/GameSoul';
 import EditProfile from './pages/EditProfile';
+import GameHistory from './pages/GameHistory';
 
 function Navigation() {
   const location = useLocation();
@@ -51,7 +52,8 @@ function Navigation() {
     '/modes',
     '/home',
     '/leaderboard',
-    '/editprofile'
+    '/editprofile',
+    '/history'
   ];
 
   if (hideHeaderPaths.includes(location.pathname) || !validPathsWithHeader.includes(location.pathname)) {
@@ -94,6 +96,7 @@ function App() {
             <Route path="/Kplay" element={<PrivateRoute><GameKitty /></PrivateRoute>} />
             <Route path="/Splay" element={<PrivateRoute><GameSoul /></PrivateRoute>} />
             <Route path="/editprofile" element={<PrivateRoute><EditProfile /></PrivateRoute>} />
+            <Route path="/history" element={<PrivateRoute><GameHistory /></PrivateRoute>} />
             <Route path="*" element={<Error404 />} />
           </Routes>
         </main>
