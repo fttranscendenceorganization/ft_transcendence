@@ -45,7 +45,7 @@ export class GameController {
                 opponentType: 'HUMAN',
                 opponentName: opponent.username,
                 opponentAvatarUrl: opponent.avatarUrl ?? null,
-                xpEarned: game.xpEarned ?? 0,
+                xpEarned: isPlayerA ? game.playerAXpEarned : game.playerBXpEarned,
             };
         });
     }
