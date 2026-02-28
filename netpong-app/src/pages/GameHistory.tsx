@@ -14,7 +14,6 @@ interface HistoryEntry {
     myScore: number;
     opponentScore: number;
     opponentType: OpponentType;
-
     opponentName: string;
     opponentAvatarUrl?: string | null;
     xpEarned: number;
@@ -25,6 +24,9 @@ interface PlayerInfo {
     avatarUrl?: string | null;
     totalXp: number;
     level: number;
+    points: number;
+    wins: number;
+    losses: number;
 }
 
 interface AvatarProps {
@@ -66,25 +68,8 @@ const MODE_CONFIG: Record<GameMode, { label: string; icon: string; color: string
 
 const RESULT_CONFIG: Record<GameResult, { label: string; color: string; bg: string; glow: string }> = {
     WIN: { label: 'Victory', color: 'text-emerald-400', bg: 'bg-emerald-500/15', glow: 'shadow-emerald-500/20' },
-    LOSS: { label: 'Defeat', color: 'text-red-400', bg: 'bg-red-500/15', glow: 'shadow-red-500/20' }
+    LOSS: { label: 'Defeat', color: 'text-red-400', bg: 'bg-red-500/15', glow: 'shadow-red-500/20' },
 };
-
-const MOCK_PLAYER: PlayerInfo = {
-    username: 'Ahmed',
-    avatarUrl: null,
-    totalXp: 80,
-    level: 3,
-};
-
-const MOCK_HISTORY: HistoryEntry[] = [
-    { id: '1', createdAt: '2026-02-24T18:32:00Z', mode: 'ZOMBIE_LAND', result: 'WIN', myScore: 7, opponentScore: 3, opponentType: 'PLAYER', opponentName: 'Amr', opponentAvatarUrl: null, xpEarned: 20 },
-    { id: '2', createdAt: '2026-02-24T17:10:00Z', mode: 'JOKER', result: 'LOSS', myScore: 2, opponentScore: 7, opponentType: 'PLAYER', opponentName: 'Houdaifa', opponentAvatarUrl: null, xpEarned: 30 },
-    { id: '3', createdAt: '2026-02-23T21:55:00Z', mode: 'SOUL_SOCIETY', result: 'WIN', myScore: 7, opponentScore: 5, opponentType: 'AI', opponentName: 'AI Opponent', opponentAvatarUrl: null, xpEarned: 80 },
-    { id: '4', createdAt: '2026-02-22T15:40:00Z', mode: 'ZOMBIE_LAND', result: 'WIN', myScore: 7, opponentScore: 1, opponentType: 'AI', opponentName: 'AI Opponent', opponentAvatarUrl: null, xpEarned: 80 },
-    { id: '5', createdAt: '2026-02-22T14:20:00Z', mode: 'JOKER', result: 'WIN', myScore: 7, opponentScore: 4, opponentType: 'PLAYER', opponentName: 'Mohammed', opponentAvatarUrl: null, xpEarned: 100 },
-    { id: '6', createdAt: '2026-02-21T22:05:00Z', mode: 'SOUL_SOCIETY', result: 'LOSS', myScore: 3, opponentScore: 7, opponentType: 'PLAYER', opponentName: 'Youssef', opponentAvatarUrl: null, xpEarned: 30 },
-    { id: '7', createdAt: '2026-02-21T20:30:00Z', mode: 'KITTY_CAT', result: 'WIN', myScore: 7, opponentScore: 2, opponentType: 'AI', opponentName: 'AI Opponent', opponentAvatarUrl: null, xpEarned: 80 },
-];
 
 const SIZE_CLASSES = {
     sm: 'w-8 h-8 text-xs',
@@ -142,10 +127,6 @@ function formatDate(iso: string): string {
     return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
-function xpForLevel(level: number): number {
-    return level * 100;
-}
-
 export function Avatar({ src, name, size = 'md' }: AvatarProps) {
     const initial = name.charAt(0).toUpperCase();
     const sizeStyle = SIZE_CLASSES[size];
@@ -168,7 +149,6 @@ export function Avatar({ src, name, size = 'md' }: AvatarProps) {
     );
 }
 
-
 export default function GameHistory() {
     const navigate = useNavigate();
     const [player, setPlayer] = useState<PlayerInfo | null>(null);
@@ -179,7 +159,7 @@ export default function GameHistory() {
     const [visible, setVisible] = useState(false);
 
     useEffect(() => {
-        document.title = "Game History - NetPong";
+        document.title = 'Game History - NetPong';
     }, []);
 
     useEffect(() => {
@@ -190,10 +170,19 @@ export default function GameHistory() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [profileData, historyData] = await Promise.all([
+                const [profileRes, historyRes] = await Promise.all([
                     authFetch('/api/auth/me', { method: 'GET' }),
                     authFetch('/api/games/history', { method: 'GET' }),
                 ]);
+
+                if (!profileRes.ok || !historyRes.ok) {
+                    navigate('/login');
+                    return;
+                }
+
+                const profileData = await profileRes.json();
+                const historyData = await historyRes.json();
+
                 setPlayer(profileData);
                 setHistory(historyData);
             } catch (err) {
@@ -202,22 +191,34 @@ export default function GameHistory() {
                 setLoading(false);
             }
         };
+
         fetchData();
     }, []);
 
-    let filtered: HistoryEntry[];
-    if (filter === 'ALL') {
-        filtered = history;
-    } else {
-        filtered = history.filter(h => h.result === filter);
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-black flex items-center justify-center">
+                <p className="text-orange-400 font-black text-xl animate-pulse">Loading...</p>
+            </div>
+        );
     }
 
+    if (error || !player) {
+        return (
+            <div className="min-h-screen bg-black flex items-center justify-center">
+                <p className="text-red-400 font-black text-xl">{error ?? 'Something went wrong'}</p>
+            </div>
+        );
+    }
+
+    const filtered = filter === 'ALL' ? history : history.filter(h => h.result === filter);
     const wins = history.filter(h => h.result === 'WIN').length;
     const losses = history.filter(h => h.result === 'LOSS').length;
     const totalXpEarned = history.reduce((s, h) => s + h.xpEarned, 0);
 
-    const xpInLevel = player.totalXp % xpForLevel(1);
-    const xpProgress = Math.min((xpInLevel / 100) * 100, 100);
+    const xpInLevel = player.points;
+    const xpNeeded = player.level * 100;
+    const xpProgress = Math.min((xpInLevel / xpNeeded) * 100, 100);
 
     let headerClass = 'mb-8 transition-all duration-700 ';
     if (visible) {
@@ -297,9 +298,18 @@ export default function GameHistory() {
 
                             <div className="flex items-center gap-4">
                                 <div className="relative">
-                                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center text-2xl font-black text-white shadow-lg shadow-orange-500/20">
-                                        {player.username.charAt(0).toUpperCase()}
-                                    </div>
+                                    {player.avatarUrl ? (
+                                        <img
+                                            src={player.avatarUrl}
+                                            alt={player.username}
+                                            className="w-16 h-16 rounded-2xl object-cover shadow-lg shadow-orange-500/20"
+                                            onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                        />
+                                    ) : (
+                                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center text-2xl font-black text-white shadow-lg shadow-orange-500/20">
+                                            {player.username.charAt(0).toUpperCase()}
+                                        </div>
+                                    )}
                                     <div className="absolute -bottom-1 -right-1 bg-orange-500 rounded-full px-1.5 py-0.5 text-[9px] font-black text-black leading-none">
                                         LV{player.level}
                                     </div>
@@ -323,7 +333,7 @@ export default function GameHistory() {
                                         style={{ width: `${xpProgress}%`, boxShadow: '0 0 8px rgba(251,146,60,0.6)' }}
                                     />
                                 </div>
-                                <p className="text-[10px] text-gray-600 mt-1">{xpInLevel} / 100 XP to next level</p>
+                                <p className="text-[10px] text-gray-600 mt-1">{xpInLevel} / {xpNeeded} XP to next level</p>
                             </div>
 
                             <div className="hidden sm:block w-px h-12 bg-white/10" />
@@ -401,15 +411,32 @@ export default function GameHistory() {
                                     className="grid grid-cols-[auto_1fr_auto_auto_auto] sm:grid-cols-[2fr_1.5fr_1fr_1fr_1fr] gap-3 px-5 py-4 items-center border-b border-white/[0.04] hover:bg-white/[0.03] transition-colors duration-150"
                                     style={{ animationDelay: `${i * 40}ms` }}
                                 >
-
                                     <div className="flex items-center gap-3 min-w-0">
                                         <div className="flex -space-x-2 flex-shrink-0">
-                                            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center text-xs font-black text-white ring-2 ring-black z-10">
-                                                {player.username.charAt(0)}
-                                            </div>
-                                            <div className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-black ring-2 ring-black ${opponentAvatarClass}`}>
-                                                {opponentAvatarContent}
-                                            </div>
+                                            {player.avatarUrl ? (
+                                                <img
+                                                    src={player.avatarUrl}
+                                                    alt={player.username}
+                                                    className="w-9 h-9 rounded-full object-cover ring-2 ring-black z-10"
+                                                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                                />
+                                            ) : (
+                                                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center text-xs font-black text-white ring-2 ring-black z-10">
+                                                    {player.username.charAt(0)}
+                                                </div>
+                                            )}
+                                            {entry.opponentAvatarUrl ? (
+                                                <img
+                                                    src={entry.opponentAvatarUrl}
+                                                    alt={entry.opponentName}
+                                                    className={`w-9 h-9 rounded-full object-cover ring-2 ring-black ${opponentAvatarClass}`}
+                                                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                                />
+                                            ) : (
+                                                <div className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-black ring-2 ring-black ${opponentAvatarClass}`}>
+                                                    {opponentAvatarContent}
+                                                </div>
+                                            )}
                                         </div>
                                         <div className="min-w-0">
                                             <p className="text-white font-bold text-sm truncate">{player.username}</p>
