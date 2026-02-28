@@ -2,6 +2,7 @@ import {
     Controller,
     Get,
     Param,
+    Query,
     UseGuards,
     NotFoundException,
     Logger
@@ -18,32 +19,26 @@ export class GameController {
     constructor(private readonly gameService: GameService) { }
 
     @Get('history')
-    async getGameHistory(@CurrentUser('id') userId: string) {
+    async getGameHistory(
+        @CurrentUser('id') userId: string,
+        @Query('page') page = '1',
+        @Query('limit') limit = '20',
+    ) {
         try {
-            const games = await this.gameService.getGameHistory(userId);
-            return games.map(game => {
-                const iAmPlayerA = game.playerA.id === userId;
-                const opponent = iAmPlayerA ? game.playerB : game.playerA;
-                const myScore = iAmPlayerA ? game.playerAScore : game.playerBScore;
-                const oppScore = iAmPlayerA ? game.playerBScore : game.playerAScore;
-                const result = game.winner?.id === userId ? 'WIN' : 'LOSS';
-                const xpEarned = result === 'WIN'
-                    ? 20 + (myScore - oppScore) * 5
-                    : Math.floor(oppScore * 0.5);
-
-                return {
-                    id: game.id,
-                    createdAt: game.createdAt,
-                    mode: game.mode,
-                    result,
-                    myScore,
-                    opponentScore: oppScore,
-                    opponentType: 'PLAYER',
-                    opponentName: opponent.username,
-                    opponentAvatarUrl: opponent.avatarUrl ?? null,
-                    xpEarned,
-                };
-            });
+            const pageNum = Math.max(1, parseInt(page, 10) || 1);
+            const limitNum = Math.min(50, Math.max(1, parseInt(limit, 10) || 20));
+            const games = await this.gameService.getGameHistory(userId, pageNum, limitNum);
+            return games.map(game => ({
+                id: game.id,
+                mode: game.mode,
+                status: game.status,
+                playerA: { id: game.playerA.id, username: game.playerA.username },
+                playerB: { id: game.playerB.id, username: game.playerB.username },
+                winner: game.winner ? { id: game.winner.id, username: game.winner.username } : null,
+                playerAScore: game.playerAScore,
+                playerBScore: game.playerBScore,
+                createdAt: game.createdAt,
+            }));
         } catch (error) {
             this.logger.error(`Error in getGameHistory: ${error.message}`, error.stack);
             throw error;
@@ -69,6 +64,7 @@ export class GameController {
             throw error;
         }
     }
+
     @Get(':id')
     async getGameById(
         @CurrentUser('id') userId: string,

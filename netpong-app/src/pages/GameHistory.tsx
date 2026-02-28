@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authFetch } from '../utils/api';
 
@@ -30,41 +30,13 @@ interface PlayerInfo {
     losses: number;
 }
 
-interface AvatarProps {
-    src?: string | null;
-    name: string;
-    size?: 'sm' | 'md' | 'lg';
-}
+const LIMIT = 20;
 
 const MODE_CONFIG: Record<GameMode, { label: string; icon: string; color: string; bg: string; border: string }> = {
-    ZOMBIE_LAND: {
-        label: 'Zombie Land',
-        icon: '🧟',
-        color: 'text-green-400',
-        bg: 'bg-green-500/10',
-        border: 'border-green-500/30',
-    },
-    SOUL_SOCIETY: {
-        label: 'Soul Society',
-        icon: '⚔️',
-        color: 'text-cyan-400',
-        bg: 'bg-cyan-500/10',
-        border: 'border-cyan-500/30',
-    },
-    KITTY_CAT: {
-        label: 'Kitty Cat',
-        icon: '🐱',
-        color: 'text-pink-400',
-        bg: 'bg-pink-500/10',
-        border: 'border-pink-500/30',
-    },
-    JOKER: {
-        label: 'Joker',
-        icon: '🃏',
-        color: 'text-purple-400',
-        bg: 'bg-purple-500/10',
-        border: 'border-purple-500/30',
-    },
+    ZOMBIE_LAND: { label: 'Zombie Land', icon: '🧟', color: 'text-green-400', bg: 'bg-green-500/10', border: 'border-green-500/30' },
+    SOUL_SOCIETY: { label: 'Soul Society', icon: '⚔️', color: 'text-cyan-400', bg: 'bg-cyan-500/10', border: 'border-cyan-500/30' },
+    KITTY_CAT: { label: 'Kitty Cat', icon: '🐱', color: 'text-pink-400', bg: 'bg-pink-500/10', border: 'border-pink-500/30' },
+    JOKER: { label: 'Joker', icon: '🃏', color: 'text-purple-400', bg: 'bg-purple-500/10', border: 'border-purple-500/30' },
 };
 
 const RESULT_CONFIG: Record<GameResult, { label: string; color: string; bg: string; glow: string }> = {
@@ -72,55 +44,24 @@ const RESULT_CONFIG: Record<GameResult, { label: string; color: string; bg: stri
     LOSS: { label: 'Defeat', color: 'text-red-400', bg: 'bg-red-500/15', glow: 'shadow-red-500/20' },
 };
 
-const SIZE_CLASSES = {
-    sm: 'w-8 h-8 text-xs',
-    md: 'w-10 h-10 text-sm',
-    lg: 'w-14 h-14 text-xl',
-};
-
 function getFilterActiveClass(f: 'ALL' | GameResult): string {
     if (f === 'ALL') return 'bg-white/15 border-white/30 text-white';
     if (f === 'WIN') return 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400';
-    if (f === 'LOSS') return 'bg-red-500/20 border-red-500/50 text-red-400';
-    return 'bg-yellow-500/20 border-yellow-500/50 text-yellow-400';
+    return 'bg-red-500/20 border-red-500/50 text-red-400';
 }
 
 function getFilterLabel(f: 'ALL' | GameResult, total: number, wins: number, losses: number): string {
     if (f === 'ALL') return `All (${total})`;
     if (f === 'WIN') return `Wins (${wins})`;
-    if (f === 'LOSS') return `Losses (${losses})`;
-    return '';
-}
-
-function getOpponentAvatarClass(type: OpponentType): string {
-    if (type === 'AI') return 'bg-gradient-to-br from-slate-600 to-slate-800 text-slate-300';
-    return 'bg-gradient-to-br from-blue-600 to-indigo-700 text-white';
-}
-
-function getOpponentAvatarContent(entry: HistoryEntry): string {
-    if (entry.opponentType === 'AI') return '🤖';
-    return entry.opponentName.charAt(0);
-}
-
-function getOpponentIcon(type: OpponentType): string {
-    if (type === 'AI') return '🤖';
-    return '👤';
-}
-
-function getOpponentIconColor(type: OpponentType): string {
-    if (type === 'AI') return 'text-slate-500';
-    return 'text-blue-400';
+    return `Losses (${losses})`;
 }
 
 function getResultEmoji(result: GameResult): string {
-    if (result === 'WIN') return '🏆';
-    if (result === 'LOSS') return '💀';
-    return '🤝';
+    return result === 'WIN' ? '🏆' : '💀';
 }
 
 function getXpColor(result: GameResult): string {
-    if (result === 'WIN') return 'text-orange-400';
-    return 'text-gray-600';
+    return result === 'WIN' ? 'text-orange-400' : 'text-gray-600';
 }
 
 function formatDate(iso: string): string {
@@ -128,38 +69,43 @@ function formatDate(iso: string): string {
     return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
-export function Avatar({ src, name, size = 'md' }: AvatarProps) {
+function PlayerAvatar({ src, name, isMe }: { src?: string | null; name: string; isMe: boolean }) {
+    const [errored, setErrored] = useState(false);
     const initial = name.charAt(0).toUpperCase();
-    const sizeStyle = SIZE_CLASSES[size];
-
-    const Fallback = (
-        <div className={`${sizeStyle} rounded-full flex items-center justify-center font-black bg-gradient-to-br from-slate-600 to-slate-800 border border-white/10`}>
-            <span className="text-white/80">{initial}</span>
-        </div>
-    );
-
-    if (!src) return Fallback;
+    const ringColor = isMe ? 'ring-orange-500' : 'ring-slate-500';
+    const fallbackGradient = isMe ? 'from-orange-500 to-red-600' : 'from-slate-500 to-slate-700';
+    const showFallback = !src || errored;
 
     return (
-        <img
-            src={src}
-            alt={name}
-            className={`${sizeStyle} rounded-full object-cover`}
-            onError={(e) => (e.currentTarget.style.display = 'none')}
-        />
+        <div className={`relative w-10 h-10 rounded-full ring-2 ${ringColor} flex-shrink-0 overflow-hidden`}>
+            {showFallback ? (
+                <div className={`w-full h-full bg-gradient-to-br ${fallbackGradient} flex items-center justify-center`}>
+                    <span className="text-white text-sm font-black">{initial}</span>
+                </div>
+            ) : (
+                <img
+                    src={src!}
+                    alt={name}
+                    className="w-full h-full object-cover"
+                    onError={() => setErrored(true)}
+                />
+            )}
+        </div>
     );
 }
-
-
 
 export default function GameHistory() {
     const navigate = useNavigate();
     const [player, setPlayer] = useState<PlayerInfo | null>(null);
     const [history, setHistory] = useState<HistoryEntry[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [page, setPage] = useState(1);
+    const [hasMore, setHasMore] = useState(true);
+    const [loadingInitial, setLoadingInitial] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [filter, setFilter] = useState<'ALL' | GameResult>('ALL');
     const [visible, setVisible] = useState(false);
+    const observerRef = useRef<IntersectionObserver | null>(null);
 
     useEffect(() => {
         document.title = 'Game History - NetPong';
@@ -171,34 +117,53 @@ export default function GameHistory() {
     }, []);
 
     useEffect(() => {
-        const fetchData = async () => {
+        const fetchProfile = async () => {
             try {
-                const [profileRes, historyRes] = await Promise.all([
-                    authFetch('/api/auth/me', { method: 'GET' }),
-                    authFetch('/api/game/history', { method: 'GET' }),
-                ]);
-
-                if (!profileRes.ok || !historyRes.ok) {
-                    navigate('/login');
-                    return;
-                }
-
-                const profileData: PlayerInfo = await profileRes.json();
-                const historyData: HistoryEntry[] = await historyRes.json();
-
-                setPlayer(profileData);
-                setHistory(historyData);
-            } catch (err) {
-                setError('Failed to load data');
-            } finally {
-                setLoading(false);
+                const res = await authFetch('/api/auth/me', { method: 'GET' });
+                if (!res.ok) { navigate('/login'); return; }
+                const data: PlayerInfo = await res.json();
+                setPlayer(data);
+            } catch {
+                setError('Failed to load profile');
             }
         };
-
-        fetchData();
+        fetchProfile();
     }, []);
 
-    if (loading) {
+    const fetchPage = useCallback(async (pageNum: number) => {
+        if (pageNum === 1) setLoadingInitial(true);
+        else setLoadingMore(true);
+
+        try {
+            const res = await authFetch(`/api/game/history?page=${pageNum}&limit=${LIMIT}`, { method: 'GET' });
+            if (!res.ok) { navigate('/login'); return; }
+            const data: HistoryEntry[] = await res.json();
+            setHistory(prev => pageNum === 1 ? data : [...prev, ...data]);
+            setHasMore(data.length === LIMIT);
+        } catch {
+            setError('Failed to load history');
+        } finally {
+            setLoadingInitial(false);
+            setLoadingMore(false);
+        }
+    }, [navigate]);
+
+    useEffect(() => {
+        fetchPage(page);
+    }, [page, fetchPage]);
+
+    const lastRowRef = useCallback((node: HTMLDivElement | null) => {
+        if (loadingMore) return;
+        if (observerRef.current) observerRef.current.disconnect();
+        observerRef.current = new IntersectionObserver(entries => {
+            if (entries[0].isIntersecting && hasMore) {
+                setPage(prev => prev + 1);
+            }
+        });
+        if (node) observerRef.current.observe(node);
+    }, [loadingMore, hasMore]);
+
+    if (loadingInitial || !player) {
         return (
             <div className="min-h-screen bg-black flex items-center justify-center">
                 <p className="text-orange-400 font-black text-xl animate-pulse">Loading...</p>
@@ -206,10 +171,10 @@ export default function GameHistory() {
         );
     }
 
-    if (error || !player) {
+    if (error) {
         return (
             <div className="min-h-screen bg-black flex items-center justify-center">
-                <p className="text-red-400 font-black text-xl">{error ?? 'Something went wrong'}</p>
+                <p className="text-red-400 font-black text-xl">{error}</p>
             </div>
         );
     }
@@ -223,54 +188,29 @@ export default function GameHistory() {
     const xpNeeded = player.level * 100;
     const xpProgress = Math.min((xpInLevel / xpNeeded) * 100, 100);
 
-    let headerClass = 'mb-8 transition-all duration-700 ';
-    if (visible) {
-        headerClass += 'opacity-100 translate-y-0';
-    } else {
-        headerClass += 'opacity-0 -translate-y-4';
-    }
-
-    let playerCardClass = 'mb-6 transition-all duration-700 delay-100 ';
-    if (visible) {
-        playerCardClass += 'opacity-100 translate-y-0';
-    } else {
-        playerCardClass += 'opacity-0 translate-y-4';
-    }
-
-    let filterRowClass = 'mb-4 flex items-center gap-2 flex-wrap transition-all duration-700 delay-200 ';
-    if (visible) {
-        filterRowClass += 'opacity-100 translate-y-0';
-    } else {
-        filterRowClass += 'opacity-0 translate-y-4';
-    }
-
-    let tableClass = 'transition-all duration-700 delay-300 ';
-    if (visible) {
-        tableClass += 'opacity-100 translate-y-0';
-    } else {
-        tableClass += 'opacity-0 translate-y-4';
-    }
+    const fadeIn = visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4';
 
     return (
-        <div className="relative min-h-screen overflow-hidden bg-black font-[system-ui]">
+        <div className="relative min-h-screen bg-black font-[system-ui]">
 
-            <video autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover opacity-90">
-                <source src="/images/history.mp4" type="video/mp4" />
-            </video>
-
-            <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/80" />
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(251,146,60,0.08)_0%,transparent_60%)]" />
-            <div
-                className="absolute inset-0 opacity-[0.03] pointer-events-none"
-                style={{
-                    backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,1) 2px, rgba(255,255,255,1) 3px)',
-                    backgroundSize: '100% 3px',
-                }}
-            />
+            <div className="fixed inset-0 z-0">
+                <video autoPlay loop muted playsInline className="w-full h-full object-cover opacity-90">
+                    <source src="/images/history.mp4" type="video/mp4" />
+                </video>
+                <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/80" />
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(251,146,60,0.08)_0%,transparent_60%)]" />
+                <div
+                    className="absolute inset-0 opacity-[0.03] pointer-events-none"
+                    style={{
+                        backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,1) 2px, rgba(255,255,255,1) 3px)',
+                        backgroundSize: '100% 3px',
+                    }}
+                />
+            </div>
 
             <div className="relative z-10 min-h-screen px-4 py-8 sm:px-6 lg:px-8 max-w-6xl mx-auto">
 
-                <div className={headerClass}>
+                <div className={`mb-8 transition-all duration-700 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'}`}>
                     <div className="flex items-center justify-between flex-wrap gap-4">
                         <div>
                             <p className="text-orange-400 text-xs font-black uppercase tracking-[0.3em] mb-1">NetPong</p>
@@ -287,7 +227,7 @@ export default function GameHistory() {
                     </div>
                 </div>
 
-                <div className={playerCardClass}>
+                <div className={`mb-6 transition-all duration-700 delay-100 ${fadeIn}`}>
                     <div
                         className="relative rounded-2xl overflow-hidden border border-white/10 backdrop-blur-xl"
                         style={{
@@ -296,23 +236,13 @@ export default function GameHistory() {
                         }}
                     >
                         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-orange-400/60 to-transparent" />
-
                         <div className="p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center gap-5">
 
                             <div className="flex items-center gap-4">
                                 <div className="relative">
-                                    {player.avatarUrl ? (
-                                        <img
-                                            src={player.avatarUrl}
-                                            alt={player.username}
-                                            className="w-16 h-16 rounded-2xl object-cover shadow-lg shadow-orange-500/20"
-                                            onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                                        />
-                                    ) : (
-                                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center text-2xl font-black text-white shadow-lg shadow-orange-500/20">
-                                            {player.username.charAt(0).toUpperCase()}
-                                        </div>
-                                    )}
+                                    <div className="w-16 h-16 rounded-2xl overflow-hidden ring-2 ring-orange-500/50 shadow-lg shadow-orange-500/20">
+                                        <PlayerAvatar src={player.avatarUrl} name={player.username} isMe={true} />
+                                    </div>
                                     <div className="absolute -bottom-1 -right-1 bg-orange-500 rounded-full px-1.5 py-0.5 text-[9px] font-black text-black leading-none">
                                         LV{player.level}
                                     </div>
@@ -352,20 +282,16 @@ export default function GameHistory() {
                                     </div>
                                 ))}
                             </div>
-
                         </div>
                     </div>
                 </div>
 
-                <div className={filterRowClass}>
+                <div className={`mb-4 flex items-center gap-2 flex-wrap transition-all duration-700 delay-200 ${fadeIn}`}>
                     {(['ALL', 'WIN', 'LOSS'] as const).map(f => {
                         let btnClass = 'px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider border transition-all duration-200 ';
-                        if (filter === f) {
-                            btnClass += getFilterActiveClass(f);
-                        } else {
-                            btnClass += 'bg-white/5 border-white/10 text-gray-500 hover:text-gray-300 hover:border-white/20';
-                        }
-
+                        btnClass += filter === f
+                            ? getFilterActiveClass(f)
+                            : 'bg-white/5 border-white/10 text-gray-500 hover:text-gray-300 hover:border-white/20';
                         return (
                             <button key={f} onClick={() => setFilter(f)} className={btnClass}>
                                 {getFilterLabel(f, history.length, wins, losses)}
@@ -377,7 +303,7 @@ export default function GameHistory() {
                     </div>
                 </div>
 
-                <div className={tableClass}>
+                <div className={`transition-all duration-700 delay-300 ${fadeIn}`}>
                     <div
                         className="rounded-2xl overflow-hidden border border-white/10 backdrop-blur-xl"
                         style={{
@@ -385,8 +311,8 @@ export default function GameHistory() {
                             boxShadow: '0 0 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04)',
                         }}
                     >
-                        <div className="grid grid-cols-[auto_1fr_auto_auto_auto] sm:grid-cols-[2fr_1.5fr_1fr_1fr_1fr] gap-3 px-5 py-3 border-b border-white/5">
-                            {['Player / Opponent', 'Game Mode', 'Score', 'Result', 'XP'].map(h => (
+                        <div className="grid grid-cols-[2fr_1.5fr_1fr_1fr_1fr] gap-3 px-5 py-3 border-b border-white/5">
+                            {['Match', 'Game Mode', 'Score', 'Result', 'XP'].map(h => (
                                 <p key={h} className="text-[10px] font-black uppercase tracking-[0.15em] text-gray-600">{h}</p>
                             ))}
                         </div>
@@ -397,56 +323,28 @@ export default function GameHistory() {
                             </div>
                         )}
 
-                        {filtered.length > 0 && filtered.map((entry, i) => {
+                        {filtered.map((entry, i) => {
+                            const isLast = i === filtered.length - 1;
                             const mode = MODE_CONFIG[entry.mode];
                             const result = RESULT_CONFIG[entry.result];
-
-                            const opponentAvatarClass = getOpponentAvatarClass(entry.opponentType);
-                            const opponentAvatarContent = getOpponentAvatarContent(entry);
-                            const opponentIcon = getOpponentIcon(entry.opponentType);
-                            const opponentIconColor = getOpponentIconColor(entry.opponentType);
                             const resultEmoji = getResultEmoji(entry.result);
                             const xpColor = getXpColor(entry.result);
 
                             return (
                                 <div
                                     key={entry.id}
-                                    className="grid grid-cols-[auto_1fr_auto_auto_auto] sm:grid-cols-[2fr_1.5fr_1fr_1fr_1fr] gap-3 px-5 py-4 items-center border-b border-white/[0.04] hover:bg-white/[0.03] transition-colors duration-150"
-                                    style={{ animationDelay: `${i * 40}ms` }}
+                                    ref={isLast ? lastRowRef : undefined}
+                                    className="grid grid-cols-[2fr_1.5fr_1fr_1fr_1fr] gap-3 px-5 py-4 items-center border-b border-white/[0.04] hover:bg-white/[0.03] transition-colors duration-150"
                                 >
                                     <div className="flex items-center gap-3 min-w-0">
-                                        <div className="flex -space-x-2 flex-shrink-0">
-                                            {player.avatarUrl ? (
-                                                <img
-                                                    src={player.avatarUrl}
-                                                    alt={player.username}
-                                                    className="w-9 h-9 rounded-full object-cover ring-2 ring-black z-10"
-                                                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                                                />
-                                            ) : (
-                                                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center text-xs font-black text-white ring-2 ring-black z-10">
-                                                    {player.username.charAt(0)}
-                                                </div>
-                                            )}
-                                            {entry.opponentAvatarUrl ? (
-                                                <img
-                                                    src={entry.opponentAvatarUrl}
-                                                    alt={entry.opponentName}
-                                                    className={`w-9 h-9 rounded-full object-cover ring-2 ring-black ${opponentAvatarClass}`}
-                                                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                                                />
-                                            ) : (
-                                                <div className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-black ring-2 ring-black ${opponentAvatarClass}`}>
-                                                    {opponentAvatarContent}
-                                                </div>
-                                            )}
+                                        <div className="flex items-center gap-1.5 flex-shrink-0">
+                                            <PlayerAvatar src={player.avatarUrl} name={player.username} isMe={true} />
+                                            <span className="text-[9px] font-black text-gray-600">VS</span>
+                                            <PlayerAvatar src={entry.opponentAvatarUrl} name={entry.opponentName} isMe={false} />
                                         </div>
                                         <div className="min-w-0">
-                                            <p className="text-white font-bold text-sm truncate">{player.username}</p>
-                                            <p className="text-gray-500 text-xs truncate flex items-center gap-1">
-                                                <span className={opponentIconColor}>{opponentIcon}</span>
-                                                {entry.opponentName}
-                                            </p>
+                                            <p className="text-white font-bold text-sm truncate leading-tight">{player.username}</p>
+                                            <p className="text-gray-500 text-xs truncate leading-tight">{entry.opponentName}</p>
                                         </div>
                                     </div>
 
@@ -474,10 +372,21 @@ export default function GameHistory() {
                                         <p className={`text-sm font-black ${xpColor}`}>+{entry.xpEarned}</p>
                                         <p className="text-[9px] text-gray-600 font-bold uppercase tracking-wider">XP</p>
                                     </div>
-
                                 </div>
                             );
                         })}
+
+                        {loadingMore && (
+                            <div className="py-5 text-center text-orange-400/60 animate-pulse text-sm font-bold tracking-wide">
+                                Loading more...
+                            </div>
+                        )}
+
+                        {!hasMore && !loadingMore && history.length > 0 && (
+                            <div className="py-5 text-center text-gray-600 text-xs font-semibold">
+                                All matches loaded 🏁
+                            </div>
+                        )}
 
                         <div className="px-5 py-3 border-t border-white/5 flex items-center justify-between">
                             <p className="text-xs text-gray-600 font-semibold">
@@ -485,7 +394,6 @@ export default function GameHistory() {
                             </p>
                             <p className="text-xs text-gray-700 font-semibold">Showing most recent first</p>
                         </div>
-
                     </div>
                 </div>
 

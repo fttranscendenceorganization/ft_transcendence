@@ -572,17 +572,19 @@ export class GameService implements OnModuleDestroy {
 
         return { total, wins, losses, winRate };
     }
-    async getGameHistory(userId: string): Promise<Game[]> {
-        return await this.gamerepo.find({
-            where: [
-                { playerA: { id: userId }, status: GameStatusEnum.FINISHED },
-                { playerB: { id: userId }, status: GameStatusEnum.FINISHED },
-            ],
-            relations: ['playerA', 'playerB', 'winner'],
-            order: { createdAt: 'DESC' },
-            take: 50,
-        });
-    }
+
+    async getGameHistory(userId: string, page: number = 1, limit: number = 20): Promise<Game[]> {
+    return await this.gamerepo.find({
+        where: [
+            { playerA: { id: userId }, status: GameStatusEnum.FINISHED },
+            { playerB: { id: userId }, status: GameStatusEnum.FINISHED },
+        ],
+        relations: ['playerA', 'playerB', 'winner'],
+        order: { createdAt: 'DESC' },
+        skip: (page - 1) * limit,
+        take: limit,
+    });
+}
 
     async getGameById(gameId: string): Promise<Game | null> {
         return await this.gamerepo.findOne({
