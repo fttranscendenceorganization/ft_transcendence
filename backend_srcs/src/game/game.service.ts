@@ -402,16 +402,16 @@ export class GameService implements OnModuleDestroy {
     }
 
     private async handlePlayerDisconnectFromGame(player: PlayerSessionType) {
-        if (!player.currentGameId)
-            return;
+        if (!player.currentGameId) return;
 
-        try {
-            const user = await this.userService.findById(player.userId);
-            const displayName = user?.username ?? player.userId;
-            this.abortGame(player.currentGameId, `Player ${displayName} disconnected`);
-        } catch {
-            this.abortGame(player.currentGameId, `A player disconnected`);
-        }
+        const game = this.games.get(player.currentGameId);
+        if (!game) return;
+
+        const winnerId = game.playerLeft.userId === player.userId
+            ? game.playerRight.userId
+            : game.playerLeft.userId;
+
+        this.finishGame(player.currentGameId, winnerId);
     }
 
 
