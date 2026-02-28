@@ -137,10 +137,10 @@ export class GameService implements OnModuleDestroy {
         const { ballPosition, ballVelocity, score } = game.state;
         const { ballSpeed, ballRadius, paddleLeft, paddleRight, paddleRadius } = game.state;
 
-     
-        const PADDLE_SPEED = 18 
+
+        const PADDLE_SPEED = 18
         function smoothPaddle(paddle) {
-            if (paddle.targetX === undefined) return; 
+            if (paddle.targetX === undefined) return;
             const dx = paddle.targetX - paddle.x;
             const dy = paddle.targetY - paddle.y;
             const dist = Math.sqrt(dx * dx + dy * dy);
@@ -575,8 +575,8 @@ export class GameService implements OnModuleDestroy {
     async getGameHistory(userId: string): Promise<Game[]> {
         return await this.gamerepo.find({
             where: [
-                { playerA: { id: userId } },
-                { playerB: { id: userId } },
+                { playerA: { id: userId }, status: GameStatusEnum.FINISHED },
+                { playerB: { id: userId }, status: GameStatusEnum.FINISHED },
             ],
             relations: ['playerA', 'playerB', 'winner'],
             order: { createdAt: 'DESC' },

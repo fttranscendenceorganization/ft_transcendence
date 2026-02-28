@@ -27,6 +27,9 @@ export class GameController {
                 const myScore = iAmPlayerA ? game.playerAScore : game.playerBScore;
                 const oppScore = iAmPlayerA ? game.playerBScore : game.playerAScore;
                 const result = game.winner?.id === userId ? 'WIN' : 'LOSS';
+                const xpEarned = result === 'WIN'
+                    ? 20 + (myScore - oppScore) * 5
+                    : Math.floor(oppScore * 0.5);
 
                 return {
                     id: game.id,
@@ -38,9 +41,7 @@ export class GameController {
                     opponentType: 'PLAYER',
                     opponentName: opponent.username,
                     opponentAvatarUrl: opponent.avatarUrl ?? null,
-                    xpEarned: result === 'WIN'
-                        ? 20 + (myScore - oppScore) * 5
-                        : Math.floor(oppScore * 0.5),
+                    xpEarned,
                 };
             });
         } catch (error) {
