@@ -32,17 +32,21 @@ interface PlayerInfo {
 
 const LIMIT = 20;
 
-const MODE_CONFIG: Record<GameMode, { label: string; icon: string; color: string; bg: string; border: string }> = {
+const MODE_CONFIG: Record<string, { label: string; icon: string; color: string; bg: string; border: string }> = {
     ZOMBIE_LAND: { label: 'Zombie Land', icon: '🧟', color: 'text-green-400', bg: 'bg-green-500/10', border: 'border-green-500/30' },
     SOUL_SOCIETY: { label: 'Soul Society', icon: '⚔️', color: 'text-cyan-400', bg: 'bg-cyan-500/10', border: 'border-cyan-500/30' },
     KITTY_CAT: { label: 'Kitty Cat', icon: '🐱', color: 'text-pink-400', bg: 'bg-pink-500/10', border: 'border-pink-500/30' },
     JOKER: { label: 'Joker', icon: '🃏', color: 'text-purple-400', bg: 'bg-purple-500/10', border: 'border-purple-500/30' },
 };
 
-const RESULT_CONFIG: Record<GameResult, { label: string; color: string; bg: string; glow: string }> = {
+const DEFAULT_MODE = { label: 'Unknown', icon: '🎮', color: 'text-gray-400', bg: 'bg-gray-500/10', border: 'border-gray-500/30' };
+
+const RESULT_CONFIG: Record<string, { label: string; color: string; bg: string; glow: string }> = {
     WIN: { label: 'Victory', color: 'text-emerald-400', bg: 'bg-emerald-500/15', glow: 'shadow-emerald-500/20' },
     LOSS: { label: 'Defeat', color: 'text-red-400', bg: 'bg-red-500/15', glow: 'shadow-red-500/20' },
 };
+
+const DEFAULT_RESULT = { label: 'Unknown', color: 'text-gray-400', bg: 'bg-gray-500/15', glow: 'shadow-gray-500/20' };
 
 function getFilterActiveClass(f: 'ALL' | GameResult): string {
     if (f === 'ALL') return 'bg-white/15 border-white/30 text-white';
@@ -56,11 +60,11 @@ function getFilterLabel(f: 'ALL' | GameResult, total: number, wins: number, loss
     return `Losses (${losses})`;
 }
 
-function getResultEmoji(result: GameResult): string {
+function getResultEmoji(result: string): string {
     return result === 'WIN' ? '🏆' : '💀';
 }
 
-function getXpColor(result: GameResult): string {
+function getXpColor(result: string): string {
     return result === 'WIN' ? 'text-orange-400' : 'text-gray-600';
 }
 
@@ -71,13 +75,13 @@ function formatDate(iso: string): string {
 
 function PlayerAvatar({ src, name, isMe }: { src?: string | null; name: string; isMe: boolean }) {
     const [errored, setErrored] = useState(false);
-    const initial = name.charAt(0).toUpperCase();
+    const initial = (name ?? '?').charAt(0).toUpperCase();
     const ringColor = isMe ? 'ring-orange-500' : 'ring-slate-500';
     const fallbackGradient = isMe ? 'from-orange-500 to-red-600' : 'from-slate-500 to-slate-700';
     const showFallback = !src || errored;
 
     return (
-        <div className={`relative w-10 h-10 rounded-full ring-2 ${ringColor} flex-shrink-0 overflow-hidden`}>
+        <div className={`w-10 h-10 rounded-full ring-2 ${ringColor} flex-shrink-0 overflow-hidden`}>
             {showFallback ? (
                 <div className={`w-full h-full bg-gradient-to-br ${fallbackGradient} flex items-center justify-center`}>
                     <span className="text-white text-sm font-black">{initial}</span>
@@ -106,64 +110,73 @@ export default function GameHistory() {
     const [filter, setFilter] = useState<'ALL' | GameResult>('ALL');
     const [visible, setVisible] = useState(false);
     const observerRef = useRef<IntersectionObserver | null>(null);
+    const pageRef = useRef(1);
 
     useEffect(() => {
         document.title = 'Game History - NetPong';
-    }, []);
-
-    useEffect(() => {
         const t = setTimeout(() => setVisible(true), 100);
         return () => clearTimeout(t);
     }, []);
 
     useEffect(() => {
-        const fetchProfile = async () => {
+        const init = async () => {
             try {
-                const res = await authFetch('/api/auth/me', { method: 'GET' });
-                if (!res.ok) { navigate('/login'); return; }
-                const data: PlayerInfo = await res.json();
-                setPlayer(data);
+                const [profileRes, historyRes] = await Promise.all([
+                    authFetch('/api/auth/me', { method: 'GET' }),
+                    authFetch(`/api/game/history?page=1&limit=${LIMIT}`, { method: 'GET' }),
+                ]);
+
+                if (!profileRes.ok || !historyRes.ok) {
+                    navigate('/login');
+                    return;
+                }
+
+                const profileData: PlayerInfo = await profileRes.json();
+                const historyData: HistoryEntry[] = await historyRes.json();
+
+                setPlayer(profileData);
+                setHistory(historyData);
+                setHasMore(historyData.length === LIMIT);
+                pageRef.current = 1;
             } catch {
-                setError('Failed to load profile');
+                setError('Failed to load data');
+            } finally {
+                setLoadingInitial(false);
             }
         };
-        fetchProfile();
+
+        init();
     }, []);
 
-    const fetchPage = useCallback(async (pageNum: number) => {
-        if (pageNum === 1) setLoadingInitial(true);
-        else setLoadingMore(true);
+    const loadMore = useCallback(async () => {
+        if (loadingMore || !hasMore) return;
+        setLoadingMore(true);
+        const nextPage = pageRef.current + 1;
 
         try {
-            const res = await authFetch(`/api/game/history?page=${pageNum}&limit=${LIMIT}`, { method: 'GET' });
-            if (!res.ok) { navigate('/login'); return; }
+            const res = await authFetch(`/api/game/history?page=${nextPage}&limit=${LIMIT}`, { method: 'GET' });
+            if (!res.ok) return;
             const data: HistoryEntry[] = await res.json();
-            setHistory(prev => pageNum === 1 ? data : [...prev, ...data]);
+            setHistory(prev => [...prev, ...data]);
             setHasMore(data.length === LIMIT);
+            pageRef.current = nextPage;
         } catch {
-            setError('Failed to load history');
+            // silently fail on pagination errors
         } finally {
-            setLoadingInitial(false);
             setLoadingMore(false);
         }
-    }, [navigate]);
-
-    useEffect(() => {
-        fetchPage(page);
-    }, [page, fetchPage]);
-
-    const lastRowRef = useCallback((node: HTMLDivElement | null) => {
-        if (loadingMore) return;
-        if (observerRef.current) observerRef.current.disconnect();
-        observerRef.current = new IntersectionObserver(entries => {
-            if (entries[0].isIntersecting && hasMore) {
-                setPage(prev => prev + 1);
-            }
-        });
-        if (node) observerRef.current.observe(node);
     }, [loadingMore, hasMore]);
 
-    if (loadingInitial || !player) {
+    const lastRowRef = useCallback((node: HTMLDivElement | null) => {
+        if (observerRef.current) observerRef.current.disconnect();
+        if (!node) return;
+        observerRef.current = new IntersectionObserver(entries => {
+            if (entries[0].isIntersecting) loadMore();
+        }, { threshold: 0.1 });
+        observerRef.current.observe(node);
+    }, [loadMore]);
+
+    if (loadingInitial) {
         return (
             <div className="min-h-screen bg-black flex items-center justify-center">
                 <p className="text-orange-400 font-black text-xl animate-pulse">Loading...</p>
@@ -179,10 +192,18 @@ export default function GameHistory() {
         );
     }
 
+    if (!player) {
+        return (
+            <div className="min-h-screen bg-black flex items-center justify-center">
+                <p className="text-red-400 font-black text-xl">Something went wrong</p>
+            </div>
+        );
+    }
+
     const filtered = filter === 'ALL' ? history : history.filter(h => h.result === filter);
     const wins = history.filter(h => h.result === 'WIN').length;
     const losses = history.filter(h => h.result === 'LOSS').length;
-    const totalXpEarned = history.reduce((s, h) => s + h.xpEarned, 0);
+    const totalXpEarned = history.reduce((s, h) => s + (h.xpEarned ?? 0), 0);
 
     const xpInLevel = player.points;
     const xpNeeded = player.level * 100;
@@ -317,7 +338,7 @@ export default function GameHistory() {
                             ))}
                         </div>
 
-                        {filtered.length === 0 && (
+                        {filtered.length === 0 && !loadingMore && (
                             <div className="py-16 text-center text-gray-600 font-semibold text-sm">
                                 No matches found
                             </div>
@@ -325,8 +346,8 @@ export default function GameHistory() {
 
                         {filtered.map((entry, i) => {
                             const isLast = i === filtered.length - 1;
-                            const mode = MODE_CONFIG[entry.mode];
-                            const result = RESULT_CONFIG[entry.result];
+                            const mode = MODE_CONFIG[entry.mode] ?? DEFAULT_MODE;
+                            const result = RESULT_CONFIG[entry.result] ?? DEFAULT_RESULT;
                             const resultEmoji = getResultEmoji(entry.result);
                             const xpColor = getXpColor(entry.result);
 
@@ -340,7 +361,7 @@ export default function GameHistory() {
                                         <div className="flex items-center gap-1.5 flex-shrink-0">
                                             <PlayerAvatar src={player.avatarUrl} name={player.username} isMe={true} />
                                             <span className="text-[9px] font-black text-gray-600">VS</span>
-                                            <PlayerAvatar src={entry.opponentAvatarUrl} name={entry.opponentName} isMe={false} />
+                                            <PlayerAvatar src={entry.opponentAvatarUrl} name={entry.opponentName ?? '?'} isMe={false} />
                                         </div>
                                         <div className="min-w-0">
                                             <p className="text-white font-bold text-sm truncate leading-tight">{player.username}</p>
@@ -369,7 +390,7 @@ export default function GameHistory() {
                                     </div>
 
                                     <div className="text-center">
-                                        <p className={`text-sm font-black ${xpColor}`}>+{entry.xpEarned}</p>
+                                        <p className={`text-sm font-black ${xpColor}`}>+{entry.xpEarned ?? 0}</p>
                                         <p className="text-[9px] text-gray-600 font-bold uppercase tracking-wider">XP</p>
                                     </div>
                                 </div>
