@@ -33,8 +33,8 @@ const LIMIT = 20;
 const MODE_CONFIG: Record<string, { label: string; icon: string; color: string; bg: string; border: string }> = {
     ZOMBIE_LAND: { label: 'Zombie Land', icon: '🧟', color: 'text-green-400', bg: 'bg-green-500/10', border: 'border-green-500/30' },
     SOUL_SOCIETY: { label: 'Soul Society', icon: '⚔️', color: 'text-cyan-400', bg: 'bg-cyan-500/10', border: 'border-cyan-500/30' },
-    KITTY_CAT:    { label: 'Kitty Cat',    icon: '🐱', color: 'text-pink-400',  bg: 'bg-pink-500/10',  border: 'border-pink-500/30'  },
-    JOKER:        { label: 'Joker',        icon: '🃏', color: 'text-purple-400', bg: 'bg-purple-500/10', border: 'border-purple-500/30' },
+    KITTY_CAT: { label: 'Kitty Cat', icon: '🐱', color: 'text-pink-400', bg: 'bg-pink-500/10', border: 'border-pink-500/30' },
+    JOKER: { label: 'Joker', icon: '🃏', color: 'text-purple-400', bg: 'bg-purple-500/10', border: 'border-purple-500/30' },
 };
 const DEFAULT_MODE = { label: 'Unknown', icon: '🎮', color: 'text-gray-400', bg: 'bg-gray-500/10', border: 'border-gray-500/30' };
 
@@ -335,7 +335,9 @@ export default function GameHistory() {
                                             />
                                         </div>
                                         <div className="min-w-0">
-                                            <p className="text-white font-bold text-xs truncate">{player.username}</p>
+                                            <p className="text-white font-bold text-xs truncate">
+                                                {player.username} <span className="text-orange-400 font-black">(You)</span>
+                                            </p>
                                             <p className="text-gray-500 text-[11px] truncate">{entry.opponentName}</p>
                                         </div>
                                     </div>
