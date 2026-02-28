@@ -172,7 +172,7 @@ export default function GameHistory() {
             try {
                 const [profileRes, historyRes] = await Promise.all([
                     authFetch('/api/auth/me', { method: 'GET' }),
-                    authFetch('/api/games/history', { method: 'GET' }),
+                    authFetch('/api/game/history', { method: 'GET' }),
                 ]);
 
                 if (!profileRes.ok || !historyRes.ok) {
