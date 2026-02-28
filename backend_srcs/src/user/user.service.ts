@@ -196,7 +196,7 @@ export class UserService {
         if (!winner || !loser)
             throw new NotFoundException("One or more users not found");
 
-        const winXP = 20 + (winnerScore - loserScore) * 5;
+        const winXP = Math.max(10, 20 + (winnerScore - loserScore) * 5);
         const loseXP = loserScore * 0.5;
 
         winner.wins += 1;
