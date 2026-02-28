@@ -137,10 +137,10 @@ export class GameService implements OnModuleDestroy {
         const { ballPosition, ballVelocity, score } = game.state;
         const { ballSpeed, ballRadius, paddleLeft, paddleRight, paddleRadius } = game.state;
 
-     
-        const PADDLE_SPEED = 18 
+
+        const PADDLE_SPEED = 18
         function smoothPaddle(paddle) {
-            if (paddle.targetX === undefined) return; 
+            if (paddle.targetX === undefined) return;
             const dx = paddle.targetX - paddle.x;
             const dy = paddle.targetY - paddle.y;
             const dist = Math.sqrt(dx * dx + dy * dy);
@@ -290,31 +290,17 @@ export class GameService implements OnModuleDestroy {
 
     private async finishGame(gameId: string, winnerUserId: string | null) {
         const game = this.games.get(gameId);
-        if (!game)
-            return;
-
-        if (game.status === GameStatusEnum.FINISHED || game.status === GameStatusEnum.ABORTED)
-            return;
+        if (!game) return;
+        if (game.status === GameStatusEnum.FINISHED || game.status === GameStatusEnum.ABORTED) return;
 
         game.status = GameStatusEnum.FINISHED;
-        console.log(`[Game] Game ${game.id} finished. Winner: ${winnerUserId ?? 'none'}. Final score: ${game.state.score.left} - ${game.state.score.right}`);
 
         if (this.notifyCallback) {
             const leftSocketId = this.getSocketId(game.playerLeft.userId);
             const rightSocketId = this.getSocketId(game.playerRight.userId);
-
-            const payload = {
-                winnerId: winnerUserId,
-                score: {
-                    left: game.state.score.left,
-                    right: game.state.score.right
-                }
-            };
-
-            if (leftSocketId)
-                this.notifyCallback(leftSocketId, 'gameOver', payload);
-            if (rightSocketId)
-                this.notifyCallback(rightSocketId, 'gameOver', payload);
+            const payload = { winnerId: winnerUserId, score: { left: game.state.score.left, right: game.state.score.right } };
+            if (leftSocketId) this.notifyCallback(leftSocketId, 'gameOver', payload);
+            if (rightSocketId) this.notifyCallback(rightSocketId, 'gameOver', payload);
         }
 
         this.cleanupGameSessions(game);
@@ -322,13 +308,32 @@ export class GameService implements OnModuleDestroy {
         try {
             const userA = await this.userService.findById(game.playerLeft.userId);
             const userB = await this.userService.findById(game.playerRight.userId);
+            if (!userA || !userB) return;
 
-            if (!userA || !userB) {
-                console.error(`[Game] Could not find users for game ${game.id}. Skipping persistence.`);
-                return;
-            }
-
+            const leftScore = game.state.score.left;
+            const rightScore = game.state.score.right;
             const winnerUser = winnerUserId === game.playerLeft.userId ? userA : userB;
+            const loserUser = winnerUserId === game.playerLeft.userId ? userB : userA;
+            const winnerScore = winnerUserId === game.playerLeft.userId ? leftScore : rightScore;
+            const loserScore = winnerUserId === game.playerLeft.userId ? rightScore : leftScore;
+
+            const winXP = Math.max(10, 20 + (winnerScore - loserScore) * 5);
+            const loseXP = loserScore * 0.5;
+
+            const playerAXpEarned = winnerUserId === game.playerLeft.userId ? winXP : loseXP;
+            const playerBXpEarned = winnerUserId === game.playerRight.userId ? winXP : loseXP;
+
+            try {
+                await this.userService.updateUserAfterGame(
+                    winnerUserId ?? '',
+                    loserUser.id,
+                    winnerScore,
+                    loserScore,
+                    game.mode,
+                );
+            } catch (err) {
+                console.error(`[Game] Failed to update user stats for game ${game.id}:`, err);
+            }
 
             const gameRecord = this.gamerepo.create({
                 mode: game.mode,
@@ -336,35 +341,15 @@ export class GameService implements OnModuleDestroy {
                 playerA: userA,
                 playerB: userB,
                 winner: winnerUser,
-                playerAScore: game.state.score.left,
-                playerBScore: game.state.score.right,
+                playerAScore: leftScore,
+                playerBScore: rightScore,
+                playerAXpEarned,
+                playerBXpEarned,
             });
             await this.gamerepo.save(gameRecord);
             console.log(`[Game] Game ${game.id} saved to database.`);
-
-            try {
-                const leftScore = game.state.score.left;
-                const rightScore = game.state.score.right;
-                const winnerIdStr = winnerUserId ?? '';
-                const loserUser = winnerUserId === game.playerLeft.userId ? userB : userA;
-                const loserIdStr = loserUser.id;
-                const winnerScore = winnerUserId === game.playerLeft.userId ? leftScore : rightScore;
-                const loserScore = winnerUserId === game.playerLeft.userId ? rightScore : leftScore;
-
-                await this.userService.updateUserAfterGame(
-                    winnerIdStr,
-                    loserIdStr,
-                    winnerScore,
-                    loserScore,
-                    game.mode,
-                );
-            }
-            catch (err) {
-                console.error(`[Game] Failed to update user stats for game ${game.id}:`, err);
-            }
-        }
-        catch (error) {
-            console.error(`[Game] Failed to save game ${game.id} to database:`, error);
+        } catch (error) {
+            console.error(`[Game] Failed to save game ${game.id}:`, error);
         }
     }
 
@@ -417,16 +402,16 @@ export class GameService implements OnModuleDestroy {
     }
 
     private async handlePlayerDisconnectFromGame(player: PlayerSessionType) {
-        if (!player.currentGameId)
-            return;
+        if (!player.currentGameId) return;
 
-        try {
-            const user = await this.userService.findById(player.userId);
-            const displayName = user?.username ?? player.userId;
-            this.abortGame(player.currentGameId, `Player ${displayName} disconnected`);
-        } catch {
-            this.abortGame(player.currentGameId, `A player disconnected`);
-        }
+        const game = this.games.get(player.currentGameId);
+        if (!game) return;
+
+        const winnerId = game.playerLeft.userId === player.userId
+            ? game.playerRight.userId
+            : game.playerLeft.userId;
+
+        this.finishGame(player.currentGameId, winnerId);
     }
 
 
@@ -572,15 +557,17 @@ export class GameService implements OnModuleDestroy {
 
         return { total, wins, losses, winRate };
     }
-    async getGameHistory(userId: string): Promise<Game[]> {
+
+    async getGameHistory(userId: string, page: number = 1, limit: number = 20): Promise<Game[]> {
         return await this.gamerepo.find({
             where: [
-                { playerA: { id: userId } },
-                { playerB: { id: userId } },
+                { playerA: { id: userId }, status: GameStatusEnum.FINISHED },
+                { playerB: { id: userId }, status: GameStatusEnum.FINISHED },
             ],
             relations: ['playerA', 'playerB', 'winner'],
             order: { createdAt: 'DESC' },
-            take: 50,
+            skip: (page - 1) * limit,
+            take: limit,
         });
     }
 
