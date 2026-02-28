@@ -317,7 +317,7 @@ export class GameService implements OnModuleDestroy {
             const winnerScore = winnerUserId === game.playerLeft.userId ? leftScore : rightScore;
             const loserScore = winnerUserId === game.playerLeft.userId ? rightScore : leftScore;
 
-            const winXP = 20 + (winnerScore - loserScore) * 5;
+            const winXP = Math.max(10, 20 + (winnerScore - loserScore) * 5);
             const loseXP = loserScore * 0.5;
 
             const playerAXpEarned = winnerUserId === game.playerLeft.userId ? winXP : loseXP;
