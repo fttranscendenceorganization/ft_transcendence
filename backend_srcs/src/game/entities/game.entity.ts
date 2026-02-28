@@ -4,15 +4,14 @@ import { GameStatusEnum } from "../types/game-status.enum";
 import { User } from "src/user/entities/user.entity";
 
 @Entity('games')
-export class Game
-{
+export class Game {
     @PrimaryGeneratedColumn('uuid')
     id: string
 
-    @Column({type: 'enum', enum: GameModeEnum})
+    @Column({ type: 'enum', enum: GameModeEnum })
     mode: GameModeEnum
 
-    @Column({type: 'enum', enum: GameStatusEnum})
+    @Column({ type: 'enum', enum: GameStatusEnum })
     status: GameStatusEnum
 
     @ManyToOne(() => User)
@@ -29,6 +28,12 @@ export class Game
 
     @Column()
     playerBScore: number
+
+    @Column({ type: 'float', default: 0 })
+    playerAXpEarned: number;
+
+    @Column({ type: 'float', default: 0 })
+    playerBXpEarned: number;
 
     @CreateDateColumn()
     createdAt: Date
