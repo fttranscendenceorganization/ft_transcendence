@@ -28,7 +28,6 @@ export class HealthController
 
             () => this.http.pingCheck('google_auth', 'https://accounts.google.com'),
             () => this.http.pingCheck('github_auth', 'https://github.com'),
-            () => this.http.pingCheck('intra_42_auth', 'https://api.intra.42.fr'),
 
             () => this.memory.checkHeap('heap_memory', 300*1024*1024),
 
