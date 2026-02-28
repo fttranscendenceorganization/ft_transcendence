@@ -150,44 +150,7 @@ export function Avatar({ src, name, size = 'md' }: AvatarProps) {
     );
 }
 
-interface RawGame {
-    id: string;
-    mode: GameMode;
-    status: string;
-    playerA: { id: string; username: string; avatarUrl?: string | null };
-    playerB: { id: string; username: string; avatarUrl?: string | null };
-    winner: { id: string; username: string } | null;
-    playerAScore: number;
-    playerBScore: number;
-    createdAt: string;
-}
 
-function mapGameToEntry(game: RawGame, myUserId: string): HistoryEntry {
-    const iAmPlayerA = game.playerA.id === myUserId;
-
-    const myScore = iAmPlayerA ? game.playerAScore : game.playerBScore;
-    const opponentScore = iAmPlayerA ? game.playerBScore : game.playerAScore;
-    const opponent = iAmPlayerA ? game.playerB : game.playerA;
-
-    const result: GameResult = game.winner?.id === myUserId ? 'WIN' : 'LOSS';
-
-    const isAI =
-        opponent.username?.toLowerCase().includes('ai') ||
-        opponent.username?.toLowerCase().includes('bot');
-
-    return {
-        id: game.id,
-        createdAt: game.createdAt,
-        mode: game.mode,
-        result,
-        myScore,
-        opponentScore,
-        opponentType: isAI ? 'AI' : 'PLAYER',
-        opponentName: opponent.username,
-        opponentAvatarUrl: opponent.avatarUrl ?? null,
-        xpEarned: 0,
-    };
-}
 
 export default function GameHistory() {
     const navigate = useNavigate();
@@ -221,12 +184,10 @@ export default function GameHistory() {
                 }
 
                 const profileData: PlayerInfo = await profileRes.json();
-                const rawGames: RawGame[] = await historyRes.json();
+                const historyData: HistoryEntry[] = await historyRes.json();
 
                 setPlayer(profileData);
-
-                const entries = rawGames.map(game => mapGameToEntry(game, profileData.id));
-                setHistory(entries);
+                setHistory(historyData);
             } catch (err) {
                 setError('Failed to load data');
             } finally {
