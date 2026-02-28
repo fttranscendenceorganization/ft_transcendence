@@ -24,27 +24,31 @@ export class GameController {
         @Query('page') page = '1',
         @Query('limit') limit = '20',
     ) {
-        try {
-            const pageNum = Math.max(1, parseInt(page, 10) || 1);
-            const limitNum = Math.min(50, Math.max(1, parseInt(limit, 10) || 20));
-            const games = await this.gameService.getGameHistory(userId, pageNum, limitNum);
-            return games.map(game => ({
-                id: game.id,
-                mode: game.mode,
-                status: game.status,
-                playerA: { id: game.playerA.id, username: game.playerA.username },
-                playerB: { id: game.playerB.id, username: game.playerB.username },
-                winner: game.winner ? { id: game.winner.id, username: game.winner.username } : null,
-                playerAScore: game.playerAScore,
-                playerBScore: game.playerBScore,
-                createdAt: game.createdAt,
-            }));
-        } catch (error) {
-            this.logger.error(`Error in getGameHistory: ${error.message}`, error.stack);
-            throw error;
-        }
-    }
+        const pageNum = Math.max(1, parseInt(page, 10) || 1);
+        const limitNum = Math.min(50, Math.max(1, parseInt(limit, 10) || 20));
+        const games = await this.gameService.getGameHistory(userId, pageNum, limitNum);
 
+        return games.map(game => {
+            const isPlayerA = game.playerA.id === userId;
+            const opponent = isPlayerA ? game.playerB : game.playerA;
+            const myScore = isPlayerA ? game.playerAScore : game.playerBScore;
+            const opponentScore = isPlayerA ? game.playerBScore : game.playerAScore;
+            const result = game.winner?.id === userId ? 'WIN' : 'LOSS';
+
+            return {
+                id: game.id,
+                createdAt: game.createdAt,
+                mode: game.mode,
+                result,
+                myScore,
+                opponentScore,
+                opponentType: 'HUMAN',
+                opponentName: opponent.username,
+                opponentAvatarUrl: opponent.avatarUrl ?? null,
+                xpEarned: game.xpEarned ?? 0,
+            };
+        });
+    }
     @Get('stats')
     async getPlayerStats(@CurrentUser('id') userId: string) {
         try {
@@ -83,9 +87,19 @@ export class GameController {
                 id: game.id,
                 mode: game.mode,
                 status: game.status,
-                playerA: { id: game.playerA.id, username: game.playerA.username },
-                playerB: { id: game.playerB.id, username: game.playerB.username },
-                winner: game.winner ? { id: game.winner.id, username: game.winner.username } : null,
+                playerA: {
+                    id: game.playerA.id,
+                    username: game.playerA.username,
+                    avatarUrl: game.playerA.avatarUrl ?? null,
+                },
+                playerB: {
+                    id: game.playerB.id,
+                    username: game.playerB.username,
+                    avatarUrl: game.playerB.avatarUrl ?? null,
+                },
+                winner: game.winner
+                    ? { id: game.winner.id, username: game.winner.username }
+                    : null,
                 playerAScore: game.playerAScore,
                 playerBScore: game.playerBScore,
                 createdAt: game.createdAt,
