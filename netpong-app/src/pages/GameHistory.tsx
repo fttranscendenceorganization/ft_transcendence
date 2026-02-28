@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { authFetch } from '../utils/api';
 
 type GameResult = 'WIN' | 'LOSS';
 type GameMode = 'ZOMBIE_LAND' | 'SOUL_SOCIETY' | 'KITTY_CAT' | 'JOKER';
@@ -170,8 +171,10 @@ export function Avatar({ src, name, size = 'md' }: AvatarProps) {
 
 export default function GameHistory() {
     const navigate = useNavigate();
-    const [player] = useState<PlayerInfo>(MOCK_PLAYER);
-    const [history] = useState<HistoryEntry[]>(MOCK_HISTORY);
+    const [player, setPlayer] = useState<PlayerInfo | null>(null);
+    const [history, setHistory] = useState<HistoryEntry[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const [filter, setFilter] = useState<'ALL' | GameResult>('ALL');
     const [visible, setVisible] = useState(false);
 
@@ -182,6 +185,24 @@ export default function GameHistory() {
     useEffect(() => {
         const t = setTimeout(() => setVisible(true), 100);
         return () => clearTimeout(t);
+    }, []);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const [profileData, historyData] = await Promise.all([
+                    authFetch('/api/auth/me', { method: 'GET' }),
+                    authFetch('/api/games/history', { method: 'GET' }),
+                ]);
+                setPlayer(profileData);
+                setHistory(historyData);
+            } catch (err) {
+                setError('Failed to load data');
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchData();
     }, []);
 
     let filtered: HistoryEntry[];
