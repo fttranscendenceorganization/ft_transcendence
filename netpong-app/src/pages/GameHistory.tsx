@@ -31,10 +31,10 @@ interface PlayerInfo {
 const LIMIT = 20;
 
 const MODE_CONFIG: Record<string, { label: string; icon: string; color: string; bg: string; border: string }> = {
-    ZOMBIE_LAND:  { label: 'Zombie Land',  icon: '🧟', color: 'text-green-400',   bg: 'bg-green-500/10',   border: 'border-green-500/30'  },
-    SOUL_SOCIETY: { label: 'Soul Society', icon: '⚔️', color: 'text-cyan-400',    bg: 'bg-cyan-500/10',    border: 'border-cyan-500/30'   },
-    BARBIE_PINK:  { label: 'Barbie Pink',  icon: '👑', color: 'text-fuchsia-400', bg: 'bg-fuchsia-500/10', border: 'border-fuchsia-500/30' },
-    JOKER:        { label: 'Joker',        icon: '🃏', color: 'text-purple-400',  bg: 'bg-purple-500/10',  border: 'border-purple-500/30' },
+    ZOMBIE_LAND: { label: 'Zombie Land', icon: '🧟', color: 'text-green-400', bg: 'bg-green-500/10', border: 'border-green-500/30' },
+    SOUL_SOCIETY: { label: 'Soul Society', icon: '⚔️', color: 'text-cyan-400', bg: 'bg-cyan-500/10', border: 'border-cyan-500/30' },
+    BARBIE_PINK: { label: 'Barbie Pink', icon: '👑', color: 'text-fuchsia-400', bg: 'bg-fuchsia-500/10', border: 'border-fuchsia-500/30' },
+    JOKER: { label: 'Joker', icon: '🃏', color: 'text-purple-400', bg: 'bg-purple-500/10', border: 'border-purple-500/30' },
 };
 
 const DEFAULT_MODE = { label: 'Unknown', icon: '🎮', color: 'text-gray-400', bg: 'bg-gray-500/10', border: 'border-gray-500/30' };
@@ -130,7 +130,7 @@ export default function GameHistory() {
             setHasMore(data.length === LIMIT);
             pageRef.current = nextPage;
         } catch {
-            // silent
+
         } finally {
             setLoadingMore(false);
         }
@@ -186,7 +186,6 @@ export default function GameHistory() {
 
             <div className="relative z-10 min-h-screen px-4 py-8 sm:px-6 lg:px-8 max-w-6xl mx-auto">
 
-                {/* Header */}
                 <div className={`mb-8 transition-all duration-700 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'}`}>
                     <div className="flex items-center justify-between flex-wrap gap-4">
                         <div>
@@ -204,7 +203,6 @@ export default function GameHistory() {
                     </div>
                 </div>
 
-                {/* Player card */}
                 <div className={`mb-6 transition-all duration-700 delay-100 ${fadeIn}`}>
                     <div
                         className="relative rounded-2xl overflow-hidden border border-white/10 backdrop-blur-xl"
@@ -213,7 +211,6 @@ export default function GameHistory() {
                         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-orange-400/60 to-transparent" />
                         <div className="p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center gap-5">
 
-                            {/* Avatar + name */}
                             <div className="flex items-center gap-4 flex-shrink-0">
                                 <div className="relative">
                                     <Avatar
@@ -234,7 +231,6 @@ export default function GameHistory() {
 
                             <div className="hidden sm:block w-px h-12 bg-white/10" />
 
-                            {/* XP bar */}
                             <div className="flex-1 w-full sm:w-auto">
                                 <div className="flex items-center justify-between mb-1.5">
                                     <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Experience</span>
@@ -251,7 +247,6 @@ export default function GameHistory() {
 
                             <div className="hidden sm:block w-px h-12 bg-white/10" />
 
-                            {/* Wins / Losses — from player object directly */}
                             <div className="flex gap-6 flex-shrink-0">
                                 <div className="text-center">
                                     <p className="text-2xl font-black text-emerald-400">{player.wins}</p>
@@ -266,7 +261,6 @@ export default function GameHistory() {
                     </div>
                 </div>
 
-                {/* Filter row */}
                 <div className={`mb-4 flex items-center gap-2 flex-wrap transition-all duration-700 delay-200 ${fadeIn}`}>
                     {(['ALL', 'WIN', 'LOSS'] as const).map(f => {
                         const isActive = filter === f;
@@ -290,13 +284,11 @@ export default function GameHistory() {
                     <div className="ml-auto text-xs text-gray-600 font-semibold">+{totalXpEarned} XP earned total</div>
                 </div>
 
-                {/* Table */}
                 <div className={`transition-all duration-700 delay-300 ${fadeIn}`}>
                     <div
                         className="rounded-2xl overflow-hidden border border-white/10 backdrop-blur-xl"
                         style={{ background: 'rgba(10,10,15,0.80)', boxShadow: '0 0 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04)' }}
                     >
-                        {/* Table header */}
                         <div className="grid grid-cols-[minmax(0,2fr)_minmax(0,1.5fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,0.6fr)] gap-2 px-5 py-3 border-b border-white/5">
                             {['Match', 'Mode', 'Score', 'Result', 'XP'].map(h => (
                                 <p key={h} className="text-[10px] font-black uppercase tracking-[0.15em] text-gray-600">{h}</p>
@@ -318,7 +310,6 @@ export default function GameHistory() {
                                     ref={isLast ? lastRowRef : undefined}
                                     className="grid grid-cols-[minmax(0,2fr)_minmax(0,1.5fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,0.6fr)] gap-2 px-5 py-3 items-center border-b border-white/[0.04] hover:bg-white/[0.03] transition-colors duration-150"
                                 >
-                                    {/* Match: my avatar VS opponent avatar + names */}
                                     <div className="flex items-center gap-2 min-w-0">
                                         <div className="flex items-center gap-1 flex-shrink-0">
                                             <Avatar
@@ -343,13 +334,11 @@ export default function GameHistory() {
                                         </div>
                                     </div>
 
-                                    {/* Mode */}
                                     <div className={`flex items-center gap-1.5 px-2 py-1 rounded-lg border ${mode.bg} ${mode.border} w-fit`}>
                                         <span className="text-sm leading-none">{mode.icon}</span>
                                         <span className={`text-[11px] font-bold ${mode.color} hidden sm:block`}>{mode.label}</span>
                                     </div>
 
-                                    {/* Score */}
                                     <div>
                                         <p className="text-white font-black text-sm tabular-nums">
                                             <span className="text-orange-400">{entry.myScore}</span>
@@ -359,14 +348,12 @@ export default function GameHistory() {
                                         <p className="text-[9px] text-gray-600">{formatDate(entry.createdAt)}</p>
                                     </div>
 
-                                    {/* Result */}
                                     <div>
                                         <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-black uppercase tracking-wide ${isWin ? 'text-emerald-400 bg-emerald-500/15' : 'text-red-400 bg-red-500/15'}`}>
                                             {isWin ? '🏆' : '💀'} {isWin ? 'Victory' : 'Defeat'}
                                         </span>
                                     </div>
 
-                                    {/* XP */}
                                     <div>
                                         <p className={`text-sm font-black ${isWin ? 'text-orange-400' : 'text-gray-600'}`}>+{entry.xpEarned ?? 0}</p>
                                         <p className="text-[9px] text-gray-600 uppercase tracking-wider">XP</p>

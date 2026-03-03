@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import BarbiePinkHeader from "../components/BarbiePinkHeader";
+import KittyCatHeader from "../components/KittyCatHeader";
 
 export default function BarbiePink() {
 
@@ -31,7 +31,7 @@ export default function BarbiePink() {
 
     return (
         <div className="min-h-screen">
-            <BarbiePinkHeader />
+            <KittyCatHeader />
 
             <div className="antialiased bg-slate-900 w-full min-h-screen text-white overflow-x-hidden relative">
                 <div className="absolute inset-0 bg-[url('/images/barbie.jpg')] bg-center bg-no-repeat bg-cover"></div>

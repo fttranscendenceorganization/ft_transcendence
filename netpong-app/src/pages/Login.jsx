@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { useEffect } from 'react';
-import LoginHeader from '../components/loginHeader';
+import LoginHeader from '../components/LoginHeader';
 import { setToken } from '../utils/authToken';
 
 const initiateGoogleAuth = () => {
