@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import LoginHeader from '../components/loginHeader';
+import LoginHeader from '../components/LoginHeader';
 
 export default function ForgotPassword() {
     const [email, setEmail] = useState('');

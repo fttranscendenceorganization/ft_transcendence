@@ -231,7 +231,7 @@ export default function Leaderboard() {
 
                 {!loading && players.length === 0 && (
                     <div className="text-center py-20">
-                        <div className="text-6xl mb-4">🏓</div>
+                        <div className="text-6xl mb-4">🏒</div>
                         <p className="text-gray-400 text-xl font-bold">No players yet.</p>
                         <p className="text-gray-600 mt-2">Be the first to compete!</p>
                     </div>

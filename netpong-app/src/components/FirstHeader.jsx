@@ -1,24 +1,5 @@
-import { Link } from 'react-router-dom';
-import { useState, useEffect, useRef } from 'react';
 
 export default function FirstHeader() {
-
-    const handleLogout = async () => {
-        try {
-            await fetch('/api/auth/logout', {
-                method: 'POST',
-                credentials: 'include',
-            });
-        } catch (error) {
-            console.error('Logout error:', error);
-        } finally {
-            
-            clearToken();
-            sessionStorage.removeItem('user');
-            setIsLoggedIn(false);
-            navigate('/login');
-        }
-    };
 
     return (
         <header className="sticky top-0 w-full bg-slate-900/95 backdrop-blur-md py-4 flex flex-col md:flex-row items-center justify-between px-4 md:px-6 z-50 shadow-lg border-b border-white/10 gap-4 md:gap-0">
