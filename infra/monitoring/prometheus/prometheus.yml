@@ -33,3 +33,10 @@ scrape_configs:
       - targets: ["status_service:3000"]
         labels:
           instance: "production-vm"
+
+  - job_name: "backend"
+    static_configs:
+      - targets: ["backend_api:3000"]
+        labels:
+          instance: "production-vm"
+    metrics_path: "/metrics"
