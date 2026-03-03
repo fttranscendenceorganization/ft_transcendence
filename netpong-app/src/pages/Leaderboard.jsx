@@ -21,7 +21,6 @@ function formatDate(iso) {
     });
 }
 
-
 function PlayerHistoryPanel({ player, onClose }) {
     const [history, setHistory] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -39,6 +38,7 @@ function PlayerHistoryPanel({ player, onClose }) {
         setFriendSent(false);
         setLoading(true);
 
+        // Uncomment this here houdaifa please when you handle the api to fecth
         // authFetch('/api/friends/status/' + player.id, { method: 'GET' })
         //     .then(r => r.ok ? r.json() : {})
         //     .then(data => {
@@ -70,18 +70,10 @@ function PlayerHistoryPanel({ player, onClose }) {
         return () => document.removeEventListener('keydown', handler);
     }, [onClose]);
 
-    // const handleAddFriend = async () => {
-    //     setFriendLoading(true);
-    //     try {
-    //         const res = await authFetch('/api/friends/request/' + player.id, { method: 'POST' });
-    //         if (res.ok) {
-    //             setFriendSent(true);
-    //         }
-    //     } catch (err) {
-    //         console.error('Friend request failed', err);
-    //     }
-    //     setFriendLoading(false);
-    // };
+    // This function should be created by houdaifa
+    const handleAddFriend = async () => {
+        // Her -----
+    };
 
     if (!player) return null;
 
@@ -148,7 +140,6 @@ function PlayerHistoryPanel({ player, onClose }) {
                 <div className="h-px bg-gradient-to-r from-transparent via-violet-500/50 to-transparent flex-shrink-0" />
 
                 <div className="flex-shrink-0 p-5 border-b border-white/[0.06]">
-
                     <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-3">
                             <img
@@ -192,12 +183,10 @@ function PlayerHistoryPanel({ player, onClose }) {
                     </div>
                 </div>
 
-                {/* Section label */}
                 <div className="flex-shrink-0 px-5 py-3">
                     <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-600">Last Matches</p>
                 </div>
 
-                {/* Scrollable match list */}
                 <div className="flex-1 overflow-y-auto px-4 pb-5 space-y-2">
                     {loading && [0, 1, 2, 3].map(i => (
                         <div key={i} className="h-16 bg-white/[0.03] rounded-xl animate-pulse" style={{ animationDelay: i * 60 + 'ms' }} />
@@ -259,9 +248,6 @@ function PlayerHistoryPanel({ player, onClose }) {
     );
 }
 
-// ---------------------------------------------------------------------------
-// Main Leaderboard — unchanged
-// ---------------------------------------------------------------------------
 export default function Leaderboard() {
     const navigate = useNavigate();
     const [players, setPlayers] = useState([]);
