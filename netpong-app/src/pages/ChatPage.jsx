@@ -6,9 +6,9 @@ import { getFriends, getBlockedUsers } from '../utils/userService';
 import ChatHeader from '../components/ChatHeader';
 import ChatSidebar from '../components/ChatSidebar';
 import MessageList from '../components/MessageList';
-import MessageInput from '../componentsMessageInput';
-import LiveMatchesSidebar from '../componentsLiveMatchesSidebar';
-import { BlockedListModal, ClearConfirmModal, ReactionDetailsModal } from './chat/ChatModals';
+import MessageInput from '../components/MessageInput';
+import LiveMatchesSidebar from '../components/LiveMatchesSidebar';
+import { BlockedListModal, ClearConfirmModal, ReactionDetailsModal } from '../components/ChatModals';
 
 function mapMessage(msg, currentUserId) {
     return {
