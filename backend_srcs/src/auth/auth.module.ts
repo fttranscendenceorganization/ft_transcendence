@@ -11,12 +11,14 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { GoogleStrategy } from './strategies/oauth/google.strategy';
 import { GithubStrategy } from './strategies/oauth/github.strategy';
 import { Intra42Strategy } from './strategies/oauth/intra42.strategy';
+import { MetricsModule } from 'src/metrics/metrics.module';
 
 @Module({
     imports : [
         ConfigModule,
         EmailModule,
         UserModule,
+        MetricsModule,
         JwtModule.registerAsync({
             imports: [ConfigModule],
             inject: [ConfigService],
