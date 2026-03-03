@@ -3,11 +3,11 @@ import { authFetch } from '../utils/api';
 import { getChatSocket } from '../utils/chatSocket';
 import { getFriends, getBlockedUsers } from '../utils/userService';
 
-import ChatHeader from './chat/ChatHeader';
-import ChatSidebar from './chat/ChatSidebar';
-import MessageList from './chat/MessageList';
-import MessageInput from './chat/MessageInput';
-import LiveMatchesSidebar from './chat/LiveMatchesSidebar';
+import ChatHeader from '../components/ChatHeader';
+import ChatSidebar from '../components/ChatSidebar';
+import MessageList from '../components/MessageList';
+import MessageInput from '../componentsMessageInput';
+import LiveMatchesSidebar from '../componentsLiveMatchesSidebar';
 import { BlockedListModal, ClearConfirmModal, ReactionDetailsModal } from './chat/ChatModals';
 
 function mapMessage(msg, currentUserId) {
