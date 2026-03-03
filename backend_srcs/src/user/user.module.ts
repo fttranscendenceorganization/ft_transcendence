@@ -5,13 +5,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Block } from './entities/block.entity';
 import { FriendRequest } from './entities/friend-request.entity';
+import { MetricsModule } from 'src/metrics/metrics.module';
 
 @Module({
-    imports : [TypeOrmModule.forFeature([User, Block, FriendRequest])],
-    controllers : [UserController],
-    providers : [UserService],
-    exports : [UserService],
+    imports: [TypeOrmModule.forFeature([User, Block, FriendRequest]), MetricsModule],
+    controllers: [UserController],
+    providers: [UserService],
+    exports: [UserService],
 })
-
-export class UserModule{};
-
+export class UserModule {}
