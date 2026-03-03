@@ -6,18 +6,20 @@ import { Message } from "./entities/message.entity";
 import { UserService } from "src/user/user.service";
 import { User } from "src/user/entities/user.entity";
 import { MessageReaction } from "./entities/message-reaction.entity";
+import { Logger } from "nestjs-pino";
+import { MetricsService } from "src/metrics/metrics.service";
 
 @Injectable()
 export class ChatService
 {
-    constructor (@InjectRepository(Conversation)
-                private readonly conversationrepo: Repository<Conversation>,
-                @InjectRepository(Message)
-                private readonly messagerepo: Repository<Message>,
-                @InjectRepository(MessageReaction)
-                private readonly reactionRepo: Repository<MessageReaction>,
-                private readonly userService: UserService
-            ){}
+    constructor(
+        @InjectRepository(Conversation) private readonly conversationrepo: Repository<Conversation>,
+        @InjectRepository(Message) private readonly messagerepo: Repository<Message>,
+        @InjectRepository(MessageReaction) private readonly reactionRepo: Repository<MessageReaction>,
+        private readonly userService: UserService,
+        private readonly logger: Logger,
+        private readonly metricsService: MetricsService,
+    ) {}
 
     async findOrCreateGlobalConversation(): Promise<Conversation>
     {
@@ -50,36 +52,30 @@ export class ChatService
 
     async findDmConversation(userId: string, recipientId: string): Promise<Conversation | null>
     {
-        
         const userConversations = await this.conversationrepo.find({
             where: { isGroup: false },
             relations: ['participants'],
         });
 
-        
         const found = userConversations.find(conv => {
             const participantIds = conv.participants.map(p => p.id).sort();
             const targetIds = [userId, recipientId].sort();
-            return participantIds.length === 2 && 
-                   participantIds[0] === targetIds[0] && 
+            return participantIds.length === 2 &&
+                   participantIds[0] === targetIds[0] &&
                    participantIds[1] === targetIds[1];
         });
 
         return found || null;
     }
 
-    
-
     async FindOrCreateDm(userId: string, recipientId: string): Promise<Conversation | null>
     {
-        if (!userId || userId === '0' || userId === 'undefined') {
+        if (!userId || userId === '0' || userId === 'undefined')
             throw new BadRequestException('Invalid user ID');
-        }
-        
-        if (!recipientId || recipientId === '0' || recipientId === 'undefined') {
+
+        if (!recipientId || recipientId === '0' || recipientId === 'undefined')
             throw new BadRequestException('Invalid recipient ID');
-        }
-        
+
         if (userId == recipientId)
             throw new BadRequestException('You cannot start a conversation with yourself.');
 
@@ -91,7 +87,6 @@ export class ChatService
         if (existingConversation)
             return existingConversation;
 
-    
         const blockStatus = await this.userService.checkBlockStatus(userId, recipientId);
         if (blockStatus === 'SENT_BY_ME')
             throw new BadRequestException('You must unblock this user to message them.');
@@ -102,14 +97,16 @@ export class ChatService
         const sender = await this.userService.findById(userId);
         if (!sender)
             throw new NotFoundException('Sender user not found');
-        
+
         const newChat = this.conversationrepo.create({
             isGroup: false,
             participants: [sender, recipient],
-        });    
-            
+        });
+
         const savedChat = await this.conversationrepo.save(newChat);
-        
+
+        this.logger.log('DM conversation created', { context: 'ChatService', userId, recipientId });
+
         return await this.conversationrepo.findOne({
             where: { id: savedChat.id },
             relations: ['participants'],
@@ -119,13 +116,12 @@ export class ChatService
     async findConversation(conversationId: string): Promise<Conversation | null>
     {
         const found = await this.conversationrepo.findOne({
-            where : { id:  conversationId },
-            relations : ['participants']
-
+            where: { id: conversationId },
+            relations: ['participants'],
         });
         return found;
     }
-    
+
     async getAllUsersExcept(currentUserId: string)
     {
         const result = await this.userService.findAll();
@@ -190,9 +186,8 @@ export class ChatService
                 relations: ['conversation', 'sender'],
             }) || undefined;
 
-            if (replyTo && replyTo.conversation.id !== conversationId) {
+            if (replyTo && replyTo.conversation.id !== conversationId)
                 throw new BadRequestException('Cannot reply to a message from another conversation');
-            }
         }
 
         const message = this.messagerepo.create({
@@ -211,6 +206,9 @@ export class ChatService
 
         if (!full)
             throw new InternalServerErrorException('Failed to load saved message');
+
+        this.logger.log('Message sent', { context: 'ChatService', userId, conversationId });
+        this.metricsService.incrementMessagesSent();
 
         return {
             id: full.id,
@@ -270,9 +268,8 @@ export class ChatService
 
         const where: any = { conversation: { id: conversationId } };
 
-        if (before) {
+        if (before)
             where.createdAt = LessThan(before);
-        }
 
         const messages = await this.messagerepo.find({
             where,
@@ -280,6 +277,7 @@ export class ChatService
             order: { createdAt: 'DESC' },
             take: limit,
         });
+
         const ordered = messages.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
 
         return ordered.map(msg => ({
@@ -312,10 +310,10 @@ export class ChatService
         }));
     }
 
-    async toggleReaction(userId: string, messageId: string, emoji: string) {
-        if (!emoji || !emoji.trim()) {
+    async toggleReaction(userId: string, messageId: string, emoji: string)
+    {
+        if (!emoji || !emoji.trim())
             throw new BadRequestException('Emoji is required');
-        }
 
         const message = await this.messagerepo.findOne({
             where: { id: messageId },
@@ -327,9 +325,8 @@ export class ChatService
 
         const conversation = message.conversation;
         const isMember = conversation.participants.some(p => p.id === userId);
-        if (!isMember) {
+        if (!isMember)
             throw new ForbiddenException('You are not a member of this chat');
-        }
 
         const user = await this.userService.findById(userId);
         if (!user)
@@ -344,14 +341,10 @@ export class ChatService
             relations: ['message', 'user'],
         });
 
-        if (existing) {
+        if (existing)
             await this.reactionRepo.remove(existing);
-        } else {
-            const reaction = this.reactionRepo.create({
-                message,
-                user,
-                emoji,
-            });
+        else {
+            const reaction = this.reactionRepo.create({ message, user, emoji });
             await this.reactionRepo.save(reaction);
         }
 
@@ -376,5 +369,4 @@ export class ChatService
             })),
         };
     }
-
 }

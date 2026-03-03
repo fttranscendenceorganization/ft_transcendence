@@ -10,6 +10,8 @@ import { PlayerStatusEnum } from "./types/player-status.enum";
 import { GameModeEnum } from "./types/game-mode.enum";
 import { GameStateType } from "./types/game-state.type";
 import { randomUUID } from 'crypto';
+import { Logger } from "nestjs-pino";
+import { MetricsService } from "src/metrics/metrics.service";
 
 @Injectable()
 export class GameService implements OnModuleDestroy {
@@ -17,6 +19,8 @@ export class GameService implements OnModuleDestroy {
         @InjectRepository(Game)
         private readonly gamerepo: Repository<Game>,
         private readonly userService: UserService,
+        private readonly logger: Logger,
+        private readonly metricsService: MetricsService,
     ) {
         this.physicsInterval = setInterval(() => {
             this.handleGamesUpdate();
@@ -37,19 +41,17 @@ export class GameService implements OnModuleDestroy {
         if (existingPlayer) {
             existingPlayer.socketId = socketId;
             existingPlayer.lastSeenAt = new Date();
-        }
-        else {
+        } else {
             const newPlayer: PlayerSessionType = {
                 userId: userId,
                 socketId: socketId,
                 status: PlayerStatusEnum.IDLE,
                 currentGameId: null,
                 lastSeenAt: new Date()
-            }
+            };
             this.players.set(userId, newPlayer);
         }
     }
-
 
     unregisterPlayer(userId: string) {
         const existingPlayer = this.players.get(userId);
@@ -57,7 +59,7 @@ export class GameService implements OnModuleDestroy {
         if (!existingPlayer)
             return;
 
-        console.log(`[GameService] Player ${userId} disconnected. Last status: ${existingPlayer.status}`);
+        this.logger.log('Player disconnected', { context: 'GameService', userId, status: existingPlayer.status });
 
         switch (existingPlayer.status) {
             case PlayerStatusEnum.IDLE:
@@ -69,7 +71,8 @@ export class GameService implements OnModuleDestroy {
                     const index = queue.indexOf(userId);
                     if (index !== -1) {
                         queue.splice(index, 1);
-                        console.log(`Removed ${userId} from ${mode} queue because of disconnect`);
+                        this.logger.log('Player removed from queue on disconnect', { context: 'GameService', userId, mode });
+                        this.metricsService.decrementQueueSize();
                     }
                 });
                 this.players.delete(userId);
@@ -96,7 +99,6 @@ export class GameService implements OnModuleDestroy {
         };
     }
 
-
     private handleGamesUpdate() {
         for (const [gameId, game] of this.games) {
             if (game.status === GameStatusEnum.IN_PROGRESS) {
@@ -122,13 +124,12 @@ export class GameService implements OnModuleDestroy {
             game.playerRight.isReady = true;
         if (userId === game.playerLeft.userId)
             game.playerLeft.isReady = true;
-        console.log(`[Game] Player ${userId} is ready.`);
 
         if (game.playerRight.isReady && game.playerLeft.isReady) {
             game.status = GameStatusEnum.IN_PROGRESS;
-            console.log(`[Game] Both players ready! Game ${game.id} is starting...`);
+            this.logger.log('Game started - both players ready', { context: 'GameService', gameId: game.id });
+            this.metricsService.incrementActiveGames();
         }
-
     }
 
     private updateGamePhysics(game: GameSessionType) {
@@ -137,8 +138,7 @@ export class GameService implements OnModuleDestroy {
         const { ballPosition, ballVelocity, score } = game.state;
         const { ballSpeed, ballRadius, paddleLeft, paddleRight, paddleRadius } = game.state;
 
-
-        const PADDLE_SPEED = 18
+        const PADDLE_SPEED = 18;
         function smoothPaddle(paddle) {
             if (paddle.targetX === undefined) return;
             const dx = paddle.targetX - paddle.x;
@@ -161,8 +161,7 @@ export class GameService implements OnModuleDestroy {
         if (ballPosition.y <= ballRadius) {
             ballVelocity.y *= -1;
             ballPosition.y = ballRadius;
-        }
-        else if (ballPosition.y >= 600 - ballRadius) {
+        } else if (ballPosition.y >= 600 - ballRadius) {
             ballVelocity.y *= -1;
             ballPosition.y = 600 - ballRadius;
         }
@@ -176,8 +175,7 @@ export class GameService implements OnModuleDestroy {
                 ballVelocity.x *= -1;
                 ballPosition.x = ballRadius;
             }
-        }
-        else if (ballPosition.x >= 1000 - ballRadius) {
+        } else if (ballPosition.x >= 1000 - ballRadius) {
             if (ballPosition.y > 200 && ballPosition.y < 400) {
                 score.left += 1;
                 this.resetBall(game.state);
@@ -192,26 +190,20 @@ export class GameService implements OnModuleDestroy {
         paddles.forEach(paddle => {
             const dx = ballPosition.x - paddle.x;
             const dy = ballPosition.y - paddle.y;
-
             const distance = Math.sqrt(dx * dx + dy * dy);
             const minDistance = ballRadius + paddleRadius;
 
             if (distance < minDistance) {
                 const nx = distance === 0 ? 1 : dx / distance;
                 const ny = distance === 0 ? 0 : dy / distance;
-
                 ballVelocity.x = nx * ballSpeed;
                 ballVelocity.y = ny * ballSpeed;
-
                 ballPosition.x = paddle.x + nx * minDistance;
                 ballPosition.y = paddle.y + ny * minDistance;
             }
         });
 
-        const currentSpeed = Math.sqrt(
-            ballVelocity.x * ballVelocity.x +
-            ballVelocity.y * ballVelocity.y
-        );
+        const currentSpeed = Math.sqrt(ballVelocity.x * ballVelocity.x + ballVelocity.y * ballVelocity.y);
         const MIN_BALL_SPEED = 6;
         if (currentSpeed > 0.5 && currentSpeed < MIN_BALL_SPEED) {
             const scale = MIN_BALL_SPEED / currentSpeed;
@@ -249,17 +241,13 @@ export class GameService implements OnModuleDestroy {
         paddle.targetY = valY;
     }
 
-
     private resetBall(state: GameStateType) {
         state.ballPosition.x = 500;
         state.ballPosition.y = 300;
-
         state.ballVelocity.x = 0;
         state.ballVelocity.y = 0;
-
         state.paddleLeft.y = 300;
         state.paddleLeft.x = 50;
-
         state.paddleRight.y = 300;
         state.paddleRight.x = 950;
     }
@@ -294,6 +282,10 @@ export class GameService implements OnModuleDestroy {
         if (game.status === GameStatusEnum.FINISHED || game.status === GameStatusEnum.ABORTED) return;
 
         game.status = GameStatusEnum.FINISHED;
+
+        this.logger.log('Game finished', { context: 'GameService', gameId, winnerUserId, score: game.state.score });
+        this.metricsService.decrementActiveGames();
+        this.metricsService.incrementGamesCompleted();
 
         if (this.notifyCallback) {
             const leftSocketId = this.getSocketId(game.playerLeft.userId);
@@ -332,7 +324,7 @@ export class GameService implements OnModuleDestroy {
                     game.mode,
                 );
             } catch (err) {
-                console.error(`[Game] Failed to update user stats for game ${game.id}:`, err);
+                this.logger.error('Failed to update user stats after game', { context: 'GameService', gameId, error: err });
             }
 
             const gameRecord = this.gamerepo.create({
@@ -347,22 +339,20 @@ export class GameService implements OnModuleDestroy {
                 playerBXpEarned,
             });
             await this.gamerepo.save(gameRecord);
-            console.log(`[Game] Game ${game.id} saved to database.`);
+            this.logger.log('Game saved to database', { context: 'GameService', gameId });
         } catch (error) {
-            console.error(`[Game] Failed to save game ${game.id}:`, error);
+            this.logger.error('Failed to save game to database', { context: 'GameService', gameId, error });
         }
     }
 
     private async abortGame(gameId: string, reason: string) {
         const game = this.games.get(gameId);
-        if (!game)
-            return;
-
-        if (game.status === GameStatusEnum.FINISHED || game.status === GameStatusEnum.ABORTED)
-            return;
+        if (!game) return;
+        if (game.status === GameStatusEnum.FINISHED || game.status === GameStatusEnum.ABORTED) return;
 
         game.status = GameStatusEnum.ABORTED;
-        console.log(`[Game] Game ${game.id} aborted. Reason: ${reason}`);
+        this.logger.warn('Game aborted', { context: 'GameService', gameId, reason });
+        this.metricsService.decrementActiveGames();
 
         if (this.notifyCallback) {
             const leftSocketId = this.getSocketId(game.playerLeft.userId);
@@ -379,7 +369,7 @@ export class GameService implements OnModuleDestroy {
             const userB = await this.userService.findById(game.playerRight.userId);
 
             if (!userA || !userB) {
-                console.error(`[Game] Could not find users for aborted game ${game.id}. Skipping persistence.`);
+                this.logger.error('Could not find users for aborted game', { context: 'GameService', gameId });
                 return;
             }
 
@@ -393,11 +383,9 @@ export class GameService implements OnModuleDestroy {
                 playerBScore: game.state.score.right,
             });
             await this.gamerepo.save(gameRecord);
-
-            console.log(`[Game] Aborted game ${game.id} saved to database.`);
-        }
-        catch (error) {
-            console.error(`[Game] Failed to save aborted game ${game.id}:`, error);
+            this.logger.log('Aborted game saved to database', { context: 'GameService', gameId });
+        } catch (error) {
+            this.logger.error('Failed to save aborted game', { context: 'GameService', gameId, error });
         }
     }
 
@@ -414,14 +402,12 @@ export class GameService implements OnModuleDestroy {
         this.finishGame(player.currentGameId, winnerId);
     }
 
-
     createGame(p1Id: string, p2Id: string, mode: GameModeEnum) {
         const gameId = randomUUID();
 
         const p1 = this.players.get(p1Id);
         const p2 = this.players.get(p2Id);
-        if (!p1 || !p2)
-            return;
+        if (!p1 || !p2) return;
 
         p1.status = PlayerStatusEnum.IN_GAME;
         p1.currentGameId = gameId;
@@ -433,42 +419,28 @@ export class GameService implements OnModuleDestroy {
             id: gameId,
             mode: mode,
             status: GameStatusEnum.READY_CHECK,
-            playerLeft: {
-                userId: p1Id,
-                isReady: false
-            },
-            playerRight: {
-                userId: p2Id,
-                isReady: false
-            },
+            playerLeft: { userId: p1Id, isReady: false },
+            playerRight: { userId: p2Id, isReady: false },
             state: this.getInitialState(),
-            config:
-            {
-                maxScore: 10,
-                map: 'classic'
-            }
-
+            config: { maxScore: 10, map: 'classic' }
         };
+
         this.games.set(gameId, newGame);
+        this.logger.log('Game created', { context: 'GameService', gameId, mode, p1Id, p2Id });
+
         setTimeout(() => {
             const activeGame = this.games.get(gameId);
             if (activeGame && activeGame.status === GameStatusEnum.READY_CHECK) {
-                console.log(`[Game] Game ${gameId} timed out during READY_CHECK.`);
+                this.logger.warn('Game timed out during ready check', { context: 'GameService', gameId });
                 this.abortGame(gameId, 'Ready check timed out');
             }
         }, 30000);
-
-        console.log(`Game ${gameId} created for ${mode} mode.`);
     }
 
     joinQueue(userId: string, mode: GameModeEnum) {
         const existingPlayer = this.players.get(userId);
-        if (!existingPlayer)
-            return;
-
-
-        if (existingPlayer.status !== PlayerStatusEnum.IDLE)
-            return;
+        if (!existingPlayer) return;
+        if (existingPlayer.status !== PlayerStatusEnum.IDLE) return;
 
         let specificQueue = this.matchmakingQueues.get(mode);
         if (!specificQueue) {
@@ -478,35 +450,37 @@ export class GameService implements OnModuleDestroy {
 
         existingPlayer.status = PlayerStatusEnum.IN_QUEUE;
         specificQueue.push(userId);
+        this.metricsService.incrementQueueSize();
+        this.logger.log('Player joined queue', { context: 'GameService', userId, mode });
 
         while (specificQueue.length >= 2) {
             const p1Id = specificQueue.shift();
             const p2Id = specificQueue.shift();
 
             if (p1Id && p2Id) {
+                this.metricsService.decrementQueueSize();
+                this.metricsService.decrementQueueSize();
                 this.createGame(p1Id, p2Id, mode);
-                console.log(`Matched ${mode}: ${p1Id} vs ${p2Id}`);
+                this.logger.log('Players matched', { context: 'GameService', mode, p1Id, p2Id });
             }
         }
     }
 
     leaveQueue(userId: string) {
         const player = this.players.get(userId);
-        if (!player || player.status !== PlayerStatusEnum.IN_QUEUE)
-            return;
+        if (!player || player.status !== PlayerStatusEnum.IN_QUEUE) return;
 
         this.matchmakingQueues.forEach((queue, mode) => {
             const index = queue.indexOf(userId);
             if (index !== -1) {
                 queue.splice(index, 1);
-                console.log(`[Game] Player ${userId} left ${mode} queue.`);
+                this.metricsService.decrementQueueSize();
+                this.logger.log('Player left queue', { context: 'GameService', userId, mode });
             }
         });
 
         player.status = PlayerStatusEnum.IDLE;
     }
-
-
 
     setBroadcastCallback(cb: (gameId: string, game: GameSessionType) => void) {
         this.broadcastCallback = cb;
@@ -514,11 +488,9 @@ export class GameService implements OnModuleDestroy {
 
     getPlayerGame(userId: string): GameSessionType | undefined {
         const player = this.players.get(userId);
-        if (!player || !player.currentGameId)
-            return undefined;
+        if (!player || !player.currentGameId) return undefined;
         return this.games.get(player.currentGameId);
     }
-
 
     getSocketId(userId: string): string | undefined {
         return this.players.get(userId)?.socketId;
@@ -526,27 +498,22 @@ export class GameService implements OnModuleDestroy {
 
     forfeitGame(userId: string) {
         const player = this.players.get(userId);
-        if (!player || !player.currentGameId)
-            return;
+        if (!player || !player.currentGameId) return;
 
         const game = this.games.get(player.currentGameId);
-        if (!game || game.status !== GameStatusEnum.IN_PROGRESS)
-            return;
+        if (!game || game.status !== GameStatusEnum.IN_PROGRESS) return;
 
         const winnerId = game.playerLeft.userId === userId
             ? game.playerRight.userId
             : game.playerLeft.userId;
 
+        this.logger.log('Player forfeited game', { context: 'GameService', userId, gameId: game.id });
         this.finishGame(game.id, winnerId);
     }
 
-
     async getPublicStats(userId: string) {
         const games = await this.gamerepo.find({
-            where: [
-                { playerA: { id: userId } },
-                { playerB: { id: userId } },
-            ],
+            where: [{ playerA: { id: userId } }, { playerB: { id: userId } }],
             relations: ['winner'],
         });
 
@@ -580,10 +547,7 @@ export class GameService implements OnModuleDestroy {
 
     async getPlayerStats(userId: string) {
         const games = await this.gamerepo.find({
-            where: [
-                { playerA: { id: userId } },
-                { playerB: { id: userId } },
-            ],
+            where: [{ playerA: { id: userId } }, { playerB: { id: userId } }],
             relations: ['winner'],
         });
 
@@ -605,5 +569,4 @@ export class GameService implements OnModuleDestroy {
 
         return { total, wins, losses, winRate, statsByMode };
     }
-
 }

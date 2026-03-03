@@ -32,6 +32,22 @@ const services = {
     liveness: "http://backend_api:3000/health",
     readiness: "http://backend_api:3000/health/ready",
   },
+  auth: {
+    liveness: "http://backend_api:3000/health",
+    readiness: null,
+  },
+  chat: {
+    liveness: "http://backend_api:3000/health",
+    readiness: null,
+  },
+  game: {
+    liveness: "http://backend_api:3000/health",
+    readiness: null,
+  },
+  user: {
+    liveness: "http://backend_api:3000/health",
+    readiness: null,
+  },
 };
 
 const cache = {};

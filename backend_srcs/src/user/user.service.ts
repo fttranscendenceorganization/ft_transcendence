@@ -5,17 +5,18 @@ import { CreateUserDto } from "./dto/create-user.dto";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Block } from "./entities/block.entity";
 import { FriendRequest } from "./entities/friend-request.entity";
+import { Logger } from "nestjs-pino";
+import { MetricsService } from "src/metrics/metrics.service";
 
 @Injectable()
 export class UserService {
     constructor(
-        @InjectRepository(User)
-        private readonly userrepo: Repository<User>,
-        @InjectRepository(Block)
-        private readonly blockrepo: Repository<Block>,
-        @InjectRepository(FriendRequest)
-        private readonly friendRequestRepo: Repository<FriendRequest>,
-    ) { }
+        @InjectRepository(User) private readonly userrepo: Repository<User>,
+        @InjectRepository(Block) private readonly blockrepo: Repository<Block>,
+        @InjectRepository(FriendRequest) private readonly friendRequestRepo: Repository<FriendRequest>,
+        private readonly logger: Logger,
+        private readonly metricsService: MetricsService,
+    ) {}
 
     async findAll(page = 1, limit = 20): Promise<{ items: User[]; total: number }> {
         const maxLimit = 100;
@@ -32,39 +33,27 @@ export class UserService {
     }
 
     async findByUsername(username: string): Promise<User | null> {
-        return await this.userrepo.findOne({
-            where: { username, isActive: true },
-        });
+        return await this.userrepo.findOne({ where: { username, isActive: true } });
     }
 
     async findById(id: string): Promise<User | null> {
-        return await this.userrepo.findOne({
-            where: { id, isActive: true },
-        });
+        return await this.userrepo.findOne({ where: { id, isActive: true } });
     }
 
     async findByEmail(email: string): Promise<User | null> {
-        return await this.userrepo.findOne({
-            where: { email, isActive: true },
-        });
+        return await this.userrepo.findOne({ where: { email, isActive: true } });
     }
 
     async findByGoogleId(googleId: string): Promise<User | null> {
-        return await this.userrepo.findOne({
-            where: { googleId, isActive: true },
-        });
+        return await this.userrepo.findOne({ where: { googleId, isActive: true } });
     }
 
     async findByGithubId(githubId: string): Promise<User | null> {
-        return await this.userrepo.findOne({
-            where: { githubId, isActive: true },
-        });
+        return await this.userrepo.findOne({ where: { githubId, isActive: true } });
     }
 
     async findByIntra42Id(intra42Id: string): Promise<User | null> {
-        return await this.userrepo.findOne({
-            where: { intra42Id, isActive: true },
-        });
+        return await this.userrepo.findOne({ where: { intra42Id, isActive: true } });
     }
 
     async updateGoogleUser(user: User, googleId: string, avatarUrl: string | null): Promise<User> {
@@ -127,11 +116,14 @@ export class UserService {
         lastName: string;
         avatarUrl: string | null;
     }): Promise<User> {
-
         const user = this.userrepo.create(data);
         try {
-            return await this.userrepo.save(user);
+            const saved = await this.userrepo.save(user);
+            this.logger.log('Google user created', { context: 'UserService', userId: saved.id });
+            this.metricsService.incrementUserRegistrations();
+            return saved;
         } catch (error) {
+            this.logger.error('Failed to create Google user', { context: 'UserService', error });
             throw new InternalServerErrorException('Failed to create user account');
         }
     }
@@ -146,8 +138,12 @@ export class UserService {
     }): Promise<User> {
         const user = this.userrepo.create(data);
         try {
-            return await this.userrepo.save(user);
+            const saved = await this.userrepo.save(user);
+            this.logger.log('Github user created', { context: 'UserService', userId: saved.id });
+            this.metricsService.incrementUserRegistrations();
+            return saved;
         } catch (error) {
+            this.logger.error('Failed to create Github user', { context: 'UserService', error });
             throw new InternalServerErrorException('Failed to create user account');
         }
     }
@@ -162,8 +158,12 @@ export class UserService {
     }): Promise<User> {
         const user = this.userrepo.create(data);
         try {
-            return await this.userrepo.save(user);
+            const saved = await this.userrepo.save(user);
+            this.logger.log('Intra42 user created', { context: 'UserService', userId: saved.id });
+            this.metricsService.incrementUserRegistrations();
+            return saved;
         } catch (error) {
+            this.logger.error('Failed to create Intra42 user', { context: 'UserService', error });
             throw new InternalServerErrorException('Failed to create user account');
         }
     }
@@ -180,12 +180,13 @@ export class UserService {
         const user = this.userrepo.create(createUserDto);
 
         try {
-            return await this.userrepo.save(user);
-        }
-        catch (error) {
-            if (error.code === '23505') {
+            const saved = await this.userrepo.save(user);
+            this.logger.log('Local user created', { context: 'UserService', userId: saved.id });
+            this.metricsService.incrementUserRegistrations();
+            return saved;
+        } catch (error) {
+            if (error.code === '23505')
                 throw new ConflictException('Username or email already exists');
-            }
             throw error;
         }
     }
@@ -200,8 +201,8 @@ export class UserService {
         const loseXP = loserScore * 0.5;
 
         winner.wins += 1;
-        winner.totalXp += winXP; 
-        winner.points += winXP;  
+        winner.totalXp += winXP;
+        winner.points += winXP;
 
         while (winner.points >= winner.level * 100) {
             winner.points -= winner.level * 100;
@@ -226,19 +227,11 @@ export class UserService {
     async checkBlockStatus(senderId: string, recipientId: string) {
         const block = await this.blockrepo
             .createQueryBuilder('block')
-            .where('(block.blockerId = :senderId AND block.blockedId = :recipientId)', {
-                senderId,
-                recipientId
-            })
-            .orWhere('(block.blockerId = :recipientId AND block.blockedId = :senderId)', {
-                senderId,
-                recipientId
-            })
+            .where('(block.blockerId = :senderId AND block.blockedId = :recipientId)', { senderId, recipientId })
+            .orWhere('(block.blockerId = :recipientId AND block.blockedId = :senderId)', { senderId, recipientId })
             .getOne();
 
-        if (!block)
-            return null;
-
+        if (!block) return null;
         return block.blockerId === senderId ? 'SENT_BY_ME' : 'SENT_BY_THEM';
     }
 
@@ -246,20 +239,14 @@ export class UserService {
         if (blockerId === blockedId)
             throw new BadRequestException('You cannot block yourself');
 
-        const existing = await this.blockrepo.findOne({
-            where: { blockerId, blockedId },
-        });
+        const existing = await this.blockrepo.findOne({ where: { blockerId, blockedId } });
+        if (existing) return;
 
-        if (existing)
-            return;
-
-        const block = this.blockrepo.create({
-            blockerId,
-            blockedId,
-        });
+        const block = this.blockrepo.create({ blockerId, blockedId });
 
         try {
             await this.blockrepo.save(block);
+            this.logger.log('User blocked', { context: 'UserService', blockerId, blockedId });
         } catch (error) {
             throw new InternalServerErrorException('Failed to block user');
         }
@@ -267,6 +254,7 @@ export class UserService {
 
     async unblockUser(blockerId: string, blockedId: string): Promise<void> {
         await this.blockrepo.delete({ blockerId, blockedId });
+        this.logger.log('User unblocked', { context: 'UserService', blockerId, blockedId });
     }
 
     async getBlockedUsers(blockerId: string): Promise<User[]> {
@@ -275,9 +263,7 @@ export class UserService {
             relations: ['blocked'],
         });
 
-        return blocks
-            .map((block) => block.blocked)
-            .filter((user): user is User => !!user);
+        return blocks.map((block) => block.blocked).filter((user): user is User => !!user);
     }
 
     async sendFriendRequest(requesterId: string, targetUsername: string) {
@@ -332,6 +318,7 @@ export class UserService {
             status: 'PENDING',
         });
 
+        this.logger.log('Friend request sent', { context: 'UserService', requesterId, targetId: target.id });
         return await this.friendRequestRepo.save(friendRequest);
     }
 
@@ -343,30 +330,22 @@ export class UserService {
             ],
         });
 
-        if (!requests.length)
-            return [];
+        if (!requests.length) return [];
 
         const friendIds = requests.map((req) =>
             req.requesterId === userId ? req.receiverId : req.requesterId,
         );
 
         const uniqueFriendIds = Array.from(new Set(friendIds));
-
-        const friends = await this.userrepo.find({
-            where: { id: In(uniqueFriendIds), isActive: true },
-        });
-
-        return friends;
+        return await this.userrepo.find({ where: { id: In(uniqueFriendIds), isActive: true } });
     }
 
     async getIncomingFriendRequests(userId: string) {
-        const requests = await this.friendRequestRepo.find({
+        return await this.friendRequestRepo.find({
             where: { receiverId: userId, status: 'PENDING' },
             relations: ['requester'],
             order: { createdAt: 'DESC' },
         });
-
-        return requests;
     }
 
     async respondToFriendRequest(userId: string, requestId: string, action: 'ACCEPT' | 'REJECT') {
@@ -387,6 +366,7 @@ export class UserService {
         else
             throw new BadRequestException('Invalid action');
 
+        this.logger.log('Friend request responded', { context: 'UserService', userId, requestId, action });
         return await this.friendRequestRepo.save(request);
     }
-};
+}

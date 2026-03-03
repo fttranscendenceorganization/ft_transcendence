@@ -7,19 +7,16 @@ import { ChatController } from './chat.controller';
 import { ChatService } from './chat.service';
 import { UserModule } from 'src/user/user.module';
 import { ChatGateway } from './chat.gateway';
-
+import { MetricsModule } from 'src/metrics/metrics.module';
 
 @Module({
-  
     imports: [
       TypeOrmModule.forFeature([Conversation, Message, MessageReaction]),
-      UserModule
+      UserModule,
+      MetricsModule,
     ],
-  
     controllers: [ChatController],
-
     providers: [ChatService, ChatGateway],
-
-    exports: [] 
+    exports: []
 })
 export class ChatModule {}
