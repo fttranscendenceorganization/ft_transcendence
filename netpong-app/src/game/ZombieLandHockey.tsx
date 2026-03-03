@@ -32,19 +32,19 @@ const WORLD_H = 600;
 const BALL_RADIUS = 25;
 const PADDLE_RADIUS = 45;
 
-interface AirHockeyCanvasProps {
+interface ZombieLandHockeyProps {
     side: 'left' | 'right';
     socket: Socket;
     onGameOver: (data: { winnerId: string; score: { left: number; right: number } }) => void;
     onGameAborted: (data: { reason: string }) => void;
 }
 
-export default function AirHockeyCanvas({
+export default function ZombieLandHockey({
     side,
     socket,
     onGameOver,
     onGameAborted,
-}: AirHockeyCanvasProps) {
+}: ZombieLandHockeyProps) {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
     useEffect(() => {

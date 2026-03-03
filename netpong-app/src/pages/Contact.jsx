@@ -6,7 +6,6 @@ export default function Contact() {
         document.title = "Contact us - NetPong";
     }, []);
 
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const dropdownRef = useRef(null);
 
     useEffect(() => {
