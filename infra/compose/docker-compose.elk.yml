@@ -22,6 +22,8 @@ services:
     user: root
     env_file:
       - /etc/netpong/elk.env
+    environment:
+      - xpack.monitoring.enabled=false
     volumes:
       - ../elk/logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
       - /var/lib/docker/containers:/var/log/docker_logs:ro
