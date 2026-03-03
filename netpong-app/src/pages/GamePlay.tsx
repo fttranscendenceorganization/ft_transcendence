@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { authFetch } from '../utils/api';
 import { getFriends, sendFriendRequest } from '../utils/userService';
 import { getGameSocket, disconnectGameSocket } from '../utils/gameSocket';
-import AirHockeyCanvas from '../game/AirHockeyCanvas';
+import ZombieLandHockey from '../game/ZombieLandHockey';
 import { getUserById } from '../utils/getUserById';
 
 type BackendGameMode = 'SOUL_SOCIETY' | 'ZOMBIE_LAND' | 'BARBIE_PINK' | 'JOKER';
@@ -484,7 +484,7 @@ export default function GamePlay() {
                             className="aspect-video min-h-[250px] sm:min-h-[350px] md:min-h-[450px] rounded-2xl overflow-hidden border-2 border-green-500/20"
                             style={{ boxShadow: '0 0 40px rgba(74,222,128,0.2)' }}
                         >
-                            <AirHockeyCanvas
+                            <ZombieLandHockey
                                 side={side}
                                 socket={socketRef.current}
                                 onGameOver={handleGameOver}

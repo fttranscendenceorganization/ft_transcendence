@@ -1,6 +1,6 @@
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import LoginHeader from '../components/loginHeader';
+import LoginHeader from '../components/LoginHeader';
 
 export default function ResetPassword() {
     const [searchParams] = useSearchParams();

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import {useEffect } from 'react';
 import FirstHeader from '../components/FirstHeader';
 
 export default function FirstContact() {
