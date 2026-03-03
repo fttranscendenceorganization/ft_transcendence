@@ -35,6 +35,7 @@ scrape_configs:
           instance: "production-vm"
 
   - job_name: "backend"
+    scrape_interval: 1s
     static_configs:
       - targets: ["backend_api:3000"]
         labels:
