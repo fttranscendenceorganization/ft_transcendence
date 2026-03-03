@@ -12,6 +12,8 @@ import { ConfigService } from '@nestjs/config';
 import { OauthUserPayload } from './strategies/oauth/dto/oauth-user.payload';
 import { EmailService } from 'src/email/email.service';
 import * as crypto from 'crypto';
+import { Logger } from 'nestjs-pino';
+import { MetricsService } from 'src/metrics/metrics.service';
 
 
 @Injectable()
@@ -20,6 +22,8 @@ export class AuthService {
         private readonly jwtService: JwtService,
         private readonly config: ConfigService,
         private readonly emailService: EmailService,
+        private readonly logger: Logger,
+        private readonly metricsService: MetricsService
     ) { }
 
     async validateUser(emailOrusername: string, password: string): Promise<User | null> {
@@ -29,14 +33,21 @@ export class AuthService {
             if (!user)
                 return null;
         }
-        
+
         if (!user.password) {
+            this.logger.warn('Login failed - oauth account has no password', { context: 'AuthService', emailOrusername });
+            this.metricsService.incrementLoginAttempt('local', 'failure');
             return null;
         }
-        
+
         const isPasswordMatch = await bcrypt.compare(password, user.password);
-        if (!isPasswordMatch)
+        if (!isPasswordMatch) {
+            this.logger.warn('Login failed - wrong password', { context: 'AuthService', emailOrusername });
+            this.metricsService.incrementLoginAttempt('local', 'failure');
             return null;
+        }
+        this.logger.log('Local login validated', { context: 'AuthService', userId: user.id });
+        this.metricsService.incrementLoginAttempt('local', 'success');
         return user;
     }
 
@@ -85,10 +96,14 @@ export class AuthService {
     async ValidateGoogleUser(googleUser: OauthUserPayload): Promise<User> {
         let user = await this.userService.findByGoogleId(googleUser.providerId);
         if (user) {
+            this.logger.log('Google OAuth user logged in', { context: 'AuthService', userId: user.id });
+            this.metricsService.incrementLoginAttempt('google', 'success');
             return await this.userService.updateGoogleUser(user, googleUser.providerId, googleUser.avatarUrl);
         }
         user = await this.userService.findByEmail(googleUser.email);
         if (user) {
+            this.logger.log('Google OAuth user logged in', { context: 'AuthService', userId: user.id });
+            this.metricsService.incrementLoginAttempt('google', 'success');
             return await this.userService.updateGoogleUser(user, googleUser.providerId, googleUser.avatarUrl);
         }
 
@@ -118,17 +133,23 @@ export class AuthService {
             lastName: googleUser.lastName,
             avatarUrl: googleUser.avatarUrl,
         });
-
+        this.logger.log('Google OAuth user created', { context: 'AuthService', userId: newUser.id });
+        this.metricsService.incrementLoginAttempt('google', 'success');
+        this.metricsService.incrementUserRegistrations();
         return newUser;
     }
 
     async ValidateGithubUser(githubUser: OauthUserPayload): Promise<User> {
         let user = await this.userService.findByGithubId(githubUser.providerId);
         if (user) {
+            this.logger.log('Github OAuth user logged in', { context: 'AuthService', userId: user.id });
+            this.metricsService.incrementLoginAttempt('Github', 'success');
             return await this.userService.updateGithubUser(user, githubUser.providerId, githubUser.avatarUrl);
         }
         user = await this.userService.findByEmail(githubUser.email);
         if (user) {
+            this.logger.log('Github OAuth user logged in', { context: 'AuthService', userId: user.id });
+            this.metricsService.incrementLoginAttempt('Github', 'success');
             return await this.userService.updateGithubUser(user, githubUser.providerId, githubUser.avatarUrl);
         }
 
@@ -158,17 +179,23 @@ export class AuthService {
             lastName: githubUser.lastName,
             avatarUrl: githubUser.avatarUrl,
         });
-
+        this.logger.log('Github OAuth user created', { context: 'AuthService', userId: newUser.id });
+        this.metricsService.incrementLoginAttempt('Github', 'success');
+        this.metricsService.incrementUserRegistrations();
         return newUser;
     }
 
     async ValidateIntra42User(intra42User: OauthUserPayload): Promise<User> {
         let user = await this.userService.findByIntra42Id(intra42User.providerId);
         if (user) {
+            this.logger.log('Intra42 OAuth user logged in', { context: 'AuthService', userId: user.id });
+            this.metricsService.incrementLoginAttempt('Intra42', 'success');
             return await this.userService.updateIntra42User(user, intra42User.providerId, intra42User.avatarUrl);
         }
         user = await this.userService.findByEmail(intra42User.email);
         if (user) {
+            this.logger.log('Intra42 OAuth user logged in', { context: 'AuthService', userId: user.id });
+            this.metricsService.incrementLoginAttempt('Intra42', 'success');
             return await this.userService.updateIntra42User(user, intra42User.providerId, intra42User.avatarUrl);
         }
 
@@ -198,12 +225,15 @@ export class AuthService {
             lastName: intra42User.lastName,
             avatarUrl: intra42User.avatarUrl,
         });
-
+        this.logger.log('Intra42 OAuth user created', { context: 'AuthService', userId: newUser.id });
+        this.metricsService.incrementLoginAttempt('Intra42', 'success');
+        this.metricsService.incrementUserRegistrations();
         return newUser;
     }
 
     async logout(user: User): Promise<void> {
         await this.userService.updateRefreshToken(user.id, null);
+        this.logger.log('User logged out', { context: 'AuthService', userId: user.id });
     }
 
     async isRefreshTokenValid(inputRefrshToken: string | null, userRefreshTokenHash: string | null): Promise<boolean> {
@@ -227,6 +257,7 @@ export class AuthService {
 
         await this.userService.setResetPasswordToken(user, tokenHash, expiresAt);
         await this.emailService.sendPasswordResetEmail(normalizedEmail, token);
+        this.logger.log('Password reset email sent', { context: 'AuthService', email: normalizedEmail });
     }
 
     async resetPassword(token: string, newPassword: string): Promise<void> {
@@ -237,6 +268,7 @@ export class AuthService {
             throw new BadRequestException('Invalid or expired reset token');
 
         await this.userService.updatePasswordAfterReset(user, newPassword);
+        this.logger.log('Password reset completed', { context: 'AuthService' });
     }
 
     private hashResetToken(token: string): string {
@@ -247,7 +279,7 @@ export class AuthService {
         const prefix = email.split('@')[0];
         return prefix.replace(/[^\w]/g, '');
     }
-    
+
     parseDurationToMs(duration: string | number | undefined): number {
         if (typeof duration === 'number')
             return duration;

@@ -14,6 +14,7 @@ import { JwtService } from "@nestjs/jwt";
 import { GameModeEnum } from "./types/game-mode.enum";
 import { OnModuleInit } from "@nestjs/common";
 import { GameSessionType } from "./types/game-session.type";
+import { Logger } from "nestjs-pino";
 
 @WebSocketGateway({
     cors: {
@@ -29,7 +30,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
     constructor(
         private readonly gameService: GameService,
-        private readonly configService: ConfigService
+        private readonly configService: ConfigService,
+        private readonly logger: Logger,
     ) {
         const secret = this.configService.get<string>('JWT_ACCESS_SECRET');
         this.jwtService = new JwtService({ secret });
@@ -40,10 +42,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
             const leftSocketId = this.gameService.getSocketId(game.playerLeft.userId);
             const rightSocketId = this.gameService.getSocketId(game.playerRight.userId);
 
-            if (leftSocketId)
-                this.server.to(leftSocketId).emit('gameState', game.state);
-            if (rightSocketId)
-                this.server.to(rightSocketId).emit('gameState', game.state);
+            if (leftSocketId) this.server.to(leftSocketId).emit('gameState', game.state);
+            if (rightSocketId) this.server.to(rightSocketId).emit('gameState', game.state);
         });
 
         this.gameService.setNotifyCallback((socketId: string, event: string, data: any) => {
@@ -68,15 +68,11 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
                 return;
             }
 
-            client.data.user = {
-                id: userId,
-                username: payload.username
-            };
-
+            client.data.user = { id: userId, username: payload.username };
             this.gameService.registerPlayer(userId, client.id);
-            console.log(`[Gateway] Player ${userId} connected. Socket: ${client.id}`);
-        }
-        catch (error) {
+            this.logger.log('Player connected to game', { context: 'GameGateway', userId });
+        } catch (error) {
+            this.logger.warn('Unauthorized game WebSocket connection attempt', { context: 'GameGateway' });
             client.disconnect(true);
         }
     }
@@ -85,7 +81,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
         const user = client.data?.user;
         if (user?.id) {
             this.gameService.unregisterPlayer(user.id);
-            console.log(`[Gateway] Player ${user.id} disconnected.`);
+            this.logger.log('Player disconnected from game', { context: 'GameGateway', userId: user.id });
         }
     }
 
@@ -104,7 +100,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
         this.gameService.joinQueue(userId, data.mode);
         client.emit('queueJoined', { mode: data.mode });
-
 
         const game = this.gameService.getPlayerGame(userId);
         if (game) {
@@ -160,6 +155,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
         this.gameService.updatePaddlePosition(game, userId, data.x, data.y);
     }
+
     @SubscribeMessage('forfeit')
     handleForfeit(@ConnectedSocket() client: Socket) {
         const userId = client.data?.user?.id;

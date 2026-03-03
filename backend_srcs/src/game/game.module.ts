@@ -6,12 +6,14 @@ import { GameService } from "./game.service";
 import { GameGateway } from "./game.gateway";
 import { ConfigModule } from "@nestjs/config";
 import { GameController } from "./game.controller";
+import { MetricsModule } from "src/metrics/metrics.module";
 
 @Module({
     imports: [
         TypeOrmModule.forFeature([Game]),
         UserModule,
         ConfigModule,
+        MetricsModule,
     ],
     controllers: [GameController],
     providers: [GameService, GameGateway],

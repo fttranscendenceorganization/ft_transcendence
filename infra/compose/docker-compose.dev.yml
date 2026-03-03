@@ -1,6 +1,6 @@
 include:
-  - path: ./docker-compose.elk.yml
-  - path: ./docker-compose.monitoring.yml
+  # - path: ./docker-compose.elk.yml
+  # - path: ./docker-compose.monitoring.yml
 services:
   nginx:
     build: ../nginx

@@ -3,13 +3,14 @@ import { Server, Socket } from "socket.io";
 import { ChatService } from "./chat.service";
 import { JwtService } from "@nestjs/jwt";
 import { ConfigService } from "@nestjs/config";
-
+import { Logger } from "nestjs-pino";
+import { MetricsService } from "src/metrics/metrics.service";
 
 @WebSocketGateway({ cors: true })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect
 {
     @WebSocketServer()
-		server: Server;
+    server: Server;
 
     private readonly jwtService: JwtService;
     private readonly onlineUsers: Map<string, Set<string>> = new Map();
@@ -17,7 +18,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect
     constructor(
         private readonly chatService: ChatService,
         private readonly configService: ConfigService,
-    ){
+        private readonly logger: Logger,
+        private readonly metricsService: MetricsService,
+    ) {
         const secret = this.configService.get<string>('JWT_ACCESS_SECRET');
         this.jwtService = new JwtService({ secret });
     }
@@ -56,8 +59,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect
             if (wasOffline)
             {
                 this.server.emit('presenceUpdate', { userId, isOnline: true });
+                this.logger.log('User connected to chat', { context: 'ChatGateway', userId });
+                this.metricsService.incrementWsConnections();
             }
         } catch (error) {
+            this.logger.warn('Unauthorized WebSocket connection attempt', { context: 'ChatGateway' });
             client.disconnect(true);
         }
     }
@@ -80,6 +86,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect
         {
             this.onlineUsers.delete(userId);
             this.server.emit('presenceUpdate', { userId, isOnline: false });
+            this.logger.log('User disconnected from chat', { context: 'ChatGateway', userId });
+            this.metricsService.decrementWsConnections();
         }
     }
 
@@ -128,5 +136,4 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect
 
         this.server.to(result.conversationId).emit('messageReactionUpdate', result);
     }
-
 }
