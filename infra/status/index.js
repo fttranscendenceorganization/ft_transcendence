@@ -34,19 +34,23 @@ const services = {
   },
   auth: {
     liveness: "http://backend_api:3000/health",
-    readiness: null,
+    readiness: "http://backend_api:3000/auth/me",
+    readinessExpectedStatus: 401,
   },
   chat: {
     liveness: "http://backend_api:3000/health",
-    readiness: null,
+    readiness: "http://backend_api:3000/chat/conversations",
+    readinessExpectedStatus: null,
   },
   game: {
     liveness: "http://backend_api:3000/health",
-    readiness: null,
+    readiness: "http://backend_api:3000/game/active",
+    readinessExpectedStatus: 401,
   },
   user: {
     liveness: "http://backend_api:3000/health",
-    readiness: null,
+    readiness: "http://backend_api:3000/users/me",
+    readinessExpectedStatus: 401,
   },
 };
 
@@ -61,7 +65,11 @@ async function checkService(cfg) {
       try {
         await axios.get(cfg.readiness, { timeout: 2000 });
         return "UP";
-      } catch {
+      } catch (err) {
+        const status = err?.response?.status;
+        if (cfg.readinessExpectedStatus && status === cfg.readinessExpectedStatus) {
+          return "UP";
+        }
         return "DEGRADED";
       }
     }
