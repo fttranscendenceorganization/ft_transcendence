@@ -1,4 +1,4 @@
-import { logout } from '../../utils/api';
+import { logout } from '../utils/api';
 
 export default function ChatHeader({ blockedCount, onClear, onToggleBlocked }) {
     return (
