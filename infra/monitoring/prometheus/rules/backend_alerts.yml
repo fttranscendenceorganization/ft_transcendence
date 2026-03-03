@@ -1,0 +1,21 @@
+groups:
+- name: backend-alerts
+  rules:
+
+  - alert: BackendMetricsDown
+    expr: up{job="backend"} == 0
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Backend metrics unreachable"
+      description: "Prometheus cannot scrape /metrics from backend_api."
+
+  - alert: HighLoginFailureRate
+    expr: rate(auth_login_attempts_total{status="failure"}[5m]) / (rate(auth_login_attempts_total[5m]) + 0.001) > 0.5
+    for: 2m
+    labels:
+      severity: warning
+    annotations:
+      summary: "High login failure rate"
+      description: "More than 50% of login attempts are failing."
