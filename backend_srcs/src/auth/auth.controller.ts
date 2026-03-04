@@ -1,14 +1,17 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Post, Req, Request, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Patch, Post, Req, Request, Res, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthService } from './auth.service';
 import { AuthGuard } from '@nestjs/passport';
 import { User } from 'src/user/entities/user.entity';
 import { AuthResponseDto } from './dto/auth-response.dto';
 import { UserResponseDto } from 'src/user/dto/user-response.dto';
+import { UpdateProfileDto } from 'src/user/dto/update-profile.dto';
 import { plainToInstance } from 'class-transformer';
 import type { Response } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { UserService } from 'src/user/user.service';
 
 type ResponseWithCookie = Response & {
     cookie: (name: string, val: string, options?: Record<string, unknown>) => void;
@@ -20,7 +23,8 @@ type ResponseWithCookie = Response & {
 
 export class AuthController {
     constructor(private readonly authService: AuthService,
-        private readonly config: ConfigService
+        private readonly config: ConfigService,
+        private readonly userService: UserService,
     ) { }
 
     @UseGuards(AuthGuard('local'))
@@ -189,6 +193,30 @@ export class AuthController {
         })
 
         return userResponseDto;
+    }
+
+    @UseGuards(AuthGuard('jwt'))
+    @Patch('profile')
+    @UseInterceptors(FileInterceptor('avatar', {
+        limits: { fileSize: 5 * 1024 * 1024 },
+        fileFilter: (_req, file, cb) => {
+            if (!file.mimetype.startsWith('image/')) {
+                cb(new Error('Only image files are allowed'), false);
+            } else {
+                cb(null, true);
+            }
+        },
+    }))
+    async updateProfile(
+        @Request() req,
+        @UploadedFile() avatarFile: Express.Multer.File,
+        @Body() dto: UpdateProfileDto,
+    ): Promise<UserResponseDto> {
+        const user: User = req.user;
+        const updated = await this.userService.updateProfile(user.id, dto, avatarFile);
+        return plainToInstance(UserResponseDto, updated, {
+            excludeExtraneousValues: true,
+        });
     }
 
 };
