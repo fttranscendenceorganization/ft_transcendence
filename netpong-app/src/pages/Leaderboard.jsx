@@ -194,7 +194,7 @@ function PlayerHistoryPanel({ player, onClose }) {
 
                     {!loading && history.length === 0 && (
                         <div className="py-12 text-center">
-                            <p className="text-4xl mb-2">🏓</p>
+                            <p className="text-4xl mb-2">🏒</p>
                             <p className="text-gray-600 text-sm">No matches yet</p>
                         </div>
                     )}
