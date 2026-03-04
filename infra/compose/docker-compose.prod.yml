@@ -40,6 +40,8 @@ services:
       driver: "json-file"
       options:
         tag: "backend_api"
+    volumes:
+      - avatar_data:/app/uploads/avatars
     networks:
       - internal_net
     depends_on:
@@ -85,6 +87,7 @@ services:
 
 volumes:
   db_data:
+  avatar_data:
 
 networks:
   public_net:

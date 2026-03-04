@@ -30,14 +30,20 @@ export async function authFetch(url, options = {}) {
   }
 
   const makeRequest = async () => {
+    const headers = {
+      ...(options.headers || {}),
+      Authorization: `Bearer ${token}`,
+    };
+
+    // Don't set Content-Type for FormData — the browser sets it with the boundary
+    if (!(options.body instanceof FormData)) {
+      headers['Content-Type'] = 'application/json';
+    }
+
     const res = await fetch(url, {
       ...options,
       credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(options.headers || {}),
-        Authorization: `Bearer ${token}`,
-      },
+      headers,
     });
     return res;
   };
