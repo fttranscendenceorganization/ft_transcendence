@@ -401,7 +401,6 @@ export class UserService {
             const filename = `${userId}${ext}`;
             const filepath = path.join(uploadDir, filename);
 
-            // Delete any existing avatar files for this user
             const existingFiles = fs.readdirSync(uploadDir).filter(f => f.startsWith(userId));
             for (const f of existingFiles) {
                 try { fs.unlinkSync(path.join(uploadDir, f)); } catch {}
@@ -409,10 +408,7 @@ export class UserService {
 
             fs.writeFileSync(filepath, avatarFile.buffer);
             user.avatarUrl = `/uploads/avatars/${filename}`;
-            this.logger.log('Avatar uploaded', { context: 'UserService', userId, filename });
         } else if (dto.avatarUrl !== undefined) {
-            // User provided a URL instead of a file
-            // Delete any existing uploaded avatar file
             const uploadDir = '/app/uploads/avatars';
             if (fs.existsSync(uploadDir)) {
                 const existingFiles = fs.readdirSync(uploadDir).filter(f => f.startsWith(userId));
@@ -425,7 +421,6 @@ export class UserService {
 
         try {
             const saved = await this.userrepo.save(user);
-            this.logger.log('Profile updated', { context: 'UserService', userId });
             return saved;
         } catch (error) {
             if (error.code === '23505')
