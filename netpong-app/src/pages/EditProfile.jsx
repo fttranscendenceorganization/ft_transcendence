@@ -2,9 +2,168 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authFetch } from '../utils/api';
 
+function AvatarModal({ isOpen, onClose, onUploadFile, onSubmitUrl }) {
+    const [tab, setTab] = useState('upload');
+    const [urlValue, setUrlValue] = useState('');
+    const [urlError, setUrlError] = useState('');
+    const [dragActive, setDragActive] = useState(false);
+    const fileInputRef = useRef(null);
+
+    if (!isOpen) return null;
+
+    const handleFileSelect = (e) => {
+        const file = e.target.files[0];
+        if (file) validateAndSubmitFile(file);
+    };
+
+    const handleDrop = (e) => {
+        e.preventDefault();
+        setDragActive(false);
+        const file = e.dataTransfer.files[0];
+        if (file) validateAndSubmitFile(file);
+    };
+
+    const validateAndSubmitFile = (file) => {
+        if (!file.type.startsWith('image/')) {
+            return;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+            return;
+        }
+        onUploadFile(file);
+        onClose();
+    };
+
+    const handleUrlSubmit = () => {
+        setUrlError('');
+        if (!urlValue.trim()) {
+            setUrlError('Please enter a URL');
+            return;
+        }
+        try {
+            new URL(urlValue.trim());
+        } catch {
+            setUrlError('Please enter a valid URL');
+            return;
+        }
+        onSubmitUrl(urlValue.trim());
+        setUrlValue('');
+        onClose();
+    };
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={onClose}>
+            <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+            <div
+                className="relative bg-slate-900 border border-white/20 rounded-2xl p-6 w-full max-w-md mx-4 shadow-2xl"
+                onClick={(e) => e.stopPropagation()}
+            >
+                <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-xl font-bold text-white">Change Avatar</h2>
+                    <button
+                        onClick={onClose}
+                        className="text-gray-400 hover:text-white transition-colors p-1"
+                    >
+                        <svg className="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                {/* Tabs */}
+                <div className="flex gap-2 mb-6">
+                    <button
+                        onClick={() => setTab('upload')}
+                        className={`flex-1 py-2.5 px-4 rounded-lg font-bold text-sm transition-all duration-300 ${
+                            tab === 'upload'
+                                ? 'bg-orange-600 text-white shadow-lg shadow-orange-600/30'
+                                : 'bg-slate-700 text-gray-300 hover:bg-slate-600'
+                        }`}
+                    >
+                        <span className="flex items-center justify-center gap-2">
+                            <svg className="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
+                            </svg>
+                            Upload File
+                        </span>
+                    </button>
+                    <button
+                        onClick={() => setTab('url')}
+                        className={`flex-1 py-2.5 px-4 rounded-lg font-bold text-sm transition-all duration-300 ${
+                            tab === 'url'
+                                ? 'bg-violet-600 text-white shadow-lg shadow-violet-600/30'
+                                : 'bg-slate-700 text-gray-300 hover:bg-slate-600'
+                        }`}
+                    >
+                        <span className="flex items-center justify-center gap-2">
+                            <svg className="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" />
+                            </svg>
+                            Image URL
+                        </span>
+                    </button>
+                </div>
+
+                {/* Upload Tab */}
+                {tab === 'upload' && (
+                    <div>
+                        <div
+                            className={`border-2 border-dashed rounded-xl p-8 text-center transition-all duration-300 cursor-pointer ${
+                                dragActive
+                                    ? 'border-orange-500 bg-orange-500/10'
+                                    : 'border-slate-600 hover:border-orange-500/50 hover:bg-slate-800/50'
+                            }`}
+                            onClick={() => fileInputRef.current?.click()}
+                            onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
+                            onDragLeave={() => setDragActive(false)}
+                            onDrop={handleDrop}
+                        >
+                            <svg className="w-12 h-12 text-gray-400 mx-auto mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z" />
+                            </svg>
+                            <p className="text-white font-bold mb-1">Click or drag & drop</p>
+                            <p className="text-gray-400 text-sm">JPG, PNG, GIF — Max 5MB</p>
+                        </div>
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/*"
+                            onChange={handleFileSelect}
+                            className="hidden"
+                        />
+                    </div>
+                )}
+
+                {/* URL Tab */}
+                {tab === 'url' && (
+                    <div>
+                        <label className="block text-sm font-bold text-gray-300 mb-2">Image URL</label>
+                        <input
+                            type="url"
+                            value={urlValue}
+                            onChange={(e) => { setUrlValue(e.target.value); setUrlError(''); }}
+                            placeholder="https://example.com/avatar.png"
+                            className="w-full bg-slate-700 text-white placeholder-gray-500 rounded-lg px-4 py-3 border-2 border-slate-600 focus:outline-none focus:border-violet-500 transition text-sm"
+                        />
+                        {urlError && (
+                            <p className="text-red-400 text-xs mt-2">{urlError}</p>
+                        )}
+                        <button
+                            onClick={handleUrlSubmit}
+                            className="w-full mt-4 bg-violet-600 hover:bg-violet-500 text-white py-3 rounded-lg font-bold text-sm transition-all duration-300 hover:scale-[1.02] shadow-lg"
+                        >
+                            Use This URL
+                        </button>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}
+
+
 export default function EditProfile() {
     const navigate = useNavigate();
-    const fileInputRef = useRef(null);
 
     const [profileData, setProfileData] = useState({
         firstName: '',
@@ -12,6 +171,7 @@ export default function EditProfile() {
         email: '',
         username: '',
         profileImage: null,
+        avatarUrl: '',
     });
 
     const [previewImage, setPreviewImage] = useState('/images/avatar.png');
@@ -19,6 +179,7 @@ export default function EditProfile() {
     const [isFetching, setIsFetching] = useState(true);
     const [showSuccess, setShowSuccess] = useState(false);
     const [errorMsg, setErrorMsg] = useState('');
+    const [showAvatarModal, setShowAvatarModal] = useState(false);
 
     useEffect(() => {
         document.title = 'Edit Profile - NetPong';
@@ -38,6 +199,7 @@ export default function EditProfile() {
                     email: data.email ?? '',
                     username: data.username ?? '',
                     profileImage: null,
+                    avatarUrl: '',
                 });
 
                 if (data.avatarUrl) {
@@ -57,33 +219,23 @@ export default function EditProfile() {
     const handleFirstNameChange = (e) => setProfileData(prev => ({ ...prev, firstName: e.target.value }));
     const handleLastNameChange = (e) => setProfileData(prev => ({ ...prev, lastName: e.target.value }));
 
-    const handleImageClick = () => fileInputRef.current?.click();
-
-    const handleImageChange = (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        if (!file.type.startsWith('image/')) {
-            setErrorMsg('Please select a valid image file.');
-            return;
-        }
-        if (file.size > 5 * 1024 * 1024) {
-            setErrorMsg('Image size should be less than 5MB.');
-            return;
-        }
-
-        setErrorMsg('');
-        setProfileData(prev => ({ ...prev, profileImage: file }));
-
+    const handleAvatarUploadFile = (file) => {
+        setProfileData(prev => ({ ...prev, profileImage: file, avatarUrl: '' }));
         const reader = new FileReader();
         reader.onloadend = () => setPreviewImage(reader.result);
         reader.readAsDataURL(file);
+        setErrorMsg('');
+    };
+
+    const handleAvatarUrl = (url) => {
+        setProfileData(prev => ({ ...prev, avatarUrl: url, profileImage: null }));
+        setPreviewImage(url);
+        setErrorMsg('');
     };
 
     const handleRemoveImage = () => {
-        setProfileData(prev => ({ ...prev, profileImage: null }));
+        setProfileData(prev => ({ ...prev, profileImage: null, avatarUrl: '' }));
         setPreviewImage('/images/avatar.png');
-        if (fileInputRef.current) fileInputRef.current.value = '';
     };
 
     const handleSubmit = async (e) => {
@@ -96,14 +248,16 @@ export default function EditProfile() {
             formData.append('firstName', profileData.firstName);
             formData.append('lastName', profileData.lastName);
             formData.append('username', profileData.username);
+
             if (profileData.profileImage) {
                 formData.append('avatar', profileData.profileImage);
+            } else if (profileData.avatarUrl) {
+                formData.append('avatarUrl', profileData.avatarUrl);
             }
 
             const res = await authFetch('/api/auth/profile', {
                 method: 'PATCH',
                 body: formData,
-                // Do NOT set Content-Type here — the browser sets it with the boundary automatically
             });
 
             if (!res.ok) {
@@ -124,6 +278,7 @@ export default function EditProfile() {
                 lastName: updated.lastName ?? prev.lastName,
                 username: updated.username ?? prev.username,
                 profileImage: null,
+                avatarUrl: '',
             }));
 
             setShowSuccess(true);
@@ -168,6 +323,13 @@ export default function EditProfile() {
                 </div>
             )}
 
+            <AvatarModal
+                isOpen={showAvatarModal}
+                onClose={() => setShowAvatarModal(false)}
+                onUploadFile={handleAvatarUploadFile}
+                onSubmitUrl={handleAvatarUrl}
+            />
+
             <div className="relative px-4 py-12 md:py-16">
                 <div className="max-w-3xl mx-auto">
 
@@ -205,7 +367,7 @@ export default function EditProfile() {
 
                                     <button
                                         type="button"
-                                        onClick={handleImageClick}
+                                        onClick={() => setShowAvatarModal(true)}
                                         className="absolute inset-0 bg-black/60 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                                     >
                                         <div className="text-center">
@@ -216,25 +378,17 @@ export default function EditProfile() {
                                             <span className="text-white text-sm font-bold">Change Photo</span>
                                         </div>
                                     </button>
-
-                                    <input
-                                        ref={fileInputRef}
-                                        type="file"
-                                        accept="image/*"
-                                        onChange={handleImageChange}
-                                        className="hidden"
-                                    />
                                 </div>
 
                                 <div className="flex gap-3 mt-6">
                                     <button
                                         type="button"
-                                        onClick={handleImageClick}
+                                        onClick={() => setShowAvatarModal(true)}
                                         className="bg-violet-600 hover:bg-violet-500 text-white px-6 py-2 rounded-lg font-bold text-sm transition-all duration-300 hover:scale-105 shadow-lg"
                                     >
-                                        Upload New
+                                        Change Avatar
                                     </button>
-                                    {profileData.profileImage && (
+                                    {(profileData.profileImage || profileData.avatarUrl || (previewImage && previewImage !== '/images/avatar.png')) && (
                                         <button
                                             type="button"
                                             onClick={handleRemoveImage}
@@ -244,7 +398,7 @@ export default function EditProfile() {
                                         </button>
                                     )}
                                 </div>
-                                <p className="text-gray-400 text-xs mt-3">Max size: 5MB • JPG, PNG, GIF</p>
+                                <p className="text-gray-400 text-xs mt-3">Upload a file or paste an image URL</p>
                             </div>
 
                             {errorMsg && (
@@ -372,7 +526,7 @@ export default function EditProfile() {
                                 <path strokeLinecap="round" strokeLinejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
                             </svg>
                             <p className="text-blue-200 text-sm md:text-base leading-relaxed">
-                                <span className="font-bold">Note:</span> Your email address cannot be changed for security reasons. Only your first name, last name, username and profile picture can be updated.
+                                <span className="font-bold">Note:</span> Your email address cannot be changed for security reasons. You can update your first name, last name, username, and profile picture. For avatar, you can either upload an image file or provide a URL to an image.
                             </p>
                         </div>
                     </div>
