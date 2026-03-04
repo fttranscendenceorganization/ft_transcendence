@@ -1,12 +1,15 @@
 import { BadRequestException, ConflictException, Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
-import { In, Repository } from "typeorm";
+import { In, Not, Repository } from "typeorm";
 import { User } from "./entities/user.entity";
 import { CreateUserDto } from "./dto/create-user.dto";
+import { UpdateProfileDto } from "./dto/update-profile.dto";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Block } from "./entities/block.entity";
 import { FriendRequest } from "./entities/friend-request.entity";
 import { Logger } from "nestjs-pino";
 import { MetricsService } from "src/metrics/metrics.service";
+import * as fs from 'fs';
+import * as path from 'path';
 
 @Injectable()
 export class UserService {
@@ -368,5 +371,61 @@ export class UserService {
 
         this.logger.log('Friend request responded', { context: 'UserService', userId, requestId, action });
         return await this.friendRequestRepo.save(request);
+    }
+
+    async updateProfile(userId: string, dto: UpdateProfileDto, avatarFile?: Express.Multer.File): Promise<User> {
+        const user = await this.findById(userId);
+        if (!user)
+            throw new NotFoundException('User not found');
+
+        if (dto.username && dto.username.toLowerCase().trim() !== user.username) {
+            const existing = await this.userrepo.findOne({
+                where: { username: dto.username.toLowerCase().trim(), id: Not(userId) },
+            });
+            if (existing)
+                throw new ConflictException('Username already taken');
+            user.username = dto.username;
+        }
+
+        if (dto.firstName !== undefined)
+            user.firstName = dto.firstName;
+        if (dto.lastName !== undefined)
+            user.lastName = dto.lastName;
+
+        if (avatarFile) {
+            const uploadDir = '/app/uploads/avatars';
+            if (!fs.existsSync(uploadDir))
+                fs.mkdirSync(uploadDir, { recursive: true });
+
+            const ext = path.extname(avatarFile.originalname) || '.png';
+            const filename = `${userId}${ext}`;
+            const filepath = path.join(uploadDir, filename);
+
+            const existingFiles = fs.readdirSync(uploadDir).filter(f => f.startsWith(userId));
+            for (const f of existingFiles) {
+                try { fs.unlinkSync(path.join(uploadDir, f)); } catch {}
+            }
+
+            fs.writeFileSync(filepath, avatarFile.buffer);
+            user.avatarUrl = `/uploads/avatars/${filename}`;
+        } else if (dto.avatarUrl !== undefined) {
+            const uploadDir = '/app/uploads/avatars';
+            if (fs.existsSync(uploadDir)) {
+                const existingFiles = fs.readdirSync(uploadDir).filter(f => f.startsWith(userId));
+                for (const f of existingFiles) {
+                    try { fs.unlinkSync(path.join(uploadDir, f)); } catch {}
+                }
+            }
+            user.avatarUrl = dto.avatarUrl || null;
+        }
+
+        try {
+            const saved = await this.userrepo.save(user);
+            return saved;
+        } catch (error) {
+            if (error.code === '23505')
+                throw new ConflictException('Username already taken');
+            throw new InternalServerErrorException('Failed to update profile');
+        }
     }
 }

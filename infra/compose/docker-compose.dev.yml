@@ -52,6 +52,8 @@ services:
         tag: "backend_api"
     env_file:
       - ../env/backend.env
+    volumes:
+      - avatar_data:/app/uploads/avatars
     networks:
       - internal_net
     depends_on:
@@ -103,6 +105,7 @@ services:
 
 volumes:
   db_data:
+  avatar_data:
 
 networks:
   public_net:
