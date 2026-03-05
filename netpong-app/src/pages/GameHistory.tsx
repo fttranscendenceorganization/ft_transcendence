@@ -33,7 +33,7 @@ const LIMIT = 20;
 const MODE_CONFIG: Record<string, { label: string; icon: string; color: string; bg: string; border: string }> = {
     ZOMBIE_LAND: { label: 'Zombie Land', icon: '🧟', color: 'text-green-400', bg: 'bg-green-500/10', border: 'border-green-500/30' },
     SOUL_SOCIETY: { label: 'Soul Society', icon: '⚔️', color: 'text-cyan-400', bg: 'bg-cyan-500/10', border: 'border-cyan-500/30' },
-    BARBIE_PINK: { label: 'Barbie Pink', icon: '👑', color: 'text-fuchsia-400', bg: 'bg-fuchsia-500/10', border: 'border-fuchsia-500/30' },
+    BARBIE_PINK: { label: 'Barbie Pink', icon: '🐱', color: 'text-fuchsia-400', bg: 'bg-fuchsia-500/10', border: 'border-fuchsia-500/30' },
     JOKER: { label: 'Joker', icon: '🃏', color: 'text-purple-400', bg: 'bg-purple-500/10', border: 'border-purple-500/30' },
 };
 
