@@ -91,7 +91,7 @@ export class GameService implements OnModuleDestroy {
         return {
             ballPosition: { x: 500, y: 300 },
             ballVelocity: { x: 0, y: 0 },
-            ballSpeed: 8,
+            ballSpeed: 14,
             paddleLeft: { x: 50, y: 300, targetX: 50, targetY: 300 },
             paddleRight: { x: 950, y: 300, targetX: 950, targetY: 300 },
             score: { left: 0, right: 0 },
