@@ -184,7 +184,8 @@ export default function KittyHockey({
         let animId: number;
 
         let renderState: DrawState = { ...drawState };
-        const LERP = 0.35;
+        const LERP_BALL = 0.8;
+        const LERP_PADDLE = 0.4;
         const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
         const loop = () => {
@@ -200,12 +201,12 @@ export default function KittyHockey({
                 sendIfMoved(toWorldX(mouse.x), toWorldY(mouse.y));
             }
 
-            renderState.puck.x = lerp(renderState.puck.x, drawState.puck.x, LERP);
-            renderState.puck.y = lerp(renderState.puck.y, drawState.puck.y, LERP);
-            renderState.player.x = lerp(renderState.player.x, drawState.player.x, LERP);
-            renderState.player.y = lerp(renderState.player.y, drawState.player.y, LERP);
-            renderState.opponent.x = lerp(renderState.opponent.x, drawState.opponent.x, LERP);
-            renderState.opponent.y = lerp(renderState.opponent.y, drawState.opponent.y, LERP);
+            renderState.puck.x = lerp(renderState.puck.x, drawState.puck.x, LERP_BALL);
+            renderState.puck.y = lerp(renderState.puck.y, drawState.puck.y, LERP_BALL);
+            renderState.player.x = lerp(renderState.player.x, drawState.player.x, LERP_PADDLE);
+            renderState.player.y = lerp(renderState.player.y, drawState.player.y, LERP_PADDLE);
+            renderState.opponent.x = lerp(renderState.opponent.x, drawState.opponent.x, LERP_PADDLE);
+            renderState.opponent.y = lerp(renderState.opponent.y, drawState.opponent.y, LERP_PADDLE);
 
             draw(
                 ctx,
