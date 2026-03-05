@@ -34,7 +34,7 @@ export default function BarbiePink() {
             <KittyCatHeader />
 
             <div className="antialiased bg-slate-900 w-full min-h-screen text-white overflow-x-hidden relative">
-                <div className="absolute inset-0 bg-[url('/images/barbie.jpg')] bg-center bg-no-repeat bg-cover"></div>
+                <div className="absolute inset-0 bg-[url('/images/barbie.webp')] bg-center bg-no-repeat bg-cover"></div>
                 <div className="absolute inset-0 bg-gradient-to-b from-pink-950/40 via-rose-950/20 to-slate-900/60"></div>
 
                 <div className="absolute inset-0 overflow-hidden pointer-events-none">
