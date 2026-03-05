@@ -40,10 +40,10 @@ export default function GameJoker() {
     const [side, setSide] = useState<'left' | 'right'>('left');
 
     const [myProfile, setMyProfile] = useState<UserProfile | null>(null);
-    const [myAvatarSrc, setMyAvatarSrc] = useState('/images/avatar.png');
+    const [myAvatarSrc, setMyAvatarSrc] = useState('/images/avatar.webp');
 
     const [opponentUser, setOpponentUser] = useState<UserProfile | null>(null);
-    const [opponentAvatarSrc, setOpponentAvatarSrc] = useState('/images/avatar.png');
+    const [opponentAvatarSrc, setOpponentAvatarSrc] = useState('/images/avatar.webp');
     const [opponentStats, setOpponentStats] = useState<{ total: number; wins: number; losses: number; winRate: number } | null>(null);
     const [isFriend, setIsFriend] = useState<boolean | null>(null);
 
@@ -96,7 +96,7 @@ export default function GameJoker() {
             .then(data => {
                 if (!data) return;
                 setMyProfile({ id: data.id, username: data.username, avatarUrl: data.avatarUrl });
-                setMyAvatarSrc(data.avatarUrl || '/images/avatar.png');
+                setMyAvatarSrc(data.avatarUrl || '/images/avatar.webp');
             })
             .catch(() => { });
     }, []);
@@ -163,11 +163,11 @@ export default function GameJoker() {
                 try {
                     const oppUser = await getUserById(data.opponentId);
                     setOpponentUser({ id: data.opponentId, username: oppUser.username, avatarUrl: oppUser.avatarUrl });
-                    setOpponentAvatarSrc(oppUser.avatarUrl || '/images/avatar.png');
+                    setOpponentAvatarSrc(oppUser.avatarUrl || '/images/avatar.webp');
                     setIsFriend(friendsIds.includes(data.opponentId));
                 } catch {
                     setOpponentUser({ id: data.opponentId, username: 'Opponent', avatarUrl: null });
-                    setOpponentAvatarSrc('/images/avatar.png');
+                    setOpponentAvatarSrc('/images/avatar.webp');
                     setIsFriend(null);
                 }
 
@@ -238,7 +238,7 @@ export default function GameJoker() {
         setAbortData(null);
         setOpponentUser(null);
         setOpponentStats(null);
-        setOpponentAvatarSrc('/images/avatar.png');
+        setOpponentAvatarSrc('/images/avatar.webp');
         setIsFriend(null);
         setProfileError(null);
         setScreen('MODE_SELECT');
@@ -279,7 +279,7 @@ export default function GameJoker() {
                     alt={myName}
                     className="w-16 h-16 rounded-full border-2 border-purple-400 object-cover"
                     style={{ boxShadow: '0 0 12px rgba(168,85,247,0.6)' }}
-                    onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/default-avatar.png'; }}
+                    onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/avatar.webp'; }}
                 />
                 <span className="absolute -bottom-1 -right-1 w-4 h-4 bg-purple-400 rounded-full border-2 border-slate-900" />
             </div>
@@ -305,7 +305,7 @@ export default function GameJoker() {
                     alt={opponentUser.username}
                     className="w-16 h-16 rounded-full border-2 border-fuchsia-400 object-cover"
                     style={{ boxShadow: '0 0 12px rgba(232,121,249,0.6)' }}
-                    onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/default-avatar.png'; }}
+                    onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/avatar.webp'; }}
                 />
                 <span className="absolute -bottom-1 -right-1 w-4 h-4 bg-fuchsia-400 rounded-full border-2 border-slate-900" />
             </div>
@@ -444,7 +444,7 @@ export default function GameJoker() {
                                     src={opponentAvatarSrc}
                                     alt={opponentUser.username}
                                     className="w-10 h-10 rounded-full border-2 border-fuchsia-400 object-cover"
-                                    onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/default-avatar.png'; }}
+                                    onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/avatar.webp'; }}
                                 />
                                 <span className="text-gray-300 text-sm">vs <span className="font-bold text-white">{opponentUser.username}</span></span>
                             </div>
@@ -522,7 +522,7 @@ export default function GameJoker() {
                             <div className="flex flex-col items-center gap-1">
                                 <img src={myAvatarSrc} alt={myName}
                                     className="w-12 h-12 rounded-full border-2 border-purple-400 object-cover"
-                                    onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/default-avatar.png'; }} />
+                                    onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/avatar.webp'; }} />
                                 <span className="text-sm font-bold text-white">{myName}</span>
                                 <span className="text-3xl font-extrabold text-purple-400">{myScore}</span>
                             </div>
@@ -530,7 +530,7 @@ export default function GameJoker() {
                             <div className="flex flex-col items-center gap-1">
                                 <img src={opponentAvatarSrc} alt={opponentUser?.username || 'Opponent'}
                                     className="w-12 h-12 rounded-full border-2 border-fuchsia-400 object-cover"
-                                    onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/default-avatar.png'; }} />
+                                    onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/avatar.webp'; }} />
                                 <span className="text-sm font-bold text-fuchsia-300">{opponentUser?.username || 'Opponent'}</span>
                                 <span className="text-3xl font-extrabold text-fuchsia-400">{opponentScore}</span>
                             </div>
@@ -573,7 +573,7 @@ export default function GameJoker() {
                             <div className="w-full bg-purple-950/30 border border-purple-800/30 rounded-xl p-4 flex items-center gap-4">
                                 <img src={opponentAvatarSrc} alt={opponentUser.username}
                                     className="w-12 h-12 rounded-full border-2 border-purple-700 object-cover grayscale"
-                                    onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/default-avatar.png'; }} />
+                                    onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/avatar.webp'; }} />
                                 <div className="flex flex-col">
                                     <span className="text-purple-700 text-xs uppercase tracking-widest">Couldn't take the game</span>
                                     <span className="text-white font-bold text-lg">{opponentUser.username}</span>
