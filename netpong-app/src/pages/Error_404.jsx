@@ -21,7 +21,7 @@ export default function Error404() {
 
     return (
         <div className="antialiased w-full min-h-screen overflow-x-hidden relative">
-            <div className="absolute inset-0 bg-[url('/images/404_error.jpg')] bg-center bg-no-repeat bg-cover bg-fixed"></div>
+            <div className="absolute inset-0 bg-[url('/images/404_error.webp')] bg-center bg-no-repeat bg-cover bg-fixed"></div>
 
             <div className="absolute inset-0 bg-gradient-to-b from-slate-900/60 via-slate-900/50 to-slate-900/70"></div>
 
