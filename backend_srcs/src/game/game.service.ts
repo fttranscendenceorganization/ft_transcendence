@@ -91,7 +91,7 @@ export class GameService implements OnModuleDestroy {
         return {
             ballPosition: { x: 500, y: 300 },
             ballVelocity: { x: 0, y: 0 },
-            ballSpeed: 8,
+            ballSpeed: 14,
             paddleLeft: { x: 50, y: 300, targetX: 50, targetY: 300 },
             paddleRight: { x: 950, y: 300, targetX: 950, targetY: 300 },
             score: { left: 0, right: 0 },
@@ -211,7 +211,7 @@ export class GameService implements OnModuleDestroy {
         });
 
         const currentSpeed = Math.sqrt(ballVelocity.x * ballVelocity.x + ballVelocity.y * ballVelocity.y);
-        const MIN_BALL_SPEED = 6;
+        const MIN_BALL_SPEED = 10;
         if (currentSpeed > 0.5 && currentSpeed < MIN_BALL_SPEED) {
             const scale = MIN_BALL_SPEED / currentSpeed;
             ballVelocity.x *= scale;
