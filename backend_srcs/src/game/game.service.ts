@@ -211,7 +211,7 @@ export class GameService implements OnModuleDestroy {
         });
 
         const currentSpeed = Math.sqrt(ballVelocity.x * ballVelocity.x + ballVelocity.y * ballVelocity.y);
-        const MIN_BALL_SPEED = 6;
+        const MIN_BALL_SPEED = 10;
         if (currentSpeed > 0.5 && currentSpeed < MIN_BALL_SPEED) {
             const scale = MIN_BALL_SPEED / currentSpeed;
             ballVelocity.x *= scale;
