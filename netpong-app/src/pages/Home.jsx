@@ -31,7 +31,7 @@ export default function UserHome() {
                 setUser({
                     firstName: data.firstName,
                     username: data.username,
-                    avatar: data.avatarUrl ?? '/images/avatar.png',
+                    avatar: data.avatarUrl ?? '/images/avatar.webp',
                     level,
                     xp,
                     xpNext,
@@ -87,7 +87,7 @@ export default function UserHome() {
     const xpPercent = Math.min(100, Math.round((user.xp / user.xpNext) * 100));
 
     return (
-        <div className="antialiased bg-[url('/images/user.jpg')] w-full min-h-screen bg-cover bg-center bg-no-repeat bg-fixed text-white relative overflow-hidden">
+        <div className="antialiased bg-[url('/images/user.webp')] w-full min-h-screen bg-cover bg-center bg-no-repeat bg-fixed text-white relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-b from-slate-900/40 via-slate-900/30 to-slate-900/60 pointer-events-none"></div>
 
             <section className="relative px-4 pt-16 pb-10">
