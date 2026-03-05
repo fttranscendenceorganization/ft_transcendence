@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Socket } from 'socket.io-client';
 
- 
+
 type Vec2 = { x: number; y: number };
 
 type BackendGameState = {
@@ -24,7 +24,7 @@ type DrawState = {
     opponentScore: number;
 };
 
- 
+
 const WORLD_W = 1000;
 const WORLD_H = 600;
 
@@ -56,7 +56,7 @@ export default function KittyHockey({
         let worldWidth = 0;
         let worldHeight = 0;
 
-        
+
         const resize = () => {
             const dpr = window.devicePixelRatio || 1;
             const rect = canvas.getBoundingClientRect();
@@ -70,12 +70,12 @@ export default function KittyHockey({
         resize();
         window.addEventListener('resize', resize);
 
-        
+
         const sx = (x: number) => (x / WORLD_W) * worldWidth;
         const sy = (y: number) => (y / WORLD_H) * worldHeight;
         const sr = (r: number) => (r / WORLD_W) * worldWidth;
 
-        
+
         let drawState: DrawState = {
             puck: { x: sx(WORLD_W / 2), y: sy(WORLD_H / 2), r: sr(BALL_RADIUS) },
             player: {
@@ -92,18 +92,11 @@ export default function KittyHockey({
             opponentScore: 0,
         };
 
-        
+
         const mouse = { x: 0, y: 0 };
 
         const toWorldX = (canvasX: number) => (canvasX / worldWidth) * WORLD_W;
         const toWorldY = (canvasY: number) => (canvasY / worldHeight) * WORLD_H;
-
-        const sendPaddleMove = () => {
-            socket.emit('movePaddle', {
-                x: toWorldX(mouse.x),
-                y: toWorldY(mouse.y),
-            });
-        };
 
         const onMouseMove = (e: MouseEvent) => {
             const rect = canvas.getBoundingClientRect();
@@ -119,7 +112,7 @@ export default function KittyHockey({
             mouse.y = touch.clientY - rect.top;
         };
 
-        
+
         const keys = { up: false, down: false, left: false, right: false };
         const KEYBOARD_SPEED = 16;
 
@@ -139,13 +132,22 @@ export default function KittyHockey({
 
         let paddleWorldX = side === 'left' ? 50 : 950;
         let paddleWorldY = WORLD_H / 2;
+        let lastSentX = -1;
+        let lastSentY = -1;
+
+        const sendIfMoved = (x: number, y: number) => {
+            if (Math.abs(x - lastSentX) < 2 && Math.abs(y - lastSentY) < 2) return;
+            lastSentX = x;
+            lastSentY = y;
+            socket.emit('movePaddle', { x, y });
+        };
 
         window.addEventListener('mousemove', onMouseMove);
         window.addEventListener('touchmove', onTouchMove, { passive: false });
         window.addEventListener('keydown', onKeyDown);
         window.addEventListener('keyup', onKeyUp);
 
-        
+
         const handleGameState = (state: BackendGameState) => {
             const myPaddle = side === 'left' ? state.paddleLeft : state.paddleRight;
             const oppPaddle = side === 'left' ? state.paddleRight : state.paddleLeft;
@@ -178,8 +180,12 @@ export default function KittyHockey({
         socket.on('gameOver', onGameOver);
         socket.on('gameAborted', onGameAborted);
 
-        
+
         let animId: number;
+
+        let renderState: DrawState = { ...drawState };
+        const LERP = 0.35;
+        const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
         const loop = () => {
             if (keys.up) paddleWorldY = Math.max(0, paddleWorldY - KEYBOARD_SPEED);
@@ -189,28 +195,34 @@ export default function KittyHockey({
 
             const anyKey = keys.up || keys.down || keys.left || keys.right;
             if (anyKey) {
-                socket.emit('movePaddle', { x: paddleWorldX, y: paddleWorldY });
+                sendIfMoved(paddleWorldX, paddleWorldY);
             } else {
-                sendPaddleMove();
+                sendIfMoved(toWorldX(mouse.x), toWorldY(mouse.y));
             }
+
+            renderState.puck.x = lerp(renderState.puck.x, drawState.puck.x, LERP);
+            renderState.puck.y = lerp(renderState.puck.y, drawState.puck.y, LERP);
+            renderState.player.x = lerp(renderState.player.x, drawState.player.x, LERP);
+            renderState.player.y = lerp(renderState.player.y, drawState.player.y, LERP);
+            renderState.opponent.x = lerp(renderState.opponent.x, drawState.opponent.x, LERP);
+            renderState.opponent.y = lerp(renderState.opponent.y, drawState.opponent.y, LERP);
 
             draw(
                 ctx,
                 worldWidth,
                 worldHeight,
-                drawState.puck,
-                drawState.player,
-                drawState.opponent,
+                renderState.puck,
+                renderState.player,
+                renderState.opponent,
                 drawState.playerScore,
                 drawState.opponentScore,
             );
 
             animId = requestAnimationFrame(loop);
         };
-
         animId = requestAnimationFrame(loop);
 
-        
+
         return () => {
             cancelAnimationFrame(animId);
             window.removeEventListener('resize', resize);
@@ -232,7 +244,7 @@ export default function KittyHockey({
     );
 }
 
- 
+
 function draw(
     ctx: CanvasRenderingContext2D,
     w: number,
@@ -257,7 +269,7 @@ function draw(
     drawPuck(ctx, puck);
 }
 
- 
+
 
 function drawPlayer(ctx: CanvasRenderingContext2D, player: any) {
     const { x, y, r } = player;

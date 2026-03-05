@@ -22,9 +22,10 @@ export class GameService implements OnModuleDestroy {
         private readonly logger: Logger,
         private readonly metricsService: MetricsService,
     ) {
+        this.lastTickTime = Date.now();
         this.physicsInterval = setInterval(() => {
             this.handleGamesUpdate();
-        }, 10);
+        }, 16);
     }
 
     private readonly players = new Map<string, PlayerSessionType>();
@@ -34,6 +35,7 @@ export class GameService implements OnModuleDestroy {
     private broadcastCallback: ((gameId: string, state: GameSessionType) => void) | null = null;
     private physicsInterval: NodeJS.Timeout;
     private notifyCallback: ((socketId: string, event: string, data: any) => void) | null = null;
+    private lastTickTime: number = Date.now();
 
     registerPlayer(userId: string, socketId: string) {
         const existingPlayer = this.players.get(userId);
@@ -100,9 +102,13 @@ export class GameService implements OnModuleDestroy {
     }
 
     private handleGamesUpdate() {
+        const now = Date.now();
+        const deltaMs = Math.min(now - this.lastTickTime, 50);
+        this.lastTickTime = now;
+
         for (const [gameId, game] of this.games) {
             if (game.status === GameStatusEnum.IN_PROGRESS) {
-                this.updateGamePhysics(game);
+                this.updateGamePhysics(game, deltaMs);
                 if (this.broadcastCallback)
                     this.broadcastCallback(gameId, game);
             }
@@ -132,13 +138,13 @@ export class GameService implements OnModuleDestroy {
         }
     }
 
-    private updateGamePhysics(game: GameSessionType) {
-        game.state.elapsedTimeSeconds += 16 / 1000;
+    private updateGamePhysics(game: GameSessionType, deltaMs: number) {
+        game.state.elapsedTimeSeconds += deltaMs / 1000;
 
         const { ballPosition, ballVelocity, score } = game.state;
         const { ballSpeed, ballRadius, paddleLeft, paddleRight, paddleRadius } = game.state;
 
-        const PADDLE_SPEED = 18;
+        const PADDLE_SPEED = 18 * (deltaMs / 16);
         function smoothPaddle(paddle) {
             if (paddle.targetX === undefined) return;
             const dx = paddle.targetX - paddle.x;
@@ -155,8 +161,9 @@ export class GameService implements OnModuleDestroy {
         smoothPaddle(paddleLeft);
         smoothPaddle(paddleRight);
 
-        ballPosition.x += ballVelocity.x;
-        ballPosition.y += ballVelocity.y;
+        const scale = deltaMs / 16;
+        ballPosition.x += ballVelocity.x * scale;
+        ballPosition.y += ballVelocity.y * scale;
 
         if (ballPosition.y <= ballRadius) {
             ballVelocity.y *= -1;
