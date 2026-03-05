@@ -349,7 +349,9 @@ export default function GamePlay() {
 
     return (
         <div className="relative h-[100svh] overflow-hidden">
-            <div className="absolute inset-0 w-full h-full object-cover bg-[url('/images/air.webp')] bg-center bg-cover bg-fixed"></div>
+            <video autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover brightness-75 contrast-125 saturate-150">
+                <source src="/images/zombie.mp4" type="video/mp4" />
+            </video>
             <div className="absolute inset-0 bg-black/60" />
 
             <div className="relative z-10 h-full flex flex-col items-center justify-center p-4 sm:p-6 gap-4 sm:gap-6 overflow-hidden">
