@@ -135,6 +135,8 @@ export default function ChatPage() {
                 await fetchIncomingReqs();
             } catch { }
         })();
+        const pollId = setInterval(fetchIncomingReqs, 10000);
+        return () => clearInterval(pollId);
     }, []);
 
     useEffect(() => {
