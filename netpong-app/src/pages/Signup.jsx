@@ -193,7 +193,7 @@ export default function SignUp() {
             <LoginHeader />
 
             <div className="antialiased bg-slate-900 w-full min-h-screen text-white overflow-x-hidden relative">
-                <div className="absolute inset-0 bg-[url('/images/hockey.jpg')] bg-center bg-no-repeat bg-cover"></div>
+                <div className="absolute inset-0 bg-[url('/images/hockey.webp')] bg-center bg-no-repeat bg-cover"></div>
 
                 <div className="container mx-auto px-4 py-8 max-w-4xl">
                     <div className="bg-slate-900/50 backdrop-blur-xl rounded-3xl px-6 md:px-10 py-8 md:py-12 shadow-2xl border border-purple-500/30">
