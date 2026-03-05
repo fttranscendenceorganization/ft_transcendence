@@ -70,7 +70,6 @@ function AvatarModal({ isOpen, onClose, onUploadFile, onSubmitUrl }) {
                     </button>
                 </div>
 
-                {/* Tabs */}
                 <div className="flex gap-2 mb-6">
                     <button
                         onClick={() => setTab('upload')}
@@ -104,7 +103,6 @@ function AvatarModal({ isOpen, onClose, onUploadFile, onSubmitUrl }) {
                     </button>
                 </div>
 
-                {/* Upload Tab */}
                 {tab === 'upload' && (
                     <div>
                         <div
@@ -134,7 +132,6 @@ function AvatarModal({ isOpen, onClose, onUploadFile, onSubmitUrl }) {
                     </div>
                 )}
 
-                {/* URL Tab */}
                 {tab === 'url' && (
                     <div>
                         <label className="block text-sm font-bold text-gray-300 mb-2">Image URL</label>
@@ -142,7 +139,7 @@ function AvatarModal({ isOpen, onClose, onUploadFile, onSubmitUrl }) {
                             type="url"
                             value={urlValue}
                             onChange={(e) => { setUrlValue(e.target.value); setUrlError(''); }}
-                            placeholder="https://example.com/avatar.png"
+                            placeholder="https://example.com/avatar.webp"
                             className="w-full bg-slate-700 text-white placeholder-gray-500 rounded-lg px-4 py-3 border-2 border-slate-600 focus:outline-none focus:border-violet-500 transition text-sm"
                         />
                         {urlError && (
@@ -174,7 +171,7 @@ export default function EditProfile() {
         avatarUrl: '',
     });
 
-    const [previewImage, setPreviewImage] = useState('/images/avatar.png');
+    const [previewImage, setPreviewImage] = useState('/images/avatar.webp');
     const [isLoading, setIsLoading] = useState(false);
     const [isFetching, setIsFetching] = useState(true);
     const [showSuccess, setShowSuccess] = useState(false);
@@ -235,7 +232,7 @@ export default function EditProfile() {
 
     const handleRemoveImage = () => {
         setProfileData(prev => ({ ...prev, profileImage: null, avatarUrl: '' }));
-        setPreviewImage('/images/avatar.png');
+        setPreviewImage('/images/avatar.webp');
     };
 
     const handleSubmit = async (e) => {
@@ -302,7 +299,7 @@ export default function EditProfile() {
     }
 
     return (
-        <div className="antialiased bg-[url('/images/user.jpg')] w-full min-h-screen bg-cover bg-center bg-no-repeat bg-fixed text-white relative overflow-hidden">
+        <div className="antialiased bg-[url('/images/user.webp')] w-full min-h-screen bg-cover bg-center bg-no-repeat bg-fixed text-white relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-b from-slate-900/40 via-slate-900/30 to-slate-900/50 pointer-events-none" />
 
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -361,7 +358,7 @@ export default function EditProfile() {
                                             src={previewImage}
                                             alt="Profile"
                                             className="w-full h-full object-cover"
-                                            onError={(e) => { e.currentTarget.src = '/images/avatar.png'; }}
+                                            onError={(e) => { e.currentTarget.src = '/images/avatar.webp'; }}
                                         />
                                     </div>
 
@@ -388,7 +385,7 @@ export default function EditProfile() {
                                     >
                                         Change Avatar
                                     </button>
-                                    {(profileData.profileImage || profileData.avatarUrl || (previewImage && previewImage !== '/images/avatar.png')) && (
+                                    {(profileData.profileImage || profileData.avatarUrl || (previewImage && previewImage !== '/images/avatar.webp')) && (
                                         <button
                                             type="button"
                                             onClick={handleRemoveImage}

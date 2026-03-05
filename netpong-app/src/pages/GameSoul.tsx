@@ -40,10 +40,10 @@ export default function GameSoul() {
     const [side, setSide] = useState<'left' | 'right'>('left');
 
     const [myProfile, setMyProfile] = useState<UserProfile | null>(null);
-    const [myAvatarSrc, setMyAvatarSrc] = useState('/images/avatar.png');
+    const [myAvatarSrc, setMyAvatarSrc] = useState('/images/avatar.webp');
 
     const [opponentUser, setOpponentUser] = useState<UserProfile | null>(null);
-    const [opponentAvatarSrc, setOpponentAvatarSrc] = useState('/images/avatar.png');
+    const [opponentAvatarSrc, setOpponentAvatarSrc] = useState('/images/avatar.webp');
     const [opponentStats, setOpponentStats] = useState<{ total: number; wins: number; losses: number; winRate: number } | null>(null);
     const [isFriend, setIsFriend] = useState<boolean | null>(null);
 
@@ -54,9 +54,7 @@ export default function GameSoul() {
     const [error, setError] = useState<string | null>(null);
     const [profileError, setProfileError] = useState<string | null>(null);
 
-    // ---------------------------------------------------------------------------
-    // Lock page scroll entirely
-    // ---------------------------------------------------------------------------
+
     useEffect(() => {
         document.documentElement.style.overflow = 'hidden';
         document.body.style.overflow = 'hidden';
@@ -78,9 +76,7 @@ export default function GameSoul() {
         };
     }, []);
 
-    // ---------------------------------------------------------------------------
-    // Page title / favicon
-    // ---------------------------------------------------------------------------
+
     useEffect(() => {
         document.title = 'Soul Society - NetGame';
         const link = document.querySelector("link[rel~='icon']") as HTMLLinkElement | null;
@@ -91,23 +87,19 @@ export default function GameSoul() {
         };
     }, []);
 
-    // ---------------------------------------------------------------------------
-    // Fetch MY profile
-    // ---------------------------------------------------------------------------
+
     useEffect(() => {
         authFetch('/api/auth/me', { method: 'GET' })
             .then(r => r.ok ? r.json() : null)
             .then(data => {
                 if (!data) return;
                 setMyProfile({ id: data.id, username: data.username, avatarUrl: data.avatarUrl });
-                setMyAvatarSrc(data.avatarUrl || '/images/avatar.png');
+                setMyAvatarSrc(data.avatarUrl || '/images/avatar.webp');
             })
             .catch(() => { });
     }, []);
 
-    // ---------------------------------------------------------------------------
-    // Load player stats and friends once
-    // ---------------------------------------------------------------------------
+
     useEffect(() => {
         (async () => {
             try {
@@ -134,9 +126,7 @@ export default function GameSoul() {
         }
     }, [screen]);
 
-    // ---------------------------------------------------------------------------
-    // Socket setup
-    // ---------------------------------------------------------------------------
+
     useEffect(() => {
         let isMounted = true;
 
@@ -171,11 +161,11 @@ export default function GameSoul() {
                 try {
                     const oppUser = await getUserById(data.opponentId);
                     setOpponentUser({ id: data.opponentId, username: oppUser.username, avatarUrl: oppUser.avatarUrl });
-                    setOpponentAvatarSrc(oppUser.avatarUrl || '/images/avatar.png');
+                    setOpponentAvatarSrc(oppUser.avatarUrl || '/images/avatar.webp');
                     setIsFriend(friendsIds.includes(data.opponentId));
                 } catch {
                     setOpponentUser({ id: data.opponentId, username: 'Opponent', avatarUrl: null });
-                    setOpponentAvatarSrc('/images/avatar.png');
+                    setOpponentAvatarSrc('/images/avatar.webp');
                     setIsFriend(null);
                 }
 
@@ -204,17 +194,13 @@ export default function GameSoul() {
         };
     }, [navigate]);
 
-    // ---------------------------------------------------------------------------
-    // Derived values
-    // ---------------------------------------------------------------------------
+
     const myName = myProfile?.username ? `${myProfile.username} (You)` : 'You';
     const myScore = gameOverData ? (side === 'left' ? gameOverData.score.left : gameOverData.score.right) : 0;
     const opponentScore = gameOverData ? (side === 'left' ? gameOverData.score.right : gameOverData.score.left) : 0;
     const iWon = !!myProfile && gameOverData?.winnerId === myProfile.id;
 
-    // ---------------------------------------------------------------------------
-    // Actions
-    // ---------------------------------------------------------------------------
+
     const joinQueue = useCallback(() => {
         if (!socketRef.current) {
             setError('Could not connect to game server. Please try again.');
@@ -250,7 +236,7 @@ export default function GameSoul() {
         setAbortData(null);
         setOpponentUser(null);
         setOpponentStats(null);
-        setOpponentAvatarSrc('/images/avatar.png');
+        setOpponentAvatarSrc('/images/avatar.webp');
         setIsFriend(null);
         setProfileError(null);
         setScreen('MODE_SELECT');
@@ -282,9 +268,7 @@ export default function GameSoul() {
         }
     }, [opponentUser, isFriend]);
 
-    // ---------------------------------------------------------------------------
-    // Profile cards
-    // ---------------------------------------------------------------------------
+
     const MyCard = (
         <div className="flex items-center gap-4">
             <div className="relative">
@@ -293,7 +277,7 @@ export default function GameSoul() {
                     alt={myName}
                     className="w-16 h-16 rounded-full border-2 border-cyan-400 object-cover"
                     style={{ boxShadow: '0 0 12px rgba(0,229,255,0.6)' }}
-                    onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/default-avatar.png'; }}
+                    onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/avatar.webp'; }}
                 />
                 <span className="absolute -bottom-1 -right-1 w-4 h-4 bg-cyan-400 rounded-full border-2 border-slate-900" />
             </div>
@@ -319,7 +303,7 @@ export default function GameSoul() {
                     alt={opponentUser.username}
                     className="w-16 h-16 rounded-full border-2 border-red-400 object-cover"
                     style={{ boxShadow: '0 0 12px rgba(255,23,68,0.6)' }}
-                    onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/default-avatar.png'; }}
+                    onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/avatar.webp'; }}
                 />
                 <span className="absolute -bottom-1 -right-1 w-4 h-4 bg-red-400 rounded-full border-2 border-slate-900" />
             </div>
@@ -451,7 +435,7 @@ export default function GameSoul() {
                                     src={opponentAvatarSrc}
                                     alt={opponentUser.username}
                                     className="w-10 h-10 rounded-full border-2 border-red-400 object-cover"
-                                    onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/default-avatar.png'; }}
+                                    onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/avatar.webp'; }}
                                 />
                                 <span className="text-gray-300 text-sm">vs <span className="font-bold text-white">{opponentUser.username}</span></span>
                             </div>
@@ -527,7 +511,7 @@ export default function GameSoul() {
                             <div className="flex flex-col items-center gap-1">
                                 <img src={myAvatarSrc} alt={myName}
                                     className="w-12 h-12 rounded-full border-2 border-cyan-400 object-cover"
-                                    onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/default-avatar.png'; }} />
+                                    onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/avatar.webp'; }} />
                                 <span className="text-sm font-bold text-white">{myName}</span>
                                 <span className="text-3xl font-extrabold text-cyan-400">{myScore}</span>
                             </div>
@@ -535,7 +519,7 @@ export default function GameSoul() {
                             <div className="flex flex-col items-center gap-1">
                                 <img src={opponentAvatarSrc} alt={opponentUser?.username || 'Opponent'}
                                     className="w-12 h-12 rounded-full border-2 border-red-400 object-cover"
-                                    onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/default-avatar.png'; }} />
+                                    onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/avatar.webp'; }} />
                                 <span className="text-sm font-bold text-red-300">{opponentUser?.username || 'Opponent'}</span>
                                 <span className="text-3xl font-extrabold text-red-400">{opponentScore}</span>
                             </div>
@@ -578,7 +562,7 @@ export default function GameSoul() {
                             <div className="w-full bg-slate-900/40 border border-slate-700/30 rounded-xl p-4 flex items-center gap-4">
                                 <img src={opponentAvatarSrc} alt={opponentUser.username}
                                     className="w-12 h-12 rounded-full border-2 border-slate-600 object-cover grayscale"
-                                    onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/default-avatar.png'; }} />
+                                    onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/avatar.webp'; }} />
                                 <div className="flex flex-col">
                                     <span className="text-slate-600 text-xs uppercase tracking-widest">Fled the Soul Society</span>
                                     <span className="text-white font-bold text-lg">{opponentUser.username}</span>

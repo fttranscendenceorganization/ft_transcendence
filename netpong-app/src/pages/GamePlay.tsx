@@ -40,10 +40,10 @@ export default function GamePlay() {
     const [side, setSide] = useState<'left' | 'right'>('left');
 
     const [myProfile, setMyProfile] = useState<UserProfile | null>(null);
-    const [myAvatarSrc, setMyAvatarSrc] = useState('/images/avatar.png');
+    const [myAvatarSrc, setMyAvatarSrc] = useState('/images/avatar.webp');
 
     const [opponentUser, setOpponentUser] = useState<UserProfile | null>(null);
-    const [opponentAvatarSrc, setOpponentAvatarSrc] = useState('/images/avatar.png');
+    const [opponentAvatarSrc, setOpponentAvatarSrc] = useState('/images/avatar.webp');
     const [opponentStats, setOpponentStats] = useState<{ total: number; wins: number; losses: number; winRate: number } | null>(null);
     const [isFriend, setIsFriend] = useState<boolean | null>(null);
 
@@ -54,17 +54,17 @@ export default function GamePlay() {
     const [error, setError] = useState<string | null>(null);
     const [profileError, setProfileError] = useState<string | null>(null);
 
-    
-    
-    
+
+
+
     useEffect(() => {
-        
+
         document.documentElement.style.overflow = 'hidden';
         document.body.style.overflow = 'hidden';
         document.body.style.height = '100%';
         document.documentElement.style.height = '100%';
 
-        
+
         const preventScrollKeys = (e: KeyboardEvent) => {
             const scrollKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '];
             if (scrollKeys.includes(e.key)) {
@@ -74,7 +74,7 @@ export default function GamePlay() {
         window.addEventListener('keydown', preventScrollKeys, { passive: false });
 
         return () => {
-            
+
             document.documentElement.style.overflow = '';
             document.body.style.overflow = '';
             document.body.style.height = '';
@@ -83,9 +83,9 @@ export default function GamePlay() {
         };
     }, []);
 
-    
-    
-    
+
+
+
     useEffect(() => {
         document.title = 'Zombie Land - NetGame';
         const link = document.querySelector("link[rel~='icon']") as HTMLLinkElement | null;
@@ -96,23 +96,23 @@ export default function GamePlay() {
         };
     }, []);
 
-    
-    
-    
+
+
+
     useEffect(() => {
         authFetch('/api/auth/me', { method: 'GET' })
             .then(r => r.ok ? r.json() : null)
             .then(data => {
                 if (!data) return;
                 setMyProfile({ id: data.id, username: data.username, avatarUrl: data.avatarUrl });
-                setMyAvatarSrc(data.avatarUrl || '/images/avatar.png');
+                setMyAvatarSrc(data.avatarUrl || '/images/avatar.webp');
             })
             .catch(() => { });
     }, []);
 
-    
-    
-    
+
+
+
     useEffect(() => {
         (async () => {
             try {
@@ -129,7 +129,7 @@ export default function GamePlay() {
         })();
     }, []);
 
-    
+
     useEffect(() => {
         if (screen === 'GAME_OVER' || screen === 'GAME_ABORTED') {
             authFetch('/api/game/stats', { method: 'GET' })
@@ -139,9 +139,9 @@ export default function GamePlay() {
         }
     }, [screen]);
 
-    
-    
-    
+
+
+
     useEffect(() => {
         let isMounted = true;
 
@@ -176,11 +176,11 @@ export default function GamePlay() {
                 try {
                     const oppUser = await getUserById(data.opponentId);
                     setOpponentUser({ id: data.opponentId, username: oppUser.username, avatarUrl: oppUser.avatarUrl });
-                    setOpponentAvatarSrc(oppUser.avatarUrl || '/images/avatar.png');
+                    setOpponentAvatarSrc(oppUser.avatarUrl || '/images/avatar.webp');
                     setIsFriend(friendsIds.includes(data.opponentId));
                 } catch {
                     setOpponentUser({ id: data.opponentId, username: 'Opponent', avatarUrl: null });
-                    setOpponentAvatarSrc('/images/avatar.png');
+                    setOpponentAvatarSrc('/images/avatar.webp');
                     setIsFriend(null);
                 }
 
@@ -209,17 +209,17 @@ export default function GamePlay() {
         };
     }, [navigate]);
 
-    
-    
-    
+
+
+
     const myName = myProfile?.username ? `${myProfile.username} (You)` : 'You';
     const myScore = gameOverData ? (side === 'left' ? gameOverData.score.left : gameOverData.score.right) : 0;
     const opponentScore = gameOverData ? (side === 'left' ? gameOverData.score.right : gameOverData.score.left) : 0;
     const iWon = !!myProfile && gameOverData?.winnerId === myProfile.id;
 
-    
-    
-    
+
+
+
     const joinQueue = useCallback(() => {
         if (!socketRef.current) {
             setError('Could not connect to game server. Please try again.');
@@ -255,7 +255,7 @@ export default function GamePlay() {
         setAbortData(null);
         setOpponentUser(null);
         setOpponentStats(null);
-        setOpponentAvatarSrc('/images/avatar.png');
+        setOpponentAvatarSrc('/images/avatar.webp');
         setIsFriend(null);
         setProfileError(null);
         setScreen('MODE_SELECT');
@@ -287,9 +287,9 @@ export default function GamePlay() {
         }
     }, [opponentUser, isFriend]);
 
-    
-    
-    
+
+
+
     const MyCard = (
         <div className="flex items-center gap-4">
             <div className="relative">
@@ -298,7 +298,7 @@ export default function GamePlay() {
                     alt={myName}
                     className="w-16 h-16 rounded-full border-2 border-green-400 object-cover"
                     style={{ boxShadow: '0 0 12px rgba(74,222,128,0.6)' }}
-                    onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/default-avatar.png'; }}
+                    onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/avatar.webp'; }}
                 />
                 <span className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-slate-900" />
             </div>
@@ -324,7 +324,7 @@ export default function GamePlay() {
                     alt={opponentUser.username}
                     className="w-16 h-16 rounded-full border-2 border-red-400 object-cover"
                     style={{ boxShadow: '0 0 12px rgba(248,113,113,0.6)' }}
-                    onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/default-avatar.png'; }}
+                    onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/avatar.webp'; }}
                 />
                 <span className="absolute -bottom-1 -right-1 w-4 h-4 bg-red-400 rounded-full border-2 border-slate-900" />
             </div>
@@ -349,9 +349,7 @@ export default function GamePlay() {
 
     return (
         <div className="relative h-[100svh] overflow-hidden">
-            <video autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover">
-                <source src="/images/zombie.mp4" type="video/mp4" />
-            </video>
+            <div className="absolute inset-0 w-full h-full object-cover bg-[url('/images/air.webp')] bg-center bg-cover bg-fixed"></div>
             <div className="absolute inset-0 bg-black/60" />
 
             <div className="relative z-10 h-full flex flex-col items-center justify-center p-4 sm:p-6 gap-4 sm:gap-6 overflow-hidden">
@@ -445,7 +443,7 @@ export default function GamePlay() {
                                     src={opponentAvatarSrc}
                                     alt={opponentUser.username}
                                     className="w-10 h-10 rounded-full border-2 border-red-400 object-cover"
-                                    onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/default-avatar.png'; }}
+                                    onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/avatar.webp'; }}
                                 />
                                 <span className="text-gray-300 text-sm">vs <span className="font-bold text-white">{opponentUser.username}</span></span>
                             </div>
@@ -521,7 +519,7 @@ export default function GamePlay() {
                             <div className="flex flex-col items-center gap-1">
                                 <img src={myAvatarSrc} alt={myName}
                                     className="w-12 h-12 rounded-full border-2 border-green-400 object-cover"
-                                    onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/default-avatar.png'; }} />
+                                    onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/avatar.webp'; }} />
                                 <span className="text-sm font-bold text-white">{myName}</span>
                                 <span className="text-3xl font-extrabold text-green-400">{myScore}</span>
                             </div>
@@ -529,7 +527,7 @@ export default function GamePlay() {
                             <div className="flex flex-col items-center gap-1">
                                 <img src={opponentAvatarSrc} alt={opponentUser?.username || 'Opponent'}
                                     className="w-12 h-12 rounded-full border-2 border-red-400 object-cover"
-                                    onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/default-avatar.png'; }} />
+                                    onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/avatar.webp'; }} />
                                 <span className="text-sm font-bold text-red-300">{opponentUser?.username || 'Opponent'}</span>
                                 <span className="text-3xl font-extrabold text-red-400">{opponentScore}</span>
                             </div>
@@ -566,7 +564,7 @@ export default function GamePlay() {
                             <div className="w-full bg-red-950/30 border border-red-800/30 rounded-xl p-4 flex items-center gap-4">
                                 <img src={opponentAvatarSrc} alt={opponentUser.username}
                                     className="w-12 h-12 rounded-full border-2 border-red-700 object-cover grayscale"
-                                    onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/default-avatar.png'; }} />
+                                    onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/avatar.webp'; }} />
                                 <div className="flex flex-col">
                                     <span className="text-red-700 text-xs uppercase tracking-widest">Fled the horde</span>
                                     <span className="text-white font-bold text-lg">{opponentUser.username}</span>
