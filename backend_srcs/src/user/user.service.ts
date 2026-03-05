@@ -61,19 +61,22 @@ export class UserService {
 
     async updateGoogleUser(user: User, googleId: string, avatarUrl: string | null): Promise<User> {
         user.googleId = googleId;
-        user.avatarUrl = avatarUrl;
+        if (!user.avatarUrl)
+            user.avatarUrl = avatarUrl;
         return await this.userrepo.save(user);
     }
 
     async updateGithubUser(user: User, githubId: string, avatarUrl: string | null): Promise<User> {
         user.githubId = githubId;
-        user.avatarUrl = avatarUrl;
+        if (!user.avatarUrl)
+            user.avatarUrl = avatarUrl;
         return await this.userrepo.save(user);
     }
 
     async updateIntra42User(user: User, intra42Id: string, avatarUrl: string | null): Promise<User> {
         user.intra42Id = intra42Id;
-        user.avatarUrl = avatarUrl;
+        if (!user.avatarUrl)
+            user.avatarUrl = avatarUrl;
         return await this.userrepo.save(user);
     }
 

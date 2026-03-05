@@ -49,6 +49,39 @@ export class GameController {
             };
         });
     }
+
+    @Get('history/:userId')
+    async getPublicGameHistory(
+        @CurrentUser('id') currentUserId: string,
+        @Param('userId') userId: string,
+        @Query('page') page = '1',
+        @Query('limit') limit = '20',
+    ) {
+        const pageNum = Math.max(1, parseInt(page, 10) || 1);
+        const limitNum = Math.min(50, Math.max(1, parseInt(limit, 10) || 20));
+        const games = await this.gameService.getGameHistory(userId, pageNum, limitNum);
+
+        return games.map(game => {
+            const isPlayerA = game.playerA.id === userId;
+            const opponent = isPlayerA ? game.playerB : game.playerA;
+            const myScore = isPlayerA ? game.playerAScore : game.playerBScore;
+            const opponentScore = isPlayerA ? game.playerBScore : game.playerAScore;
+            const result = game.winner?.id === userId ? 'WIN' : 'LOSS';
+
+            return {
+                id: game.id,
+                createdAt: game.createdAt,
+                mode: game.mode,
+                result,
+                myScore,
+                opponentScore,
+                opponentType: 'HUMAN',
+                opponentName: opponent.username,
+                opponentAvatarUrl: opponent.avatarUrl ?? null,
+                xpEarned: isPlayerA ? game.playerAXpEarned : game.playerBXpEarned,
+            };
+        });
+    }
     @Get('stats')
     async getPlayerStats(@CurrentUser('id') userId: string) {
         try {

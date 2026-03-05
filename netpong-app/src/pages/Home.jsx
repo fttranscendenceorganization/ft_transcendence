@@ -6,6 +6,7 @@ export default function UserHome() {
     const navigate = useNavigate();
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [friendReqs, setFriendReqs] = useState([]);
 
     useEffect(() => {
         document.title = "User Home - NetPong";
@@ -49,6 +50,21 @@ export default function UserHome() {
         })();
     }, [navigate]);
 
+    useEffect(() => {
+        const poll = async () => {
+            try {
+                const res = await authFetch('/api/users/friends/requests/incoming', { method: 'GET' });
+                if (res.ok) {
+                    const data = await res.json();
+                    setFriendReqs(Array.isArray(data) ? data : []);
+                }
+            } catch { }
+        };
+        poll();
+        const id = setInterval(poll, 10000);
+        return () => clearInterval(id);
+    }, []);
+
     if (loading) {
         return (
             <div className="min-h-screen bg-slate-950 flex items-center justify-center">
@@ -56,6 +72,17 @@ export default function UserHome() {
             </div>
         );
     }
+
+    const handleRespondFriendReq = async (id, action) => {
+        try {
+            await authFetch(`/api/users/friends/requests/${id}/respond`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action }),
+            });
+        } catch { }
+        setFriendReqs(prev => prev.filter(r => r.id !== id));
+    };
 
     const xpPercent = Math.min(100, Math.round((user.xp / user.xpNext) * 100));
 
@@ -185,6 +212,26 @@ export default function UserHome() {
 
                 </div>
             </section>
+
+            {friendReqs.length > 0 && (
+                <div className="fixed top-5 right-5 z-50 flex flex-col gap-2 max-w-xs w-full">
+                    {friendReqs.map(req => (
+                        <div key={req.id} className="flex items-center gap-3 bg-slate-900/95 border border-violet-500/30 rounded-xl px-4 py-3 shadow-2xl">
+                            <img
+                                src={req.requester?.avatarUrl || '/images/avatar.png'}
+                                alt={req.requester?.username}
+                                className="w-9 h-9 rounded-full object-cover border-2 border-violet-500/40 flex-shrink-0"
+                                onError={e => { e.target.src = '/images/avatar.png'; }}
+                            />
+                            <p className="flex-1 text-white text-xs font-semibold min-w-0 truncate">
+                                <span className="text-violet-400">{req.requester?.username}</span> wants to be friends
+                            </p>
+                            <button onClick={() => handleRespondFriendReq(req.id, 'ACCEPT')} className="w-7 h-7 rounded-lg bg-green-600 hover:bg-green-500 flex items-center justify-center text-white flex-shrink-0">✓</button>
+                            <button onClick={() => handleRespondFriendReq(req.id, 'REJECT')} className="w-7 h-7 rounded-lg bg-red-600 hover:bg-red-500 flex items-center justify-center text-white flex-shrink-0">✗</button>
+                        </div>
+                    ))}
+                </div>
+            )}
         </div>
     );
 }

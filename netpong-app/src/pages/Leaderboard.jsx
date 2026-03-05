@@ -21,7 +21,7 @@ function formatDate(iso) {
     });
 }
 
-function PlayerHistoryPanel({ player, onClose }) {
+function PlayerHistoryPanel({ player, onClose, currentUserId }) {
     const [history, setHistory] = useState([]);
     const [loading, setLoading] = useState(false);
     const [visible, setVisible] = useState(false);
@@ -38,19 +38,19 @@ function PlayerHistoryPanel({ player, onClose }) {
         setFriendSent(false);
         setLoading(true);
 
-        // Uncomment this here houdaifa please when you handle the api to fecth
-        // authFetch('/api/friends/status/' + player.id, { method: 'GET' })
-        //     .then(r => r.ok ? r.json() : {})
-        //     .then(data => {
-        //         setIsFriend(data.isFriend || false);
-        //         setFriendSent(data.requestSent || false);
-        //     })
-        //     .catch(() => { });
-
-        authFetch('/api/game/history/' + player.id, { method: 'GET' })
-            .then(r => r.ok ? r.json() : { items: [] })
-            .then(data => { setHistory(data.items || []); setLoading(false); })
-            .catch(() => setLoading(false));
+        Promise.all([
+            authFetch('/api/game/history/' + player.id, { method: 'GET' })
+                .then(r => r.ok ? r.json() : [])
+                .catch(() => []),
+            authFetch('/api/users/friends', { method: 'GET' })
+                .then(r => r.ok ? r.json() : [])
+                .catch(() => []),
+        ]).then(([historyData, friends]) => {
+            setHistory(Array.isArray(historyData) ? historyData : []);
+            const already = Array.isArray(friends) && friends.some(f => f.id === player.id);
+            setIsFriend(already);
+            setLoading(false);
+        });
 
         requestAnimationFrame(() => requestAnimationFrame(() => setVisible(true)));
     }, [player]);
@@ -70,9 +70,22 @@ function PlayerHistoryPanel({ player, onClose }) {
         return () => document.removeEventListener('keydown', handler);
     }, [onClose]);
 
-    // This function should be created by houdaifa
     const handleAddFriend = async () => {
-        // Her -----
+        if (friendLoading || isFriend || friendSent) return;
+        setFriendLoading(true);
+        try {
+            const res = await authFetch('/api/users/friends/request', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: player.username }),
+            });
+            if (res.ok) {
+                setFriendSent(true);
+            }
+        } catch {
+        } finally {
+            setFriendLoading(false);
+        }
     };
 
     if (!player) return null;
@@ -164,7 +177,7 @@ function PlayerHistoryPanel({ player, onClose }) {
                     </div>
 
                     <div className="mb-4">
-                        <FriendButton />
+                        {player.id !== currentUserId && <FriendButton />}
                     </div>
 
                     <div className="grid grid-cols-3 gap-2">
@@ -203,11 +216,11 @@ function PlayerHistoryPanel({ player, onClose }) {
                         const isWin = match.result === 'WIN';
                         const modeIcon = MODE_ICON[match.mode] || '🎮';
                         const modeLabel = MODE_LABEL[match.mode] || match.mode;
-                        const oppIcon = match.opponentType === 'AI' ? '🤖' : '👤';
+                        const oppIcon = match.opponentType === 'AI' ? '🤖' : null;
                         return (
                             <div
                                 key={match.id}
-                                className="flex items-center gap-3 rounded-xl border border-white/[0.05] px-3 py-3 hover:border-violet-500/20 transition-all"
+                                className="flex items-center gap-3 rounded-xl border border-white/[0.05] px-3 py-2.5 hover:border-violet-500/20 transition-all"
                                 style={{
                                     background: 'rgba(255,255,255,0.025)',
                                     transform: visible ? 'translateX(0)' : 'translateX(16px)',
@@ -216,22 +229,31 @@ function PlayerHistoryPanel({ player, onClose }) {
                                     borderLeft: '3px solid ' + (isWin ? '#10b981' : '#ef4444'),
                                 }}
                             >
-                                <div className={'flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-sm font-black ' + (isWin ? 'bg-emerald-500/15 text-emerald-400' : 'bg-red-500/15 text-red-400')}>
+                                <div className={'flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black ' + (isWin ? 'bg-emerald-500/15 text-emerald-400' : 'bg-red-500/15 text-red-400')}>
                                     {isWin ? 'W' : 'L'}
                                 </div>
-                                <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-1.5">
-                                        <span className="text-sm">{modeIcon}</span>
-                                        <span className="text-white text-xs font-semibold truncate">{modeLabel}</span>
-                                    </div>
-                                    <p className="text-gray-500 text-[11px] mt-0.5 truncate">
-                                        {oppIcon} vs <span className="text-gray-400">{match.opponentName}</span>
-                                        <span className="ml-1 text-gray-600">· {formatDate(match.createdAt)}</span>
-                                    </p>
+
+                                <div className="flex-shrink-0">
+                                    {oppIcon ? (
+                                        <div className="w-7 h-7 rounded-full bg-slate-700 flex items-center justify-center text-sm">{oppIcon}</div>
+                                    ) : (
+                                        <img
+                                            src={match.opponentAvatarUrl || '/images/avatar.png'}
+                                            alt={match.opponentName}
+                                            className="w-7 h-7 rounded-full object-cover border border-white/10"
+                                            onError={e => { e.target.src = '/images/avatar.png'; }}
+                                        />
+                                    )}
                                 </div>
+
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-white text-xs font-semibold truncate">{match.opponentName}</p>
+                                    <p className="text-gray-600 text-[10px] truncate">{modeIcon} {modeLabel} · {formatDate(match.createdAt)}</p>
+                                </div>
+
                                 <div className="flex-shrink-0 text-right">
                                     <p className="text-xs font-black text-white tabular-nums">
-                                        <span className="text-orange-400">{match.myScore}</span>
+                                        <span className={isWin ? 'text-emerald-400' : 'text-red-400'}>{match.myScore}</span>
                                         <span className="text-gray-600">:</span>
                                         <span className="text-gray-400">{match.opponentScore}</span>
                                     </p>
@@ -255,10 +277,15 @@ export default function Leaderboard() {
     const [hasMore, setHasMore] = useState(true);
     const [loading, setLoading] = useState(false);
     const [selectedPlayer, setSelectedPlayer] = useState(null);
+    const [currentUserId, setCurrentUserId] = useState(null);
     const observer = useRef();
 
     useEffect(() => {
         document.title = "Leaderboard - NetPong";
+        authFetch('/api/auth/me', { method: 'GET' })
+            .then(r => r.ok ? r.json() : null)
+            .then(me => { if (me) setCurrentUserId(me.id); })
+            .catch(() => {});
     }, []);
 
     const fetchPlayers = useCallback(async (pageNum = 1) => {
@@ -472,7 +499,7 @@ export default function Leaderboard() {
                 )}
             </div>
 
-            <PlayerHistoryPanel player={selectedPlayer} onClose={handleClose} />
+            <PlayerHistoryPanel player={selectedPlayer} onClose={handleClose} currentUserId={currentUserId} />
         </div>
     );
 }
