@@ -1,24 +1,48 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { authFetch } from '../utils/api';
 
 export default function Exclusive() {
     const navigate = useNavigate();
+    const [isVisible, setIsVisible] = useState(false);
+    const [loadingInitial, setLoadingInitial] = useState(true);
 
     useEffect(() => {
         document.title = "Exclusive Features - NetPong";
     }, []);
 
-    const [isVisible, setIsVisible] = useState(false);
-
     useEffect(() => {
-        setIsVisible(true);
-    }, []);
+        const init = async () => {
+            try {
+                const res = await authFetch('/api/auth/me', { method: 'GET' });
+                if (!res.ok) { navigate('/login'); return; }
+            } catch {
+                navigate('/login');
+            } finally {
+                setLoadingInitial(false);
+                setTimeout(() => setIsVisible(true), 100);
+            }
+        };
+        init();
+    }, [navigate]);
+
+    if (loadingInitial) {
+        return (
+            <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+                <div className="flex flex-col items-center gap-4">
+                    <div className="w-12 h-12 border-4 border-violet-500 border-t-transparent rounded-full animate-spin" />
+                    <p className="text-violet-400 font-black text-sm uppercase tracking-widest animate-pulse">Loading</p>
+                </div>
+            </div>
+        );
+    }
+
+    const fadeIn = isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10';
 
     return (
         <div className="antialiased w-full min-h-screen overflow-x-hidden relative bg-slate-950">
 
             <div className="absolute inset-0 bg-[url('/images/air.webp')] bg-center bg-no-repeat bg-cover bg-fixed"></div>
-
             <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-purple-900/20 to-slate-900"></div>
             <div className="absolute inset-0 bg-gradient-to-b from-slate-900/40 via-slate-900/30 to-slate-900/60"></div>
 
@@ -30,7 +54,7 @@ export default function Exclusive() {
             </div>
 
             <div className="relative w-full min-h-screen overflow-hidden flex items-center justify-center py-20">
-                <div className={`relative z-10 flex flex-col items-center justify-center text-white px-4 md:px-6 text-center transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+                <div className={`relative z-10 flex flex-col items-center justify-center text-white px-4 md:px-6 text-center transition-all duration-1000 ${fadeIn}`}>
 
                     <div className="bg-slate-900/50 backdrop-blur-xl rounded-3xl px-6 md:px-12 py-10 md:py-14 shadow-2xl border border-white/20 max-w-5xl transition-all duration-500 hover:bg-slate-900/60 hover:shadow-[0_0_50px_rgba(139,92,246,0.3)] hover:border-violet-500/40 group">
 
@@ -69,7 +93,6 @@ export default function Exclusive() {
                         </p>
 
                         <div className="grid md:grid-cols-2 gap-6 mt-12 mb-10">
-
                             <button
                                 onClick={() => navigate('/history')}
                                 className="group/card bg-gradient-to-br from-orange-500/10 to-red-500/10 backdrop-blur-sm rounded-2xl p-6 border-2 border-orange-500/30 hover:border-orange-500 transition-all duration-300 hover:scale-105 hover:shadow-[0_0_40px_rgba(249,115,22,0.4)] cursor-pointer text-left"
@@ -127,7 +150,6 @@ export default function Exclusive() {
                             >
                                 <span className="relative z-10">GET STARTED</span>
                                 <span className="relative z-10 text-xl md:text-2xl transition-transform duration-300 group-hover/btn:translate-x-1">➜</span>
-
                                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700"></div>
                             </a>
                         </div>
