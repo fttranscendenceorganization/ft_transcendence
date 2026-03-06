@@ -1,94 +1,13 @@
 <!doctype html>
 <html lang="en">
-
-<head>
-  <meta charset="UTF-8" />
-  <link rel="icon" type="image/svg+xml" href="/netpong.svg" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NetPong</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    #initial-loader {
-      position: fixed;
-      inset: 0;
-      background: #020617;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 20px;
-      z-index: 9999;
-      transition: opacity 0.3s ease;
-    }
-
-    #initial-loader.hidden {
-      opacity: 0;
-      pointer-events: none;
-    }
-
-    #initial-loader img {
-      width: 120px;
-      height: auto;
-      animation: pulse 1.8s ease-in-out infinite;
-    }
-
-    #initial-loader .spinner {
-      width: 36px;
-      height: 36px;
-      border: 3px solid rgba(249, 115, 22, 0.2);
-      border-top-color: #f97316;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-    }
-
-    @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
-    }
-
-    @keyframes pulse {
-
-      0%,
-      100% {
-        opacity: 1;
-      }
-
-      50% {
-        opacity: 0.5;
-      }
-    }
-  </style>
-</head>
-
-<body>
-  <div id="initial-loader">
-    <img src="/images/netpong.svg" alt="NetPong" />
-    <div class="spinner"></div>
-  </div>
-
-  <div id="root"></div>
-  <script type="module" src="/src/main.jsx"></script>
-
-  <script>
-    const observer = new MutationObserver(() => {
-      const root = document.getElementById('root');
-      if (root && root.children.length > 0) {
-        const loader = document.getElementById('initial-loader');
-        if (loader) {
-          loader.classList.add('hidden');
-          setTimeout(() => loader.remove(), 300);
-        }
-        observer.disconnect();
-      }
-    });
-    observer.observe(document.getElementById('root'), { childList: true, subtree: true });
-  </script>
-</body>
-
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/netpong.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NetPong</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
 </html>
