@@ -1,33 +1,51 @@
-import { useState } from 'react';
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { authFetch } from '../utils/api';
 import ZombieLandHeader from '../components/ZombieLandHeader';
 
 export default function ZombieLand() {
+    const navigate = useNavigate();
+    const [isHovering, setIsHovering] = useState(false);
+    const [loadingInitial, setLoadingInitial] = useState(true);
+    const [isVisible, setIsVisible] = useState(false);
 
     useEffect(() => {
         document.title = "Zombie Land - NetPong";
-
         const link = document.querySelector("link[rel~='icon']");
-        if (link) {
-            link.href = "/zombie.svg";
-        }
-
+        if (link) link.href = "/zombie.svg";
         return () => {
             document.title = "NetPong";
-            if (link) {
-                link.href = "/netpong.svg";
-            }
+            if (link) link.href = "/netpong.svg";
         };
     }, []);
 
-    const [isHovering, setIsHovering] = useState(false);
+    useEffect(() => {
+        const init = async () => {
+            try {
+                const res = await authFetch('/api/auth/me', { method: 'GET' });
+                if (!res.ok) { navigate('/login'); return; }
+            } catch {
+                navigate('/login');
+            } finally {
+                setLoadingInitial(false);
+                setTimeout(() => setIsVisible(true), 100);
+            }
+        };
+        init();
+    }, [navigate]);
 
-    const navigate = useNavigate();
+    if (loadingInitial) {
+        return (
+            <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+                <div className="flex flex-col items-center gap-4">
+                    <div className="w-12 h-12 border-4 border-green-500 border-t-transparent rounded-full animate-spin" />
+                    <p className="text-green-400 font-black text-sm uppercase tracking-widest animate-pulse">Loading</p>
+                </div>
+            </div>
+        );
+    }
 
-    const handleStartGame = () => {
-        navigate('/play');
-    };
+    const fadeIn = isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6';
 
     return (
         <div className="min-h-screen">
@@ -52,12 +70,11 @@ export default function ZombieLand() {
                     ))}
                 </div>
 
-                <div className="container mx-auto px-4 py-8 md:py-16 relative z-10">
+                <div className={`container mx-auto px-4 py-8 md:py-16 relative z-10 transition-all duration-700 ${fadeIn}`}>
                     <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-center max-w-7xl mx-auto">
 
                         <div className="order-2 md:order-1">
                             <div className="bg-slate-900/80 backdrop-blur-2xl rounded-3xl p-6 md:p-10 shadow-2xl border border-green-500/30 hover:border-green-500/50 transition-all duration-500 hover:shadow-green-500/20">
-
                                 <div className="inline-flex items-center gap-2 bg-gradient-to-r from-green-900/50 to-emerald-900/50 border border-green-500/50 rounded-full px-4 py-2 mb-6 hover:scale-105 transition-transform">
                                     <svg className="w-4 h-4 text-green-400 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456Z" />
@@ -98,7 +115,6 @@ export default function ZombieLand() {
 
                         <div className="order-1 md:order-2">
                             <div className="bg-slate-900/80 backdrop-blur-2xl rounded-3xl p-6 md:p-10 shadow-2xl border border-green-500/30 hover:border-green-500/50 transition-all duration-500 hover:shadow-green-500/20">
-
                                 <div className="flex flex-wrap items-center gap-3 md:gap-4 mb-6 text-sm md:text-base">
                                     <span className="bg-gradient-to-r from-green-900/70 to-green-800/70 text-green-300 px-3 py-1 rounded-lg font-bold border border-green-500/50 hover:scale-105 transition-transform">2026</span>
                                     <span className="bg-gradient-to-r from-red-900/70 to-red-800/70 text-red-300 px-3 py-1 rounded-lg font-bold border border-red-500/50 hover:scale-105 transition-transform">1337</span>
@@ -130,7 +146,7 @@ export default function ZombieLand() {
                                 </div>
 
                                 <button
-                                    onClick={handleStartGame}
+                                    onClick={() => navigate('/play')}
                                     onMouseEnter={() => setIsHovering(true)}
                                     onMouseLeave={() => setIsHovering(false)}
                                     className="group relative w-full bg-gradient-to-r from-green-600 via-green-500 to-green-600 hover:from-green-500 hover:via-green-400 hover:to-green-500 text-white py-4 px-8 font-bold rounded-xl shadow-2xl shadow-green-500/50 transition-all duration-300 text-base md:text-lg hover:scale-105 hover:shadow-green-500/70 border-2 border-green-400/50 flex items-center justify-center gap-3 overflow-hidden"
