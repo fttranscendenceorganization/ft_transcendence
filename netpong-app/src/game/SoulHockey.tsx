@@ -23,10 +23,8 @@ type DrawState = {
     opponentScore: number;
 };
 
-
 const WORLD_W = 1000;
 const WORLD_H = 600;
-
 const BALL_RADIUS = 25;
 const PADDLE_RADIUS = 45;
 
@@ -55,6 +53,8 @@ export default function SoulHockey({
         let worldWidth = 0;
         let worldHeight = 0;
 
+        let canvasRect = canvas.getBoundingClientRect();
+
         const resize = () => {
             const dpr = window.devicePixelRatio || 1;
             const rect = canvas.getBoundingClientRect();
@@ -63,6 +63,7 @@ export default function SoulHockey({
             canvas.width = rect.width * dpr;
             canvas.height = rect.height * dpr;
             ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            canvasRect = canvas.getBoundingClientRect();
         };
 
         resize();
@@ -88,7 +89,7 @@ export default function SoulHockey({
             opponentScore: 0,
         };
 
-        const mouse = { x: 0, y: 0 };
+        const mouse = { x: 0, y: 0, dirty: false };
 
         const toWorldX = (canvasX: number) => (canvasX / worldWidth) * WORLD_W;
         const toWorldY = (canvasY: number) => (canvasY / worldHeight) * WORLD_H;
@@ -101,17 +102,17 @@ export default function SoulHockey({
         };
 
         const onMouseMove = (e: MouseEvent) => {
-            const rect = canvas.getBoundingClientRect();
-            mouse.x = e.clientX - rect.left;
-            mouse.y = e.clientY - rect.top;
+            mouse.x = e.clientX - canvasRect.left;
+            mouse.y = e.clientY - canvasRect.top;
+            mouse.dirty = true;
         };
 
         const onTouchMove = (e: TouchEvent) => {
             e.preventDefault();
-            const rect = canvas.getBoundingClientRect();
             const touch = e.touches[0];
-            mouse.x = touch.clientX - rect.left;
-            mouse.y = touch.clientY - rect.top;
+            mouse.x = touch.clientX - canvasRect.left;
+            mouse.y = touch.clientY - canvasRect.top;
+            mouse.dirty = true;
         };
 
         const keys = { up: false, down: false, left: false, right: false };
@@ -182,8 +183,9 @@ export default function SoulHockey({
             const anyKey = keys.up || keys.down || keys.left || keys.right;
             if (anyKey) {
                 socket.emit('movePaddle', { x: paddleWorldX, y: paddleWorldY });
-            } else {
+            } else if (mouse.dirty) {
                 sendPaddleMove();
+                mouse.dirty = false;
             }
 
             draw(
@@ -250,7 +252,7 @@ function draw(
 function drawPlayer(ctx: CanvasRenderingContext2D, player: any) {
     const { x, y, r } = player;
 
-    ctx.shadowBlur = 24;
+    ctx.shadowBlur = 12;
     ctx.shadowColor = '#00e5ff';
 
     const gradient = ctx.createRadialGradient(x - r * 0.3, y - r * 0.3, r * 0.1, x, y, r);
@@ -280,7 +282,7 @@ function drawPlayer(ctx: CanvasRenderingContext2D, player: any) {
 function drawOpponent(ctx: CanvasRenderingContext2D, opponent: any) {
     const { x, y, r } = opponent;
 
-    ctx.shadowBlur = 24;
+    ctx.shadowBlur = 12;
     ctx.shadowColor = '#ff1744';
 
     const gradient = ctx.createRadialGradient(x - r * 0.3, y - r * 0.3, r * 0.1, x, y, r);
@@ -315,7 +317,7 @@ function drawOpponent(ctx: CanvasRenderingContext2D, opponent: any) {
 function drawPuck(ctx: CanvasRenderingContext2D, puck: any) {
     const { x, y, r } = puck;
 
-    ctx.shadowBlur = 18;
+    ctx.shadowBlur = 10;
     ctx.shadowColor = '#ffd700';
 
     const gradient = ctx.createRadialGradient(x - r * 0.35, y - r * 0.35, r * 0.05, x, y, r);
