@@ -35,7 +35,6 @@ export async function authFetch(url, options = {}) {
       Authorization: `Bearer ${token}`,
     };
 
-    // Don't set Content-Type for FormData — the browser sets it with the boundary
     if (!(options.body instanceof FormData)) {
       headers['Content-Type'] = 'application/json';
     }

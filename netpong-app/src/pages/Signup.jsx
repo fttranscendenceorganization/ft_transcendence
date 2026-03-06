@@ -173,6 +173,10 @@ export default function SignUp() {
 
     const handleSocialSignUp = (provider) => {
         if (!provider) return;
+
+        setAcceptedTerms(true);
+        setErrors(prev => ({ ...prev, terms: '' }));
+
         const p = provider.toString().toLowerCase();
         if (p === 'google') {
             initiateGoogleAuth();
@@ -349,14 +353,14 @@ export default function SignUp() {
                                         stroke="currentColor"
                                     >
                                         {showPassword ? (
-                                            
+
                                             <path
                                                 strokeLinecap="round"
                                                 strokeLinejoin="round"
                                                 d="M2.25 12s3.75-6.75 9.75-6.75S21.75 12 21.75 12s-3.75 6.75-9.75 6.75S2.25 12 2.25 12Z"
                                             />
                                         ) : (
-                                            
+
                                             <path
                                                 strokeLinecap="round"
                                                 strokeLinejoin="round"
