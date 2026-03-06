@@ -378,7 +378,7 @@ export default function GameSoul() {
                             className="group relative w-full bg-transparent hover:bg-slate-800/60 text-gray-300 hover:text-white font-extrabold py-4 px-8 rounded-xl transition-all duration-200 text-lg hover:scale-105 border border-slate-600/50 hover:border-slate-400/60 overflow-hidden"
                         >
                             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
-                            🏒 CLASSIC MATCH
+                            🏒  vs AI
                         </button>
                         <button onClick={() => navigate(-1)} className="text-gray-600 hover:text-gray-300 text-sm transition-colors">
                             ← Back
