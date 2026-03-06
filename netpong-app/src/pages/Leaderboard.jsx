@@ -79,9 +79,7 @@ function PlayerHistoryPanel({ player, onClose, currentUserId }) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username: player.username }),
             });
-            if (res.ok) {
-                setFriendSent(true);
-            }
+            if (res.ok) setFriendSent(true);
         } catch {
         } finally {
             setFriendLoading(false);
@@ -138,7 +136,6 @@ function PlayerHistoryPanel({ player, onClose, currentUserId }) {
                 className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm transition-opacity duration-300"
                 style={{ opacity: visible ? 1 : 0 }}
             />
-
             <div
                 ref={panelRef}
                 className="fixed top-0 right-0 h-full z-50 w-full max-w-sm flex flex-col"
@@ -232,7 +229,6 @@ function PlayerHistoryPanel({ player, onClose, currentUserId }) {
                                 <div className={'flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black ' + (isWin ? 'bg-emerald-500/15 text-emerald-400' : 'bg-red-500/15 text-red-400')}>
                                     {isWin ? 'W' : 'L'}
                                 </div>
-
                                 <div className="flex-shrink-0">
                                     {oppIcon ? (
                                         <div className="w-7 h-7 rounded-full bg-slate-700 flex items-center justify-center text-sm">{oppIcon}</div>
@@ -245,12 +241,10 @@ function PlayerHistoryPanel({ player, onClose, currentUserId }) {
                                         />
                                     )}
                                 </div>
-
                                 <div className="flex-1 min-w-0">
                                     <p className="text-white text-xs font-semibold truncate">{match.opponentName}</p>
                                     <p className="text-gray-600 text-[10px] truncate">{modeIcon} {modeLabel} · {formatDate(match.createdAt)}</p>
                                 </div>
-
                                 <div className="flex-shrink-0 text-right">
                                     <p className="text-xs font-black text-white tabular-nums">
                                         <span className={isWin ? 'text-emerald-400' : 'text-red-400'}>{match.myScore}</span>
@@ -276,23 +270,55 @@ export default function Leaderboard() {
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
     const [loading, setLoading] = useState(false);
+    const [loadingInitial, setLoadingInitial] = useState(true);
+    const [isVisible, setIsVisible] = useState(false);
     const [selectedPlayer, setSelectedPlayer] = useState(null);
     const [currentUserId, setCurrentUserId] = useState(null);
     const observer = useRef();
 
     useEffect(() => {
         document.title = "Leaderboard - NetPong";
-        authFetch('/api/auth/me', { method: 'GET' })
-            .then(r => r.ok ? r.json() : null)
-            .then(me => { if (me) setCurrentUserId(me.id); })
-            .catch(() => {});
     }, []);
 
-    const fetchPlayers = useCallback(async (pageNum = 1) => {
+    useEffect(() => {
+        const init = async () => {
+            try {
+                const [meRes, playersRes] = await Promise.all([
+                    authFetch('/api/auth/me', { method: 'GET' }),
+                    authFetch('/api/users?page=1&limit=20', { method: 'GET' }),
+                ]);
+                if (!meRes.ok || !playersRes.ok) { navigate('/login'); return; }
+                const me = await meRes.json();
+                const data = await playersRes.json();
+                if (me) setCurrentUserId(me.id);
+                const newPlayers = (data.items || []).map(u => ({
+                    id: u.id,
+                    username: u.username,
+                    avatar: u.avatarUrl || '/images/avatar.webp',
+                    level: u.level,
+                    wins: u.wins,
+                    losses: u.losses,
+                    totalXp: u.totalXp || 0,
+                    winRate: u.winrate || (u.wins + u.losses > 0 ? Math.round((u.wins / (u.wins + u.losses)) * 100) : 0),
+                    points: u.points || 0,
+                }));
+                setPlayers(newPlayers.sort((a, b) => b.totalXp - a.totalXp || b.points - a.points || b.winRate - a.winRate));
+                setHasMore(newPlayers.length === 20);
+            } catch {
+                navigate('/login');
+            } finally {
+                setLoadingInitial(false);
+                setTimeout(() => setIsVisible(true), 100);
+            }
+        };
+        init();
+    }, [navigate]);
+
+    const fetchMore = useCallback(async (pageNum) => {
         setLoading(true);
         try {
             const res = await authFetch('/api/users?page=' + pageNum + '&limit=20', { method: 'GET' });
-            if (!res.ok) { navigate('/login'); return; }
+            if (!res.ok) return;
             const data = await res.json();
             const newPlayers = (data.items || []).map(u => ({
                 id: u.id,
@@ -305,18 +331,17 @@ export default function Leaderboard() {
                 winRate: u.winrate || (u.wins + u.losses > 0 ? Math.round((u.wins / (u.wins + u.losses)) * 100) : 0),
                 points: u.points || 0,
             }));
-            setPlayers(prev => {
-                const merged = pageNum === 1 ? newPlayers : [...prev, ...newPlayers];
-                return merged.sort((a, b) => b.totalXp - a.totalXp || b.points - a.points || b.winRate - a.winRate);
-            });
+            setPlayers(prev => [...prev, ...newPlayers].sort((a, b) => b.totalXp - a.totalXp || b.points - a.points || b.winRate - a.winRate));
             setHasMore(newPlayers.length === 20);
-        } catch (err) {
+        } catch {
             setHasMore(false);
         }
         setLoading(false);
-    }, [navigate]);
+    }, []);
 
-    useEffect(() => { fetchPlayers(page); }, [page, fetchPlayers]);
+    useEffect(() => {
+        if (page > 1) fetchMore(page);
+    }, [page, fetchMore]);
 
     const lastPlayerRef = useCallback(node => {
         if (loading) return;
@@ -362,6 +387,19 @@ export default function Leaderboard() {
     const handlePlayerClick = useCallback((player) => setSelectedPlayer(player), []);
     const handleClose = useCallback(() => setSelectedPlayer(null), []);
 
+    if (loadingInitial) {
+        return (
+            <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+                <div className="flex flex-col items-center gap-4">
+                    <div className="w-12 h-12 border-4 border-violet-500 border-t-transparent rounded-full animate-spin" />
+                    <p className="text-violet-400 font-black text-sm uppercase tracking-widest animate-pulse">Loading</p>
+                </div>
+            </div>
+        );
+    }
+
+    const fadeIn = isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6';
+
     return (
         <div className="relative min-h-screen overflow-hidden">
             <video autoPlay muted loop playsInline className="absolute inset-0 w-full h-full object-cover">
@@ -375,7 +413,7 @@ export default function Leaderboard() {
                 <div className="absolute top-[60%] right-[8%] w-2 h-2 bg-yellow-500/20 rounded-full animate-ping" style={{ animationDelay: '3s' }}></div>
             </div>
 
-            <div className="relative z-10 container mx-auto px-4 py-8 md:py-12 max-w-7xl">
+            <div className={`relative z-10 container mx-auto px-4 py-8 md:py-12 max-w-7xl transition-all duration-700 ${fadeIn}`}>
                 <div className="text-center mb-12">
                     <div className="inline-flex items-center gap-3 mb-4">
                         <div className="w-1 h-8 bg-gradient-to-b from-transparent via-orange-500 to-transparent rounded-full"></div>
@@ -399,19 +437,6 @@ export default function Leaderboard() {
                         </div>
                     </div>
                 </div>
-
-                {loading && players.length === 0 && (
-                    <div className="max-w-5xl mx-auto space-y-4 mb-12">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                            {[0, 1, 2].map(i => (
-                                <div key={i} className="h-64 bg-slate-800/40 rounded-3xl animate-pulse" style={{ animationDelay: i * 100 + 'ms' }} />
-                            ))}
-                        </div>
-                        {[0, 1, 2, 3, 4].map(i => (
-                            <div key={i} className="h-16 bg-slate-800/40 rounded-2xl animate-pulse" style={{ animationDelay: i * 80 + 'ms' }} />
-                        ))}
-                    </div>
-                )}
 
                 {topThree.length > 0 && (
                     <div className="mb-12">
@@ -466,7 +491,7 @@ export default function Leaderboard() {
                                     />
                                 );
                             })}
-                            {loading && players.length > 0 && (
+                            {loading && (
                                 <div className="text-center py-5 text-white/50 animate-pulse text-sm tracking-wide">
                                     Loading more players...
                                 </div>

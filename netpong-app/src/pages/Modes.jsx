@@ -1,22 +1,31 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { authFetch } from '../utils/api';
 
 export default function GameModes() {
+    const navigate = useNavigate();
     const [hoveredCard, setHoveredCard] = useState(null);
-    const dropdownRef = useRef(null);
+    const [loadingInitial, setLoadingInitial] = useState(true);
+    const [isVisible, setIsVisible] = useState(false);
 
     useEffect(() => {
         document.title = "Modes - NetPong";
     }, []);
 
     useEffect(() => {
-        function handleClickOutside(event) {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-                setIsDropdownOpen(false);
+        const init = async () => {
+            try {
+                const res = await authFetch('/api/auth/me', { method: 'GET' });
+                if (!res.ok) { navigate('/login'); return; }
+            } catch {
+                navigate('/login');
+            } finally {
+                setLoadingInitial(false);
+                setTimeout(() => setIsVisible(true), 100);
             }
-        }
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, []);
+        };
+        init();
+    }, [navigate]);
 
     const gameModes = [
         {
@@ -73,6 +82,19 @@ export default function GameModes() {
         }
     ];
 
+    if (loadingInitial) {
+        return (
+            <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+                <div className="flex flex-col items-center gap-4">
+                    <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
+                    <p className="text-orange-400 font-black text-sm uppercase tracking-widest animate-pulse">Loading</p>
+                </div>
+            </div>
+        );
+    }
+
+    const fadeIn = isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6';
+
     return (
         <div className="antialiased bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 w-full min-h-screen text-white overflow-x-hidden relative">
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -81,8 +103,7 @@ export default function GameModes() {
                 <div className="absolute bottom-20 left-[20%] w-80 h-80 bg-violet-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '4s' }}></div>
             </div>
 
-
-            <div className="relative container mx-auto px-4 py-12 md:py-16">
+            <div className={`relative container mx-auto px-4 py-12 md:py-16 transition-all duration-700 ${fadeIn}`}>
                 <div className="text-center mb-12 md:mb-16">
                     <div className="inline-block mb-6">
                         <div className="bg-gradient-to-r from-red-500/20 to-orange-500/20 text-orange-400 px-6 py-3 rounded-full text-xs md:text-sm font-bold uppercase tracking-wider border border-orange-500/30 backdrop-blur-sm shadow-lg">
@@ -101,7 +122,8 @@ export default function GameModes() {
                     </div>
 
                     <p className="text-gray-400 text-base md:text-lg lg:text-xl max-w-2xl mx-auto">
-                        Select your adventure and start playing in stunning modern environments</p>
+                        Select your adventure and start playing in stunning modern environments
+                    </p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 max-w-6xl mx-auto">
@@ -113,8 +135,7 @@ export default function GameModes() {
                             onMouseLeave={() => setHoveredCard(null)}
                             className={`group relative overflow-hidden rounded-3xl p-8 md:p-10 transition-all duration-500 hover:scale-105 border-2 ${mode.borderColor} ${mode.hoverBorder}`}
                             style={{
-                                background: `linear-gradient(135deg, var(--tw-gradient-stops))`,
-                                animation: `fadeInUp 0.6s ease-out ${index * 0.1}s both`,
+                                transitionDelay: `${index * 100}ms`,
                                 boxShadow: hoveredCard === index ? `0 0 60px ${mode.glowColor}` : '0 10px 40px rgba(0,0,0,0.3)'
                             }}
                         >
@@ -185,19 +206,6 @@ export default function GameModes() {
                     </p>
                 </div>
             </div>
-
-            <style jsx>{`
-                @keyframes fadeInUp {
-                    from {
-                        opacity: 0;
-                        transform: translateY(30px);
-                    }
-                    to {
-                        opacity: 1;
-                        transform: translateY(0);
-                    }
-                }
-            `}</style>
         </div>
     );
 }

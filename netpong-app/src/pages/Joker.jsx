@@ -1,33 +1,51 @@
-import { useState } from 'react';
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { authFetch } from '../utils/api';
 import JokerHeader from '../components/JokerHeader';
 
 export default function Joker() {
+    const navigate = useNavigate();
+    const [isHovering, setIsHovering] = useState(false);
+    const [loadingInitial, setLoadingInitial] = useState(true);
+    const [isVisible, setIsVisible] = useState(false);
 
     useEffect(() => {
         document.title = "Joker - NetPong";
-
         const link = document.querySelector("link[rel~='icon']");
-        if (link) {
-            link.href = "/joker.svg";
-        }
-
+        if (link) link.href = "/joker.svg";
         return () => {
             document.title = "NetPong";
-            if (link) {
-                link.href = "/netpong.svg";
-            }
+            if (link) link.href = "/netpong.svg";
         };
     }, []);
 
-    const [isHovering, setIsHovering] = useState(false);
+    useEffect(() => {
+        const init = async () => {
+            try {
+                const res = await authFetch('/api/auth/me', { method: 'GET' });
+                if (!res.ok) { navigate('/login'); return; }
+            } catch {
+                navigate('/login');
+            } finally {
+                setLoadingInitial(false);
+                setTimeout(() => setIsVisible(true), 100);
+            }
+        };
+        init();
+    }, [navigate]);
 
-    const navigate = useNavigate();
+    if (loadingInitial) {
+        return (
+            <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+                <div className="flex flex-col items-center gap-4">
+                    <div className="w-12 h-12 border-4 border-red-600 border-t-transparent rounded-full animate-spin" />
+                    <p className="text-red-400 font-black text-sm uppercase tracking-widest animate-pulse">Loading</p>
+                </div>
+            </div>
+        );
+    }
 
-    const handleStartGame = () => {
-        navigate('/Jplay');
-    };
+    const fadeIn = isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6';
 
     return (
         <div className="min-h-screen">
@@ -53,7 +71,7 @@ export default function Joker() {
                     ))}
                 </div>
 
-                <div className="container mx-auto px-4 py-8 md:py-16 relative z-10">
+                <div className={`container mx-auto px-4 py-8 md:py-16 relative z-10 transition-all duration-700 ${fadeIn}`}>
                     <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-center max-w-7xl mx-auto">
 
                         <div className="order-2 md:order-1">
@@ -129,7 +147,7 @@ export default function Joker() {
                                 </div>
 
                                 <button
-                                    onClick={handleStartGame}
+                                    onClick={() => navigate('/Jplay')}
                                     onMouseEnter={() => setIsHovering(true)}
                                     onMouseLeave={() => setIsHovering(false)}
                                     className="group relative w-full bg-gradient-to-r from-red-800 via-red-700 to-red-800 hover:from-red-700 hover:via-red-600 hover:to-red-700 text-white py-4 px-8 font-bold rounded-xl shadow-2xl shadow-red-900/50 transition-all duration-300 text-base md:text-lg hover:scale-105 hover:shadow-red-600/70 border-2 border-red-500/50 flex items-center justify-center gap-3 overflow-hidden"
@@ -149,7 +167,7 @@ export default function Joker() {
                                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                                         </svg>
-                                        <span>15  min avg</span>
+                                        <span>15 min avg</span>
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -158,7 +176,6 @@ export default function Joker() {
                                         <span>Multi Player</span>
                                     </div>
                                 </div>
-
                             </div>
                         </div>
                     </div>
