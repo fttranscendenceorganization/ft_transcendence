@@ -12,8 +12,8 @@ export default function FirstContact() {
             name: 'Ahmed',
             role: 'Frontend Developer',
             initial: 'A',
-            image: 'https://i.pravatar.cc/200?img=11',
-            linkedin: 'random linked in',
+            image: 'https://media.licdn.com/dms/image/v2/D4E03AQHYREm74qVPHw/profile-displayphoto-shrink_800_800/B4EZP0OiZxHgAk-/0/1734969272840?e=1774483200&v=beta&t=29leJg_lW-4RLQvBymkLNglZiJj90neviWBJFgvApfQ',
+            linkedin: 'https://www.linkedin.com/in/ahmed-ahlaqqach-b1695719a'
             bgColor: 'bg-red-700',
             btnHover: 'hover:bg-red-600',
             hoverBorder: 'hover:border-red-700/50'
