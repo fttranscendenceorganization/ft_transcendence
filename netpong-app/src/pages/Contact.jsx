@@ -23,8 +23,8 @@ export default function Contact() {
             name: 'Ahmed',
             role: 'Frontend Developer',
             initial: 'A',
-            image: 'https://i.pravatar.cc/200?img=11',
-            linkedin: 'https://www.linkedin.com/in/ahmed',
+            image: 'https://cdn.intra.42.fr/users/b9194c07687160b366fee873e7cbc49d/hdrahm.jpeg',
+            linkedin: 'https://www.linkedin.com/in/houdaifa-drahm/',
             bgColor: 'bg-red-700',
             btnHover: 'hover:bg-red-600',
             hoverBorder: 'hover:border-red-700/50'
@@ -33,32 +33,33 @@ export default function Contact() {
             name: 'Houdaifa',
             role: 'Backend Developer',
             initial: 'H',
-            image: 'https://i.pravatar.cc/200?img=12',
-            linkedin: 'https://www.linkedin.com/in/houdaifa',
+            image: 'https://cdn.intra.42.fr/users/b9194c07687160b366fee873e7cbc49d/hdrahm.jpeg',
+            linkedin: 'https://www.linkedin.com/in/houdaifa-drahm/',
             bgColor: 'bg-orange-500',
             btnHover: 'hover:bg-orange-400',
             hoverBorder: 'hover:border-orange-500/50'
         },
         {
-            name: 'Mohamed',
-            role: 'Devops',
-            initial: 'M',
-            image: 'https://i.pravatar.cc/200?img=13',
-            linkedin: 'https://www.linkedin.com/in/mohamed', 
-            bgColor: 'bg-purple-500',
-            btnHover: 'hover:bg-purple-400',
-            hoverBorder: 'hover:border-purple-500/50'
-        },
-        {
             name: 'Youssef',
-            role: 'Security Developer',
+            role: 'Backend Developer',
             initial: 'Y',
-            image: 'https://i.pravatar.cc/200?img=14',
-            linkedin: 'https://www.linkedin.com/in/youssef',
+            image: 'https://cdn.intra.42.fr/users/73241cdcc2cc706c0f5de1a7a2b5d906/yakhadad.jpeg',
+            linkedin: 'https://www.linkedin.com/in/youssef-akhadad/',
             bgColor: 'bg-green-500',
             btnHover: 'hover:bg-green-400',
             hoverBorder: 'hover:border-green-500/50'
+        },
+        {
+            name: 'Mohamed',
+            role: 'Devops',
+            initial: 'M',
+            image: 'https://cdn.intra.42.fr/users/a9e4a636cad2fc137fb178f9db2f5b7a/momazouz.jpeg',
+            linkedin: 'https://www.linkedin.com/in/m-undefined-406117360/',
+            bgColor: 'bg-purple-500',
+            btnHover: 'hover:bg-purple-400',
+            hoverBorder: 'hover:border-purple-500/50'
         }
+
     ];
 
     return (

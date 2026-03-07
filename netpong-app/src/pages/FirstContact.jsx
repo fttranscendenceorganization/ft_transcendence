@@ -33,7 +33,7 @@ export default function FirstContact() {
             role: 'Backend Developer',
             initial: 'Y',
             image: 'https://cdn.intra.42.fr/users/73241cdcc2cc706c0f5de1a7a2b5d906/yakhadad.jpeg',
-            linkedin: 'random linked in',
+            linkedin: 'https://www.linkedin.com/in/youssef-akhadad/',
             bgColor: 'bg-green-500',
             btnHover: 'hover:bg-green-400',
             hoverBorder: 'hover:border-green-500/50'
