@@ -35,6 +35,7 @@ interface UserProfile {
 export default function GameJoker() {
     const navigate = useNavigate();
     const socketRef = useRef<Socket | null>(null);
+    const videoRef = useRef<HTMLVideoElement>(null);
 
     const [screen, setScreen] = useState<Screen>('MODE_SELECT');
     const [side, setSide] = useState<'left' | 'right'>('left');
@@ -55,7 +56,16 @@ export default function GameJoker() {
     const [profileError, setProfileError] = useState<string | null>(null);
     const [showAiPicker, setShowAiPicker] = useState(false);
 
-    
+    useEffect(() => {
+        const video = videoRef.current;
+        if (!video) return;
+        if (screen === 'IN_GAME') {
+            video.pause();
+        } else {
+            video.play().catch(() => { });
+        }
+    }, [screen]);
+
     useEffect(() => {
         document.documentElement.style.overflow = 'hidden';
         document.body.style.overflow = 'hidden';
@@ -79,7 +89,6 @@ export default function GameJoker() {
         };
     }, []);
 
-    
     useEffect(() => {
         document.title = 'Joker - NetGame';
         const link = document.querySelector("link[rel~='icon']") as HTMLLinkElement | null;
@@ -90,7 +99,6 @@ export default function GameJoker() {
         };
     }, []);
 
-    
     useEffect(() => {
         authFetch('/api/auth/me', { method: 'GET' })
             .then(r => r.ok ? r.json() : null)
@@ -102,7 +110,6 @@ export default function GameJoker() {
             .catch(() => { });
     }, []);
 
-    
     useEffect(() => {
         (async () => {
             try {
@@ -119,7 +126,6 @@ export default function GameJoker() {
         })();
     }, []);
 
-    
     useEffect(() => {
         if (screen === 'GAME_OVER' || screen === 'GAME_ABORTED') {
             authFetch('/api/game/stats', { method: 'GET' })
@@ -129,7 +135,6 @@ export default function GameJoker() {
         }
     }, [screen]);
 
-    
     useEffect(() => {
         let isMounted = true;
 
@@ -206,13 +211,11 @@ export default function GameJoker() {
         };
     }, [navigate]);
 
-    
     const myName = myProfile?.username ? `${myProfile.username} (You)` : 'You';
     const myScore = gameOverData ? (side === 'left' ? gameOverData.score.left : gameOverData.score.right) : 0;
     const opponentScore = gameOverData ? (side === 'left' ? gameOverData.score.right : gameOverData.score.left) : 0;
     const iWon = !!myProfile && gameOverData?.winnerId === myProfile.id;
 
-    
     const joinQueue = useCallback(() => {
         if (!socketRef.current) {
             setError('Could not connect to game server. Please try again.');
@@ -289,7 +292,6 @@ export default function GameJoker() {
         }
     }, [opponentUser, isFriend]);
 
-    
     const MyCard = (
         <div className="flex items-center gap-4">
             <div className="relative">
@@ -349,7 +351,7 @@ export default function GameJoker() {
 
     return (
         <div className="relative h-[100svh] overflow-hidden">
-            <video autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover brightness-75 contrast-125 saturate-150">
+            <video ref={videoRef} autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover brightness-75 contrast-125 saturate-150">
                 <source src="/images/joker.mp4" type="video/mp4" />
             </video>
             <div className="absolute inset-0 bg-gradient-to-br from-purple-900/70 via-black/60 to-green-900/50" />
@@ -411,23 +413,11 @@ export default function GameJoker() {
                         </button>
                         {showAiPicker && (
                             <div className="flex gap-3 w-full">
-                                <button
-                                    onClick={() => playAi('easy')}
-                                    className="flex-1 py-3 px-4 rounded-xl font-bold text-white transition-all duration-200 hover:scale-105 bg-green-700 hover:bg-green-600 border border-green-500/50"
-                                >
-                                    🟢 Easy
-                                </button>
-                                <button
-                                    onClick={() => playAi('hard')}
-                                    className="flex-1 py-3 px-4 rounded-xl font-bold text-white transition-all duration-200 hover:scale-105 bg-red-700 hover:bg-red-600 border border-red-500/50"
-                                >
-                                    🔴 Hard
-                                </button>
+                                <button onClick={() => playAi('easy')} className="flex-1 py-3 px-4 rounded-xl font-bold text-white transition-all duration-200 hover:scale-105 bg-green-700 hover:bg-green-600 border border-green-500/50">🟢 Easy</button>
+                                <button onClick={() => playAi('hard')} className="flex-1 py-3 px-4 rounded-xl font-bold text-white transition-all duration-200 hover:scale-105 bg-red-700 hover:bg-red-600 border border-red-500/50">🔴 Hard</button>
                             </div>
                         )}
-                        <button onClick={() => navigate('/joker')} className="text-gray-600 hover:text-gray-300 text-sm transition-colors">
-                            ← Back
-                        </button>
+                        <button onClick={() => navigate('/joker')} className="text-gray-600 hover:text-gray-300 text-sm transition-colors">← Back</button>
                     </div>
                 )}
 
@@ -443,218 +433,96 @@ export default function GameJoker() {
                         </div>
                         <p className="text-purple-400 font-bold text-xl tracking-wide">Searching for a punchline…</p>
                         <p className="text-purple-700 text-sm">Finding someone to play with</p>
-                        <button
-                            onClick={leaveQueue}
-                            className="text-fuchsia-500 hover:text-fuchsia-300 text-sm font-semibold border border-fuchsia-700/40 rounded-lg px-4 py-2 hover:bg-fuchsia-950/40 transition-all"
-                        >
-                            ✗ Abandon the game
-                        </button>
+                        <button onClick={leaveQueue} className="text-fuchsia-500 hover:text-fuchsia-300 text-sm font-semibold border border-fuchsia-700/40 rounded-lg px-4 py-2 hover:bg-fuchsia-950/40 transition-all">✗ Abandon the game</button>
                     </div>
                 )}
 
                 {screen === 'READY_CHECK' && (
                     <div
                         className="bg-black/70 backdrop-blur-xl rounded-2xl p-10 flex flex-col items-center gap-6 w-full max-w-sm"
-                        style={{
-                            border: '2px solid rgba(168,85,247,0.4)',
-                            boxShadow: '0 0 30px rgba(168,85,247,0.25)',
-                        }}
+                        style={{ border: '2px solid rgba(168,85,247,0.4)', boxShadow: '0 0 30px rgba(168,85,247,0.25)' }}
                     >
                         <div className="text-5xl animate-bounce">🃏</div>
-                        <p
-                            className="font-extrabold text-2xl tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-green-400"
-                            style={{ filter: 'drop-shadow(0 0 8px rgba(168,85,247,0.6))' }}
-                        >
-                            Victim Found!
-                        </p>
-                        <p className="text-gray-400 text-sm">
-                            You are on the{' '}
-                            <span className={`font-bold ${side === 'left' ? 'text-purple-400' : 'text-fuchsia-400'}`}>
-                                {side.toUpperCase()}
-                            </span>{' '}
-                            side
-                        </p>
+                        <p className="font-extrabold text-2xl tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-green-400" style={{ filter: 'drop-shadow(0 0 8px rgba(168,85,247,0.6))' }}>Victim Found!</p>
+                        <p className="text-gray-400 text-sm">You are on the <span className={`font-bold ${side === 'left' ? 'text-purple-400' : 'text-fuchsia-400'}`}>{side.toUpperCase()}</span> side</p>
                         {opponentUser && (
                             <div className="flex items-center gap-3 bg-slate-900/60 border border-purple-700/40 rounded-xl px-4 py-3">
-                                <img
-                                    src={opponentAvatarSrc}
-                                    alt={opponentUser.username}
-                                    className="w-10 h-10 rounded-full border-2 border-fuchsia-400 object-cover"
-                                    onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/avatar.webp'; }}
-                                />
+                                <img src={opponentAvatarSrc} alt={opponentUser.username} className="w-10 h-10 rounded-full border-2 border-fuchsia-400 object-cover" onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/avatar.webp'; }} />
                                 <span className="text-gray-300 text-sm">vs <span className="font-bold text-white">{opponentUser.username}</span></span>
                             </div>
                         )}
                         <p className="text-gray-600 text-xs text-center">Both players must confirm within 30 seconds</p>
-                        <button
-                            onClick={confirmReady}
-                            className="w-full text-black font-extrabold py-4 rounded-xl hover:scale-105 transition-all duration-200 text-lg"
-                            style={{
-                                background: 'linear-gradient(to right, #9333ea, #d946ef, #22c55e)',
-                                boxShadow: '0 0 20px rgba(168,85,247,0.5)',
-                            }}
-                        >
-                            🎭 I'M READY
-                        </button>
+                        <button onClick={confirmReady} className="w-full text-black font-extrabold py-4 rounded-xl hover:scale-105 transition-all duration-200 text-lg" style={{ background: 'linear-gradient(to right, #9333ea, #d946ef, #22c55e)', boxShadow: '0 0 20px rgba(168,85,247,0.5)' }}>🎭 I'M READY</button>
                     </div>
                 )}
 
                 {screen === 'IN_GAME' && socketRef.current && (
                     <div className="relative w-full max-w-5xl flex flex-col gap-3">
                         {opponentUser && (
-                            <div
-                                className="w-full bg-black/70 backdrop-blur-xl border border-purple-500/20 rounded-2xl p-4 flex items-center justify-between gap-4"
-                                style={{ boxShadow: '0 0 20px rgba(168,85,247,0.1)' }}
-                            >
+                            <div className="w-full bg-black/70 backdrop-blur-xl border border-purple-500/20 rounded-2xl p-4 flex items-center justify-between gap-4" style={{ boxShadow: '0 0 20px rgba(168,85,247,0.1)' }}>
                                 {side === 'left' ? MyCard : OppCard}
                                 <div className="flex flex-col items-center flex-shrink-0">
-                                    <span
-                                        className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-b from-purple-400 to-green-400"
-                                    >🃏</span>
+                                    <span className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-b from-purple-400 to-green-400">🃏</span>
                                     <span className="text-[10px] font-bold text-purple-700 mt-1 tracking-widest uppercase">Joker</span>
                                 </div>
                                 {side === 'left' ? OppCard : MyCard}
                             </div>
                         )}
-
-                        <div
-                            className="aspect-video min-h-[250px] sm:min-h-[350px] md:min-h-[450px] rounded-2xl overflow-hidden border-2 border-purple-500/30"
-                            style={{ boxShadow: '0 0 60px rgba(168,85,247,0.3)' }}
-                        >
-                            <JokerHockey
-                                side={side}
-                                socket={socketRef.current}
-                                onGameOver={handleGameOver}
-                                onGameAborted={handleGameAborted}
-                            />
+                        <div className="aspect-video min-h-[250px] sm:min-h-[350px] md:min-h-[450px] rounded-2xl overflow-hidden border-2 border-purple-500/30" style={{ boxShadow: '0 0 60px rgba(168,85,247,0.3)' }}>
+                            <JokerHockey side={side} socket={socketRef.current} onGameOver={handleGameOver} onGameAborted={handleGameAborted} />
                         </div>
-
-                        <button
-                            onClick={exitGame}
-                            className="w-full bg-fuchsia-950/60 hover:bg-fuchsia-900/70 border border-fuchsia-800/50 text-fuchsia-400 hover:text-fuchsia-300 font-bold py-3 rounded-xl transition-all text-sm tracking-wide flex items-center justify-center gap-2"
-                        >
+                        <button onClick={exitGame} className="w-full bg-fuchsia-950/60 hover:bg-fuchsia-900/70 border border-fuchsia-800/50 text-fuchsia-400 hover:text-fuchsia-300 font-bold py-3 rounded-xl transition-all text-sm tracking-wide flex items-center justify-center gap-2">
                             Exit the Stage <span className="text-xs text-fuchsia-700 font-normal">(opponent wins)</span>
                         </button>
                     </div>
                 )}
 
                 {screen === 'GAME_OVER' && gameOverData && (
-                    <div
-                        className="bg-black/80 backdrop-blur-xl rounded-2xl p-10 flex flex-col items-center gap-6 w-full max-w-sm"
-                        style={{
-                            border: `2px solid ${iWon ? 'rgba(168,85,247,0.5)' : 'rgba(232,121,249,0.4)'}`,
-                            boxShadow: `0 0 40px ${iWon ? 'rgba(168,85,247,0.2)' : 'rgba(232,121,249,0.15)'}`,
-                        }}
-                    >
+                    <div className="bg-black/80 backdrop-blur-xl rounded-2xl p-10 flex flex-col items-center gap-6 w-full max-w-sm" style={{ border: `2px solid ${iWon ? 'rgba(168,85,247,0.5)' : 'rgba(232,121,249,0.4)'}`, boxShadow: `0 0 40px ${iWon ? 'rgba(168,85,247,0.2)' : 'rgba(232,121,249,0.15)'}` }}>
                         <div className="text-7xl">{iWon ? '🃏' : '🎭'}</div>
-                        <h2
-                            className="text-5xl font-extrabold tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-fuchsia-500 to-green-400"
-                            style={{ filter: `drop-shadow(0 0 20px ${iWon ? 'rgba(168,85,247,0.6)' : 'rgba(232,121,249,0.6)'})` }}
-                        >
-                            {iWon ? 'HA HA HA!' : 'No Laughs...'}
-                        </h2>
-
+                        <h2 className="text-5xl font-extrabold tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-fuchsia-500 to-green-400" style={{ filter: `drop-shadow(0 0 20px ${iWon ? 'rgba(168,85,247,0.6)' : 'rgba(232,121,249,0.6)'})` }}>{iWon ? 'HA HA HA!' : 'No Laughs...'}</h2>
                         <div className="w-full bg-slate-900/60 border border-purple-700/40 rounded-xl p-4 flex items-center justify-around">
                             <div className="flex flex-col items-center gap-1">
-                                <img src={myAvatarSrc} alt={myName}
-                                    className="w-12 h-12 rounded-full border-2 border-purple-400 object-cover"
-                                    onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/avatar.webp'; }} />
+                                <img src={myAvatarSrc} alt={myName} className="w-12 h-12 rounded-full border-2 border-purple-400 object-cover" onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/avatar.webp'; }} />
                                 <span className="text-sm font-bold text-white">{myName}</span>
                                 <span className="text-3xl font-extrabold text-purple-400">{myScore}</span>
                             </div>
                             <span className="text-2xl text-gray-600">🃏</span>
                             <div className="flex flex-col items-center gap-1">
-                                <img src={opponentAvatarSrc} alt={opponentUser?.username || 'Opponent'}
-                                    className="w-12 h-12 rounded-full border-2 border-fuchsia-400 object-cover"
-                                    onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/avatar.webp'; }} />
+                                <img src={opponentAvatarSrc} alt={opponentUser?.username || 'Opponent'} className="w-12 h-12 rounded-full border-2 border-fuchsia-400 object-cover" onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/avatar.webp'; }} />
                                 <span className="text-sm font-bold text-fuchsia-300">{opponentUser?.username || 'Opponent'}</span>
                                 <span className="text-3xl font-extrabold text-fuchsia-400">{opponentScore}</span>
                             </div>
                         </div>
-
-                        <button
-                            onClick={playAgain}
-                            className="w-full text-black font-extrabold py-4 rounded-xl hover:scale-105 transition-all text-lg"
-                            style={{
-                                background: 'linear-gradient(to right, #9333ea, #d946ef, #22c55e)',
-                                boxShadow: '0 0 20px rgba(168,85,247,0.5)',
-                            }}
-                        >
-                            🃏 Play Again
-                        </button>
-                        <button onClick={() => navigate('/joker')} className="text-gray-600 hover:text-gray-300 text-sm transition-colors">
-                            ← RETURN TO THE BOARD
-                        </button>
+                        <button onClick={playAgain} className="w-full text-black font-extrabold py-4 rounded-xl hover:scale-105 transition-all text-lg" style={{ background: 'linear-gradient(to right, #9333ea, #d946ef, #22c55e)', boxShadow: '0 0 20px rgba(168,85,247,0.5)' }}>🃏 Play Again</button>
+                        <button onClick={() => navigate('/joker')} className="text-gray-600 hover:text-gray-300 text-sm transition-colors">← RETURN TO THE BOARD</button>
                     </div>
                 )}
 
                 {screen === 'GAME_ABORTED' && (
-                    <div
-                        className="bg-black/80 backdrop-blur-xl rounded-2xl p-10 flex flex-col items-center gap-6 w-full max-w-sm"
-                        style={{
-                            border: '2px solid rgba(168,85,247,0.4)',
-                            boxShadow: '0 0 40px rgba(168,85,247,0.15)',
-                        }}
-                    >
+                    <div className="bg-black/80 backdrop-blur-xl rounded-2xl p-10 flex flex-col items-center gap-6 w-full max-w-sm" style={{ border: '2px solid rgba(168,85,247,0.4)', boxShadow: '0 0 40px rgba(168,85,247,0.15)' }}>
                         <div className="text-7xl animate-bounce">🎭</div>
-                        <h2
-                            className="text-3xl font-extrabold tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-green-400"
-                            style={{ filter: 'drop-shadow(0 0 12px rgba(168,85,247,0.6))' }}
-                        >
-                            Joke's On Them
-                        </h2>
+                        <h2 className="text-3xl font-extrabold tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-green-400" style={{ filter: 'drop-shadow(0 0 12px rgba(168,85,247,0.6))' }}>Joke's On Them</h2>
                         <p className="text-purple-700 text-xs tracking-widest uppercase">The coward ran from the punchline</p>
-
                         {opponentUser && (
                             <div className="w-full bg-purple-950/30 border border-purple-800/30 rounded-xl p-4 flex items-center gap-4">
-                                <img src={opponentAvatarSrc} alt={opponentUser.username}
-                                    className="w-12 h-12 rounded-full border-2 border-purple-700 object-cover grayscale"
-                                    onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/avatar.webp'; }} />
+                                <img src={opponentAvatarSrc} alt={opponentUser.username} className="w-12 h-12 rounded-full border-2 border-purple-700 object-cover grayscale" onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/avatar.webp'; }} />
                                 <div className="flex flex-col">
                                     <span className="text-purple-700 text-xs uppercase tracking-widest">Couldn't take the game</span>
                                     <span className="text-white font-bold text-lg">{opponentUser.username}</span>
                                 </div>
                             </div>
                         )}
-
                         <div className="w-full bg-slate-900/50 border border-slate-700/30 rounded-xl px-4 py-3 text-center">
                             <p className="text-gray-500 text-sm">{abortData?.reason || 'A player abandoned the stage.'}</p>
                         </div>
-
-                        <div
-                            className="w-full rounded-xl px-4 py-3 text-center"
-                            style={{
-                                background: 'rgba(88,28,135,0.3)',
-                                border: '1px solid rgba(168,85,247,0.3)',
-                                boxShadow: '0 0 10px rgba(168,85,247,0.15)',
-                            }}
-                        >
-                            <p
-                                className="font-bold text-sm text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-green-400"
-                            >
-                                🏆 You had the last laugh!
-                            </p>
+                        <div className="w-full rounded-xl px-4 py-3 text-center" style={{ background: 'rgba(88,28,135,0.3)', border: '1px solid rgba(168,85,247,0.3)', boxShadow: '0 0 10px rgba(168,85,247,0.15)' }}>
+                            <p className="font-bold text-sm text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-green-400">🏆 You had the last laugh!</p>
                         </div>
-
-                        <button
-                            onClick={playAgain}
-                            className="w-full text-black font-extrabold py-4 rounded-xl hover:scale-105 transition-all text-lg"
-                            style={{
-                                background: 'linear-gradient(to right, #9333ea, #d946ef, #22c55e)',
-                                boxShadow: '0 0 20px rgba(168,85,247,0.5)',
-                            }}
-                        >
-                            🃏 Another Round
-                        </button>
-                        <button
-                            onClick={() => navigate('/joker')}
-                            className="w-full bg-slate-900/60 hover:bg-slate-800/60 border border-slate-700/40 text-gray-500 hover:text-white font-bold py-3 rounded-xl transition-all text-sm"
-                        >
-                            Leave the Stage
-                        </button>
+                        <button onClick={playAgain} className="w-full text-black font-extrabold py-4 rounded-xl hover:scale-105 transition-all text-lg" style={{ background: 'linear-gradient(to right, #9333ea, #d946ef, #22c55e)', boxShadow: '0 0 20px rgba(168,85,247,0.5)' }}>🃏 Another Round</button>
+                        <button onClick={() => navigate('/joker')} className="w-full bg-slate-900/60 hover:bg-slate-800/60 border border-slate-700/40 text-gray-500 hover:text-white font-bold py-3 rounded-xl transition-all text-sm">Leave the Stage</button>
                     </div>
                 )}
-
             </div>
 
             <style>{`
