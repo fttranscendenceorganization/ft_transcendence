@@ -43,6 +43,10 @@ export class UserService {
         return await this.userrepo.findOne({ where: { id, isActive: true } });
     }
 
+    async saveUser(user: User): Promise<User> {
+        return await this.userrepo.save(user);
+    }
+
     async findByEmail(email: string): Promise<User | null> {
         return await this.userrepo.findOne({ where: { email, isActive: true } });
     }
