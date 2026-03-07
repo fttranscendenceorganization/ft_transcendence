@@ -32,8 +32,8 @@ export default function FirstContact() {
             name: 'Mohammed',
             role: 'Devops',
             initial: 'M',
-            image: 'https://i.pravatar.cc/200?img=13',
-            linkedin: 'random linked in',
+            image: 'https://cdn.intra.42.fr/users/a9e4a636cad2fc137fb178f9db2f5b7a/momazouz.jpeg',
+            linkedin: 'https://www.linkedin.com/in/m-undefined-406117360/',
             bgColor: 'bg-purple-500',
             btnHover: 'hover:bg-purple-400',
             hoverBorder: 'hover:border-purple-500/50'
