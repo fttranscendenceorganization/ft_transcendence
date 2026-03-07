@@ -163,4 +163,32 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
         this.gameService.forfeitGame(userId);
     }
+
+    @SubscribeMessage('playAi')
+    handlePlayAi(
+        @ConnectedSocket() client: Socket,
+        @MessageBody() data: { mode: GameModeEnum; difficulty?: 'easy' | 'hard' }
+    ) {
+        const userId = client.data?.user?.id;
+        if (!userId) return;
+
+        if (!Object.values(GameModeEnum).includes(data?.mode)) {
+            client.emit('error', { message: 'Invalid game mode' });
+            return;
+        }
+
+        const difficulty = data.difficulty === 'easy' ? 'easy' : 'hard';
+        const game = this.gameService.createAiGame(userId, data.mode, difficulty);
+        if (!game) {
+            client.emit('error', { message: 'Could not create AI game' });
+            return;
+        }
+
+        client.emit('gameFound', {
+            gameId: game.id,
+            side: 'left',
+            mode: game.mode,
+            opponentId: '__AI_OPPONENT__',
+        });
+    }
 }
