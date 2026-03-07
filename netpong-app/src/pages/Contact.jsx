@@ -23,6 +23,8 @@ export default function Contact() {
             name: 'Ahmed',
             role: 'Frontend Developer',
             initial: 'A',
+            image: 'https://cdn.intra.42.fr/users/b9194c07687160b366fee873e7cbc49d/hdrahm.jpeg',
+            linkedin: 'https://www.linkedin.com/in/houdaifa-drahm/',
             bgColor: 'bg-red-700',
             btnHover: 'hover:bg-red-600',
             hoverBorder: 'hover:border-red-700/50'
@@ -31,26 +33,33 @@ export default function Contact() {
             name: 'Houdaifa',
             role: 'Backend Developer',
             initial: 'H',
+            image: 'https://cdn.intra.42.fr/users/b9194c07687160b366fee873e7cbc49d/hdrahm.jpeg',
+            linkedin: 'https://www.linkedin.com/in/houdaifa-drahm/',
             bgColor: 'bg-orange-500',
             btnHover: 'hover:bg-orange-400',
             hoverBorder: 'hover:border-orange-500/50'
         },
         {
-            name: 'Mohamed',
-            role: 'Devops',
-            initial: 'M',
-            bgColor: 'bg-purple-500',
-            btnHover: 'hover:bg-purple-400',
-            hoverBorder: 'hover:border-purple-500/50'
-        },
-        {
             name: 'Youssef',
-            role: 'Security Developer',
+            role: 'Backend Developer',
             initial: 'Y',
+            image: 'https://cdn.intra.42.fr/users/73241cdcc2cc706c0f5de1a7a2b5d906/yakhadad.jpeg',
+            linkedin: 'https://www.linkedin.com/in/youssef-akhadad/',
             bgColor: 'bg-green-500',
             btnHover: 'hover:bg-green-400',
             hoverBorder: 'hover:border-green-500/50'
+        },
+        {
+            name: 'Mohamed',
+            role: 'Devops',
+            initial: 'M',
+            image: 'https://cdn.intra.42.fr/users/a9e4a636cad2fc137fb178f9db2f5b7a/momazouz.jpeg',
+            linkedin: 'https://www.linkedin.com/in/m-undefined-406117360/',
+            bgColor: 'bg-purple-500',
+            btnHover: 'hover:bg-purple-400',
+            hoverBorder: 'hover:border-purple-500/50'
         }
+
     ];
 
     return (
@@ -93,16 +102,22 @@ export default function Contact() {
                             key={member.name}
                             className={`bg-slate-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-white/10 ${member.hoverBorder} transition-all duration-300 hover:scale-105`}
                         >
-                            <div className={`w-16 h-16 ${member.bgColor} rounded-full flex items-center justify-center mx-auto mb-4`}>
-                                <span className="text-2xl font-extrabold text-white">{member.initial}</span>
+                            <div className={`w-20 h-20 ${member.bgColor} rounded-full flex items-center justify-center mx-auto mb-4 overflow-hidden`}>
+                                {member.image ? (
+                                    <img src={member.image} alt={member.name} className="w-full h-full object-cover" />
+                                ) : (
+                                    <span className="text-2xl font-extrabold text-white">{member.initial}</span>
+                                )}
                             </div>
                             <h3 className="text-xl font-bold text-white text-center mb-2">{member.name}</h3>
                             <p className="text-sm text-gray-400 text-center mb-4">{member.role}</p>
                             <a
-                                href="#"
+                                href={member.linkedin}
+                                target="_blank"
+                                rel="noopener noreferrer"
                                 className={`block ${member.bgColor} ${member.btnHover} text-white text-sm font-bold py-2 px-4 rounded-lg text-center transition duration-150`}
                             >
-                                Contact
+                                LinkedIn
                             </a>
                         </div>
                     ))}
