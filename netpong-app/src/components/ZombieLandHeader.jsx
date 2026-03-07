@@ -101,9 +101,9 @@ export default function ZombieLandHeader() {
 
                         <div className="p-2">
                             {gameModesData.map((mode, index) => (
-                                <a
+                                <Link
                                     key={mode.path}
-                                    href={mode.path}
+                                    to={mode.path}
                                     className={`flex items-center gap-3 px-4 py-3 rounded-xl ${mode.hoverBg} transition-all duration-300 group/item relative overflow-hidden`}
                                     style={{
                                         animationDelay: `${index * 50}ms`,
@@ -113,12 +113,10 @@ export default function ZombieLandHeader() {
                                     <span className="text-2xl transition-transform group-hover/item:scale-125 group-hover/item:rotate-12">
                                         {mode.icon}
                                     </span>
-
                                     <div className="flex-1">
                                         <div className="font-bold text-sm text-white">{mode.name}</div>
                                         <div className="text-xs text-white/60">{mode.description}</div>
                                     </div>
-
                                     <svg
                                         className="w-4 h-4 opacity-0 -translate-x-2 transition-all group-hover/item:opacity-100 group-hover/item:translate-x-0"
                                         fill="none"
@@ -127,9 +125,8 @@ export default function ZombieLandHeader() {
                                     >
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                                     </svg>
-
                                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover/item:translate-x-full transition-transform duration-700"></div>
-                                </a>
+                                </Link>
                             ))}
                         </div>
 
