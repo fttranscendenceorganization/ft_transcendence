@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Socket } from 'socket.io-client';
 
- 
+
 type Vec2 = { x: number; y: number };
 
 type BackendGameState = {
@@ -24,11 +24,10 @@ type DrawState = {
     opponentScore: number;
 };
 
- 
+
 const WORLD_W = 1000;
 const WORLD_H = 600;
 
- 
 const BALL_RADIUS = 25;
 const PADDLE_RADIUS = 45;
 
@@ -57,7 +56,8 @@ export default function ZombieLandHockey({
         let worldWidth = 0;
         let worldHeight = 0;
 
-        
+        let canvasRect = canvas.getBoundingClientRect();
+
         const resize = () => {
             const dpr = window.devicePixelRatio || 1;
             const rect = canvas.getBoundingClientRect();
@@ -66,17 +66,16 @@ export default function ZombieLandHockey({
             canvas.width = rect.width * dpr;
             canvas.height = rect.height * dpr;
             ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            canvasRect = canvas.getBoundingClientRect();
         };
 
         resize();
         window.addEventListener('resize', resize);
 
-        
         const sx = (x: number) => (x / WORLD_W) * worldWidth;
         const sy = (y: number) => (y / WORLD_H) * worldHeight;
         const sr = (r: number) => (r / WORLD_W) * worldWidth;
 
-        
         let drawState: DrawState = {
             puck: { x: sx(WORLD_W / 2), y: sy(WORLD_H / 2), r: sr(BALL_RADIUS) },
             player: {
@@ -93,8 +92,7 @@ export default function ZombieLandHockey({
             opponentScore: 0,
         };
 
-        
-        const mouse = { x: 0, y: 0 };
+        const mouse = { x: 0, y: 0, dirty: false };
 
         const toWorldX = (canvasX: number) => (canvasX / worldWidth) * WORLD_W;
         const toWorldY = (canvasY: number) => (canvasY / worldHeight) * WORLD_H;
@@ -107,20 +105,19 @@ export default function ZombieLandHockey({
         };
 
         const onMouseMove = (e: MouseEvent) => {
-            const rect = canvas.getBoundingClientRect();
-            mouse.x = e.clientX - rect.left;
-            mouse.y = e.clientY - rect.top;
+            mouse.x = e.clientX - canvasRect.left;
+            mouse.y = e.clientY - canvasRect.top;
+            mouse.dirty = true;
         };
 
         const onTouchMove = (e: TouchEvent) => {
             e.preventDefault();
-            const rect = canvas.getBoundingClientRect();
             const touch = e.touches[0];
-            mouse.x = touch.clientX - rect.left;
-            mouse.y = touch.clientY - rect.top;
+            mouse.x = touch.clientX - canvasRect.left;
+            mouse.y = touch.clientY - canvasRect.top;
+            mouse.dirty = true;
         };
 
-        
         const keys = { up: false, down: false, left: false, right: false };
         const KEYBOARD_SPEED = 16;
 
@@ -146,7 +143,6 @@ export default function ZombieLandHockey({
         window.addEventListener('keydown', onKeyDown);
         window.addEventListener('keyup', onKeyUp);
 
-        
         const handleGameState = (state: BackendGameState) => {
             const myPaddle = side === 'left' ? state.paddleLeft : state.paddleRight;
             const oppPaddle = side === 'left' ? state.paddleRight : state.paddleLeft;
@@ -179,8 +175,12 @@ export default function ZombieLandHockey({
         socket.on('gameOver', onGameOver);
         socket.on('gameAborted', onGameAborted);
 
-        
         let animId: number;
+
+        let renderState: DrawState = { ...drawState };
+        const LERP_BALL = 0.8;
+        const LERP_PADDLE = 0.4;
+        const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
         const loop = () => {
             if (keys.up) paddleWorldY = Math.max(0, paddleWorldY - KEYBOARD_SPEED);
@@ -191,19 +191,27 @@ export default function ZombieLandHockey({
             const anyKey = keys.up || keys.down || keys.left || keys.right;
             if (anyKey) {
                 socket.emit('movePaddle', { x: paddleWorldX, y: paddleWorldY });
-            } else {
+            } else if (mouse.dirty) {
                 sendPaddleMove();
+                mouse.dirty = false;
             }
+
+            renderState.puck.x = lerp(renderState.puck.x, drawState.puck.x, LERP_BALL);
+            renderState.puck.y = lerp(renderState.puck.y, drawState.puck.y, LERP_BALL);
+            renderState.player.x = lerp(renderState.player.x, drawState.player.x, LERP_PADDLE);
+            renderState.player.y = lerp(renderState.player.y, drawState.player.y, LERP_PADDLE);
+            renderState.opponent.x = lerp(renderState.opponent.x, drawState.opponent.x, LERP_PADDLE);
+            renderState.opponent.y = lerp(renderState.opponent.y, drawState.opponent.y, LERP_PADDLE);
 
             draw(
                 ctx,
                 worldWidth,
                 worldHeight,
-                drawState.puck,
-                drawState.player,
-                drawState.opponent,
+                renderState.puck,
+                renderState.player,
+                renderState.opponent,
                 drawState.playerScore,
-                drawState.opponentScore
+                drawState.opponentScore,
             );
 
             animId = requestAnimationFrame(loop);
@@ -211,7 +219,6 @@ export default function ZombieLandHockey({
 
         animId = requestAnimationFrame(loop);
 
-        
         return () => {
             cancelAnimationFrame(animId);
             window.removeEventListener('resize', resize);
@@ -233,7 +240,7 @@ export default function ZombieLandHockey({
     );
 }
 
- 
+
 function draw(
     ctx: CanvasRenderingContext2D,
     w: number,
@@ -247,7 +254,6 @@ function draw(
     ctx.clearRect(0, 0, w, h);
     drawTable(ctx, w, h);
 
-    
     ctx.fillStyle = 'rgba(238, 11, 11, 0.2)';
     ctx.font = 'bold 80px sans-serif';
     ctx.textAlign = 'center';
@@ -259,7 +265,6 @@ function draw(
     drawPuck(ctx, puck);
 }
 
- 
 
 function drawPlayer(ctx: CanvasRenderingContext2D, player: any) {
     const { x, y, r } = player;
@@ -411,8 +416,6 @@ function drawPuck(ctx: CanvasRenderingContext2D, puck: any) {
         ctx.fill();
         ctx.restore();
     }
-
-    
 }
 
 function drawTable(ctx: CanvasRenderingContext2D, w: number, h: number) {

@@ -23,8 +23,10 @@ type DrawState = {
     opponentScore: number;
 };
 
+
 const WORLD_W = 1000;
 const WORLD_H = 600;
+
 const BALL_RADIUS = 25;
 const PADDLE_RADIUS = 45;
 
@@ -174,6 +176,11 @@ export default function SoulHockey({
 
         let animId: number;
 
+        let renderState: DrawState = { ...drawState };
+        const LERP_BALL = 0.8;
+        const LERP_PADDLE = 0.4;
+        const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+
         const loop = () => {
             if (keys.up) paddleWorldY = Math.max(0, paddleWorldY - KEYBOARD_SPEED);
             if (keys.down) paddleWorldY = Math.min(WORLD_H, paddleWorldY + KEYBOARD_SPEED);
@@ -188,13 +195,20 @@ export default function SoulHockey({
                 mouse.dirty = false;
             }
 
+            renderState.puck.x = lerp(renderState.puck.x, drawState.puck.x, LERP_BALL);
+            renderState.puck.y = lerp(renderState.puck.y, drawState.puck.y, LERP_BALL);
+            renderState.player.x = lerp(renderState.player.x, drawState.player.x, LERP_PADDLE);
+            renderState.player.y = lerp(renderState.player.y, drawState.player.y, LERP_PADDLE);
+            renderState.opponent.x = lerp(renderState.opponent.x, drawState.opponent.x, LERP_PADDLE);
+            renderState.opponent.y = lerp(renderState.opponent.y, drawState.opponent.y, LERP_PADDLE);
+
             draw(
                 ctx,
                 worldWidth,
                 worldHeight,
-                drawState.puck,
-                drawState.player,
-                drawState.opponent,
+                renderState.puck,
+                renderState.player,
+                renderState.opponent,
                 drawState.playerScore,
                 drawState.opponentScore,
             );
