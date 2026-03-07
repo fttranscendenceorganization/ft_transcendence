@@ -29,6 +29,16 @@ export default function FirstContact() {
             hoverBorder: 'hover:border-orange-500/50'
         },
         {
+            name: 'Youssef',
+            role: 'Backend Developer',
+            initial: 'Y',
+            image: 'https://i.pravatar.cc/200?img=14',
+            linkedin: 'random linked in',
+            bgColor: 'bg-green-500',
+            btnHover: 'hover:bg-green-400',
+            hoverBorder: 'hover:border-green-500/50'
+        },
+        {
             name: 'Mohammed',
             role: 'Devops',
             initial: 'M',
@@ -37,16 +47,6 @@ export default function FirstContact() {
             bgColor: 'bg-purple-500',
             btnHover: 'hover:bg-purple-400',
             hoverBorder: 'hover:border-purple-500/50'
-        },
-        {
-            name: 'Youssef',
-            role: 'Security Developer',
-            initial: 'Y',
-            image: 'https://i.pravatar.cc/200?img=14',
-            linkedin: 'random linked in',
-            bgColor: 'bg-green-500',
-            btnHover: 'hover:bg-green-400',
-            hoverBorder: 'hover:border-green-500/50'
         }
     ];
 
