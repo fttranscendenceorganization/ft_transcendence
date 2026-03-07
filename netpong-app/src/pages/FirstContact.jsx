@@ -12,6 +12,8 @@ export default function FirstContact() {
             name: 'Ahmed',
             role: 'Frontend Developer',
             initial: 'A',
+            image: 'https://i.pravatar.cc/200?img=11',
+            linkedin: 'random linked in',
             bgColor: 'bg-red-700',
             btnHover: 'hover:bg-red-600',
             hoverBorder: 'hover:border-red-700/50'
@@ -20,14 +22,18 @@ export default function FirstContact() {
             name: 'Houdaifa',
             role: 'Backend Developer',
             initial: 'H',
+            image: 'https://i.pravatar.cc/200?img=12',
+            linkedin: 'random linked in',
             bgColor: 'bg-orange-500',
             btnHover: 'hover:bg-orange-400',
             hoverBorder: 'hover:border-orange-500/50'
         },
         {
-            name: 'Mohamed',
+            name: 'Mohammed',
             role: 'Devops',
             initial: 'M',
+            image: 'https://i.pravatar.cc/200?img=13',
+            linkedin: 'random linked in',
             bgColor: 'bg-purple-500',
             btnHover: 'hover:bg-purple-400',
             hoverBorder: 'hover:border-purple-500/50'
@@ -36,6 +42,8 @@ export default function FirstContact() {
             name: 'Youssef',
             role: 'Security Developer',
             initial: 'Y',
+            image: 'https://i.pravatar.cc/200?img=14',
+            linkedin: 'random linked in',
             bgColor: 'bg-green-500',
             btnHover: 'hover:bg-green-400',
             hoverBorder: 'hover:border-green-500/50'
@@ -84,16 +92,22 @@ export default function FirstContact() {
                                 key={member.name}
                                 className={`bg-slate-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-white/10 ${member.hoverBorder} transition-all duration-300 hover:scale-105`}
                             >
-                                <div className={`w-16 h-16 ${member.bgColor} rounded-full flex items-center justify-center mx-auto mb-4`}>
-                                    <span className="text-2xl font-extrabold text-white">{member.initial}</span>
+                                <div className={`w-20 h-20 ${member.bgColor} rounded-full flex items-center justify-center mx-auto mb-4 overflow-hidden`}>
+                                    {member.image ? (
+                                        <img src={member.image} alt={member.name} className="w-full h-full object-cover" />
+                                    ) : (
+                                        <span className="text-2xl font-extrabold text-white">{member.initial}</span>
+                                    )}
                                 </div>
                                 <h3 className="text-xl font-bold text-white text-center mb-2">{member.name}</h3>
                                 <p className="text-sm text-gray-400 text-center mb-4">{member.role}</p>
                                 <a
-                                    href="#"
+                                    href={member.linkedin}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
                                     className={`block ${member.bgColor} ${member.btnHover} text-white text-sm font-bold py-2 px-4 rounded-lg text-center transition duration-150`}
                                 >
-                                    Contact
+                                    LinkedIn
                                 </a>
                             </article>
                         ))}
