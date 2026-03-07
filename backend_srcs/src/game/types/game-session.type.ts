@@ -10,5 +10,7 @@ export interface GameSessionType
     playerLeft: {userId: string, isReady: boolean},
     playerRight: {userId: string, isReady: boolean},
     state: GameStateType,
-    config: {maxScore: number, map: string}
+    config: {maxScore: number, map: string},
+    isAiGame?: boolean,
+    aiDifficulty?: 'easy' | 'hard'
 }

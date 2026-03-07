@@ -28,6 +28,8 @@ export class GameService implements OnModuleDestroy {
         }, 16);
     }
 
+    static readonly AI_USER_ID = '__AI_OPPONENT__';
+
     private readonly players = new Map<string, PlayerSessionType>();
     private readonly games = new Map<string, GameSessionType>();
     private readonly matchmakingQueues = new Map<GameModeEnum, string[]>();
@@ -108,6 +110,9 @@ export class GameService implements OnModuleDestroy {
 
         for (const [gameId, game] of this.games) {
             if (game.status === GameStatusEnum.IN_PROGRESS) {
+                if (game.isAiGame) {
+                    this.computeAiPaddle(game, deltaMs);
+                }
                 this.updateGamePhysics(game, deltaMs);
                 if (this.broadcastCallback)
                     this.broadcastCallback(gameId, game);
@@ -145,21 +150,22 @@ export class GameService implements OnModuleDestroy {
         const { ballSpeed, ballRadius, paddleLeft, paddleRight, paddleRadius } = game.state;
 
         const PADDLE_SPEED = 18 * (deltaMs / 16);
-        function smoothPaddle(paddle) {
+        const AI_SPEED = PADDLE_SPEED * (game.aiDifficulty === 'easy' ? 0.55 : 0.7);
+        function smoothPaddle(paddle, speed: number = PADDLE_SPEED) {
             if (paddle.targetX === undefined) return;
             const dx = paddle.targetX - paddle.x;
             const dy = paddle.targetY - paddle.y;
             const dist = Math.sqrt(dx * dx + dy * dy);
-            if (dist < PADDLE_SPEED) {
+            if (dist < speed) {
                 paddle.x = paddle.targetX;
                 paddle.y = paddle.targetY;
             } else {
-                paddle.x += (dx / dist) * PADDLE_SPEED;
-                paddle.y += (dy / dist) * PADDLE_SPEED;
+                paddle.x += (dx / dist) * speed;
+                paddle.y += (dy / dist) * speed;
             }
         }
         smoothPaddle(paddleLeft);
-        smoothPaddle(paddleRight);
+        smoothPaddle(paddleRight, game.isAiGame ? AI_SPEED : PADDLE_SPEED);
 
         const scale = deltaMs / 16;
         ballPosition.x += ballVelocity.x * scale;
@@ -259,6 +265,93 @@ export class GameService implements OnModuleDestroy {
         state.paddleRight.x = 950;
     }
 
+    private aiState = new Map<string, {
+        targetY: number;
+        targetX: number;
+        lastReactionTime: number;
+        hitOffset: number;
+        approachLocked: boolean;
+    }>();
+
+    private computeAiPaddle(game: GameSessionType, deltaMs: number) {
+        const { ballPosition, ballVelocity, paddleRight, paddleRadius } = game.state;
+
+        let ai = this.aiState.get(game.id);
+        if (!ai) {
+            ai = {
+                targetY: 300, targetX: 850, lastReactionTime: 0,
+                hitOffset: 0, approachLocked: false,
+            };
+            this.aiState.set(game.id, ai);
+        }
+
+        const isEasy = game.aiDifficulty === 'easy';
+
+        const REACTION_DELAY_MS = isEasy ? 350 : 200;
+        const MISS_CHANCE = isEasy ? 0.40 : 0.20;
+        const HIT_OFFSET_RANGE = isEasy ? 90 : 60;
+        const MISS_OFFSET_MIN = isEasy ? 50 : 60;
+        const MISS_OFFSET_EXTRA = isEasy ? 40 : 30;
+        const LOOKAHEAD_FRAMES = isEasy ? 3 : 6;
+        const DEFENSE_INACCURACY = isEasy ? 120 : 60;
+
+        ai.lastReactionTime += deltaMs;
+
+        if (ai.lastReactionTime >= REACTION_DELAY_MS) {
+            ai.lastReactionTime = 0;
+
+            const ballStopped = ballVelocity.x === 0 && ballVelocity.y === 0;
+            const ballOnAiHalf = ballPosition.x > 500;
+
+            if (ballStopped) {
+                ai.approachLocked = false;
+                ai.targetY = ballPosition.y + (Math.random() - 0.5) * (isEasy ? 80 : 30);
+                ai.targetX = Math.max(500 + paddleRadius, Math.min(1000 - paddleRadius, ballPosition.x));
+
+            } else if (ballOnAiHalf) {
+
+                const ballInCorner = ballPosition.x > 850
+                    && (ballPosition.y < 200 || ballPosition.y > 400);
+
+                if (ballInCorner) {
+                    ai.targetY = 300 + (Math.random() - 0.5) * 80;
+                    ai.targetX = 920 + Math.random() * 30;
+                    ai.approachLocked = false;
+                } else {
+                    if (!ai.approachLocked) {
+                        ai.approachLocked = true;
+
+                        if (Math.random() < (1 - MISS_CHANCE)) {
+                            ai.hitOffset = (Math.random() - 0.5) * HIT_OFFSET_RANGE;
+                        } else {
+                            const sign = Math.random() < 0.5 ? -1 : 1;
+                            ai.hitOffset = sign * (MISS_OFFSET_MIN + Math.random() * MISS_OFFSET_EXTRA);
+                        }
+                    }
+
+                    const roughY = ballPosition.y + ballVelocity.y * LOOKAHEAD_FRAMES;
+                    const roughX = ballPosition.x + ballVelocity.x * LOOKAHEAD_FRAMES;
+
+                    ai.targetY = roughY + ai.hitOffset;
+                    ai.targetX = roughX + 30 + Math.random() * 30;
+                }
+
+            } else {
+                ai.approachLocked = false;
+
+                ai.targetX = 860 + (Math.random() - 0.5) * 40;
+                ai.targetY = ballPosition.y + (Math.random() - 0.5) * DEFENSE_INACCURACY;
+            }
+
+            ai.targetY = Math.max(paddleRadius, Math.min(600 - paddleRadius, ai.targetY));
+            ai.targetX = Math.max(500 + paddleRadius, Math.min(1000 - paddleRadius, ai.targetX));
+        }
+
+        paddleRight.targetX = ai.targetX;
+        paddleRight.targetY = ai.targetY;
+    }
+
+
     private cleanupGameSessions(game: GameSessionType) {
         const leftPlayer = this.players.get(game.playerLeft.userId);
         if (leftPlayer) {
@@ -266,10 +359,12 @@ export class GameService implements OnModuleDestroy {
             leftPlayer.currentGameId = null;
         }
 
-        const rightPlayer = this.players.get(game.playerRight.userId);
-        if (rightPlayer) {
-            rightPlayer.status = PlayerStatusEnum.IDLE;
-            rightPlayer.currentGameId = null;
+        if (!game.isAiGame) {
+            const rightPlayer = this.players.get(game.playerRight.userId);
+            if (rightPlayer) {
+                rightPlayer.status = PlayerStatusEnum.IDLE;
+                rightPlayer.currentGameId = null;
+            }
         }
 
         this.games.delete(game.id);
@@ -303,6 +398,11 @@ export class GameService implements OnModuleDestroy {
         }
 
         this.cleanupGameSessions(game);
+
+        if (game.isAiGame) {
+            this.aiState.delete(game.id);
+            return;
+        }
 
         try {
             const userA = await this.userService.findById(game.playerLeft.userId);
@@ -370,6 +470,11 @@ export class GameService implements OnModuleDestroy {
         }
 
         this.cleanupGameSessions(game);
+
+        if (game.isAiGame) {
+            this.aiState.delete(game.id);
+            return;
+        }
 
         try {
             const userA = await this.userService.findById(game.playerLeft.userId);
@@ -442,6 +547,42 @@ export class GameService implements OnModuleDestroy {
                 this.abortGame(gameId, 'Ready check timed out');
             }
         }, 30000);
+    }
+
+    createAiGame(playerId: string, mode: GameModeEnum, difficulty: 'easy' | 'hard' = 'hard') {
+        const player = this.players.get(playerId);
+        if (!player) return;
+        if (player.status !== PlayerStatusEnum.IDLE) return;
+
+        const gameId = randomUUID();
+
+        player.status = PlayerStatusEnum.IN_GAME;
+        player.currentGameId = gameId;
+
+        const newGame: GameSessionType = {
+            id: gameId,
+            mode: mode,
+            status: GameStatusEnum.READY_CHECK,
+            playerLeft: { userId: playerId, isReady: false },
+            playerRight: { userId: GameService.AI_USER_ID, isReady: true },
+            state: this.getInitialState(),
+            config: { maxScore: 10, map: 'classic' },
+            isAiGame: true,
+            aiDifficulty: difficulty,
+        };
+
+        this.games.set(gameId, newGame);
+        this.logger.log('AI game created', { context: 'GameService', gameId, mode, playerId });
+
+        setTimeout(() => {
+            const activeGame = this.games.get(gameId);
+            if (activeGame && activeGame.status === GameStatusEnum.READY_CHECK) {
+                this.logger.warn('AI game timed out during ready check', { context: 'GameService', gameId });
+                this.abortGame(gameId, 'Ready check timed out');
+            }
+        }, 30000);
+
+        return newGame;
     }
 
     joinQueue(userId: string, mode: GameModeEnum) {
