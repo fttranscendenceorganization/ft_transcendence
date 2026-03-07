@@ -35,6 +35,7 @@ interface UserProfile {
 export default function GamePlay() {
     const navigate = useNavigate();
     const socketRef = useRef<Socket | null>(null);
+    const videoRef = useRef<HTMLVideoElement>(null);
 
     const [screen, setScreen] = useState<Screen>('MODE_SELECT');
     const [side, setSide] = useState<'left' | 'right'>('left');
@@ -55,27 +56,29 @@ export default function GamePlay() {
     const [profileError, setProfileError] = useState<string | null>(null);
     const [showAiPicker, setShowAiPicker] = useState(false);
 
-
-
+    useEffect(() => {
+        const video = videoRef.current;
+        if (!video) return;
+        if (screen === 'IN_GAME') {
+            video.pause();
+        } else {
+            video.play().catch(() => { });
+        }
+    }, [screen]);
 
     useEffect(() => {
-
         document.documentElement.style.overflow = 'hidden';
         document.body.style.overflow = 'hidden';
         document.body.style.height = '100%';
         document.documentElement.style.height = '100%';
 
-
         const preventScrollKeys = (e: KeyboardEvent) => {
             const scrollKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '];
-            if (scrollKeys.includes(e.key)) {
-                e.preventDefault();
-            }
+            if (scrollKeys.includes(e.key)) e.preventDefault();
         };
         window.addEventListener('keydown', preventScrollKeys, { passive: false });
 
         return () => {
-
             document.documentElement.style.overflow = '';
             document.body.style.overflow = '';
             document.body.style.height = '';
@@ -83,9 +86,6 @@ export default function GamePlay() {
             window.removeEventListener('keydown', preventScrollKeys);
         };
     }, []);
-
-
-
 
     useEffect(() => {
         document.title = 'Zombie Land - NetGame';
@@ -97,9 +97,6 @@ export default function GamePlay() {
         };
     }, []);
 
-
-
-
     useEffect(() => {
         authFetch('/api/auth/me', { method: 'GET' })
             .then(r => r.ok ? r.json() : null)
@@ -110,9 +107,6 @@ export default function GamePlay() {
             })
             .catch(() => { });
     }, []);
-
-
-
 
     useEffect(() => {
         (async () => {
@@ -130,7 +124,6 @@ export default function GamePlay() {
         })();
     }, []);
 
-
     useEffect(() => {
         if (screen === 'GAME_OVER' || screen === 'GAME_ABORTED') {
             authFetch('/api/game/stats', { method: 'GET' })
@@ -139,9 +132,6 @@ export default function GamePlay() {
                 .catch(() => { });
         }
     }, [screen]);
-
-
-
 
     useEffect(() => {
         let isMounted = true;
@@ -219,31 +209,19 @@ export default function GamePlay() {
         };
     }, [navigate]);
 
-
-
-
     const myName = myProfile?.username ? `${myProfile.username} (You)` : 'You';
     const myScore = gameOverData ? (side === 'left' ? gameOverData.score.left : gameOverData.score.right) : 0;
     const opponentScore = gameOverData ? (side === 'left' ? gameOverData.score.right : gameOverData.score.left) : 0;
     const iWon = !!myProfile && gameOverData?.winnerId === myProfile.id;
 
-
-
-
     const joinQueue = useCallback(() => {
-        if (!socketRef.current) {
-            setError('Could not connect to game server. Please try again.');
-            return;
-        }
+        if (!socketRef.current) { setError('Could not connect to game server. Please try again.'); return; }
         socketRef.current.emit('joinQueue', { mode: 'ZOMBIE_LAND' as BackendGameMode });
         setScreen('IN_QUEUE');
     }, []);
 
     const playAi = useCallback((difficulty: 'easy' | 'hard') => {
-        if (!socketRef.current) {
-            setError('Could not connect to game server. Please try again.');
-            return;
-        }
+        if (!socketRef.current) { setError('Could not connect to game server. Please try again.'); return; }
         setShowAiPicker(false);
         socketRef.current.emit('playAi', { mode: 'ZOMBIE_LAND' as BackendGameMode, difficulty });
     }, []);
@@ -259,24 +237,12 @@ export default function GamePlay() {
         setScreen('IN_GAME');
     }, []);
 
-    const handleGameOver = useCallback((data: GameOverData) => {
-        setGameOverData(data);
-        setScreen('GAME_OVER');
-    }, []);
-
-    const handleGameAborted = useCallback((data: GameAbortedData) => {
-        setAbortData(data);
-        setScreen('GAME_ABORTED');
-    }, []);
+    const handleGameOver = useCallback((data: GameOverData) => { setGameOverData(data); setScreen('GAME_OVER'); }, []);
+    const handleGameAborted = useCallback((data: GameAbortedData) => { setAbortData(data); setScreen('GAME_ABORTED'); }, []);
 
     const playAgain = useCallback(() => {
-        setGameOverData(null);
-        setAbortData(null);
-        setOpponentUser(null);
-        setOpponentStats(null);
-        setOpponentAvatarSrc('/images/avatar.webp');
-        setIsFriend(null);
-        setProfileError(null);
+        setGameOverData(null); setAbortData(null); setOpponentUser(null); setOpponentStats(null);
+        setOpponentAvatarSrc('/images/avatar.webp'); setIsFriend(null); setProfileError(null);
         setScreen('MODE_SELECT');
     }, []);
 
@@ -287,10 +253,7 @@ export default function GamePlay() {
 
     useEffect(() => {
         const onBeforeUnload = () => {
-            try {
-                if (socketRef.current && screen === 'IN_GAME')
-                    socketRef.current.emit('forfeit');
-            } catch (e) { }
+            try { if (socketRef.current && screen === 'IN_GAME') socketRef.current.emit('forfeit'); } catch (e) { }
         };
         window.addEventListener('beforeunload', onBeforeUnload);
         return () => window.removeEventListener('beforeunload', onBeforeUnload);
@@ -298,27 +261,14 @@ export default function GamePlay() {
 
     const handleAddFriend = useCallback(async () => {
         if (!opponentUser || isFriend) return;
-        try {
-            await sendFriendRequest(opponentUser.username);
-            setIsFriend(true);
-        } catch (e: any) {
-            setProfileError(e?.message || 'Failed to send friend request');
-        }
+        try { await sendFriendRequest(opponentUser.username); setIsFriend(true); }
+        catch (e: any) { setProfileError(e?.message || 'Failed to send friend request'); }
     }, [opponentUser, isFriend]);
-
-
-
 
     const MyCard = (
         <div className="flex items-center gap-4">
             <div className="relative">
-                <img
-                    src={myAvatarSrc}
-                    alt={myName}
-                    className="w-16 h-16 rounded-full border-2 border-green-400 object-cover"
-                    style={{ boxShadow: '0 0 12px rgba(74,222,128,0.6)' }}
-                    onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/avatar.webp'; }}
-                />
+                <img src={myAvatarSrc} alt={myName} className="w-16 h-16 rounded-full border-2 border-green-400 object-cover" style={{ boxShadow: '0 0 12px rgba(74,222,128,0.6)' }} onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/avatar.webp'; }} />
                 <span className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-slate-900" />
             </div>
             <div className="flex flex-col">
@@ -338,13 +288,7 @@ export default function GamePlay() {
     const OppCard = opponentUser ? (
         <div className="flex items-center gap-4">
             <div className="relative">
-                <img
-                    src={opponentAvatarSrc}
-                    alt={opponentUser.username}
-                    className="w-16 h-16 rounded-full border-2 border-red-400 object-cover"
-                    style={{ boxShadow: '0 0 12px rgba(248,113,113,0.6)' }}
-                    onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/avatar.webp'; }}
-                />
+                <img src={opponentAvatarSrc} alt={opponentUser.username} className="w-16 h-16 rounded-full border-2 border-red-400 object-cover" style={{ boxShadow: '0 0 12px rgba(248,113,113,0.6)' }} onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/avatar.webp'; }} />
                 <span className="absolute -bottom-1 -right-1 w-4 h-4 bg-red-400 rounded-full border-2 border-slate-900" />
             </div>
             <div className="flex flex-col">
@@ -356,287 +300,136 @@ export default function GamePlay() {
                         <span>Losses <span className="text-red-400 font-semibold">{opponentStats.losses}</span></span>
                         <span>Rate <span className="text-yellow-300 font-semibold">{opponentStats.winRate}%</span></span>
                     </div>
-                ) : (
-                    <span className="mt-1 text-xs text-red-400 animate-pulse">☣ Loading...</span>
-                )}
-                {isFriend === true && (
-                    <span className="text-xs text-green-400 font-semibold mt-1">✓ Ally</span>
-                )}
+                ) : <span className="mt-1 text-xs text-red-400 animate-pulse">☣ Loading...</span>}
+                {isFriend === true && <span className="text-xs text-green-400 font-semibold mt-1">✓ Ally</span>}
             </div>
         </div>
     ) : null;
 
     return (
         <div className="relative h-[100svh] overflow-hidden">
-            <video autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover brightness-75 contrast-125 saturate-150">
+            <video ref={videoRef} autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover brightness-75 contrast-125 saturate-150">
                 <source src="/images/zombie.mp4" type="video/mp4" />
             </video>
             <div className="absolute inset-0 bg-black/60" />
 
             <div className="relative z-10 h-full flex flex-col items-center justify-center p-4 sm:p-6 gap-4 sm:gap-6 overflow-hidden">
-
                 <div className="text-center space-y-1">
-                    <h1
-                        className="text-6xl md:text-7xl lg:text-8xl font-extrabold text-green-400 animate-pulse tracking-tight"
-                        style={{ textShadow: '0 0 30px rgba(74,222,128,0.8), 0 0 60px rgba(74,222,128,0.4)' }}
-                    >
-                        ZOMBIE LAND
-                    </h1>
-                    <p
-                        className="text-red-400 text-base md:text-lg font-bold tracking-[0.25em] uppercase"
-                        style={{ textShadow: '0 0 10px rgba(248,113,113,0.6)' }}
-                    >
-                        SURVIVE THE APOCALYPSE
-                    </p>
+                    <h1 className="text-6xl md:text-7xl lg:text-8xl font-extrabold text-green-400 animate-pulse tracking-tight" style={{ textShadow: '0 0 30px rgba(74,222,128,0.8), 0 0 60px rgba(74,222,128,0.4)' }}>ZOMBIE LAND</h1>
+                    <p className="text-red-400 text-base md:text-lg font-bold tracking-[0.25em] uppercase" style={{ textShadow: '0 0 10px rgba(248,113,113,0.6)' }}>SURVIVE THE APOCALYPSE</p>
                 </div>
 
-                {error && (
-                    <div className="bg-red-950/80 border border-red-600 text-red-300 rounded-xl px-6 py-3 text-sm font-semibold">
-                        ☣ {error}
-                    </div>
-                )}
+                {error && <div className="bg-red-950/80 border border-red-600 text-red-300 rounded-xl px-6 py-3 text-sm font-semibold">☣ {error}</div>}
 
                 {screen === 'MODE_SELECT' && (
-                    <div
-                        className="bg-black/70 backdrop-blur-xl border border-green-500/30 rounded-2xl p-8 flex flex-col items-center gap-6 w-full max-w-sm"
-                        style={{ boxShadow: '0 0 30px rgba(74,222,128,0.1)' }}
-                    >
+                    <div className="bg-black/70 backdrop-blur-xl border border-green-500/30 rounded-2xl p-8 flex flex-col items-center gap-6 w-full max-w-sm" style={{ boxShadow: '0 0 30px rgba(74,222,128,0.1)' }}>
                         <h2 className="text-green-400 font-bold text-2xl tracking-wide">Enter the Zone</h2>
                         <p className="text-green-300/60 text-sm text-center">The dead walk. Will you survive?</p>
-                        <button
-                            onClick={joinQueue}
-                            className="group relative w-full bg-green-500 hover:bg-green-400 text-black font-extrabold py-4 px-8 rounded-xl transition-all duration-200 text-lg hover:scale-105 overflow-hidden"
-                            style={{ boxShadow: '0 0 20px rgba(74,222,128,0.4)' }}
-                        >
+                        <button onClick={joinQueue} className="group relative w-full bg-green-500 hover:bg-green-400 text-black font-extrabold py-4 px-8 rounded-xl transition-all duration-200 text-lg hover:scale-105 overflow-hidden" style={{ boxShadow: '0 0 20px rgba(74,222,128,0.4)' }}>
                             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
                             🧟 FIND MATCH
                         </button>
-                        <button
-                            onClick={() => setShowAiPicker(!showAiPicker)}
-                            className="group relative w-full bg-transparent hover:bg-slate-800/60 text-gray-300 hover:text-white font-extrabold py-4 px-8 rounded-xl transition-all duration-200 text-lg hover:scale-105 border border-slate-600/50 hover:border-slate-400/60 overflow-hidden"
-                        >
+                        <button onClick={() => setShowAiPicker(!showAiPicker)} className="group relative w-full bg-transparent hover:bg-slate-800/60 text-gray-300 hover:text-white font-extrabold py-4 px-8 rounded-xl transition-all duration-200 text-lg hover:scale-105 border border-slate-600/50 hover:border-slate-400/60 overflow-hidden">
                             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
                             🏒  vs AI
                         </button>
                         {showAiPicker && (
                             <div className="flex gap-3 w-full">
-                                <button
-                                    onClick={() => playAi('easy')}
-                                    className="flex-1 py-3 px-4 rounded-xl font-bold text-white transition-all duration-200 hover:scale-105 bg-green-700 hover:bg-green-600 border border-green-500/50"
-                                >
-                                    🟢 Easy
-                                </button>
-                                <button
-                                    onClick={() => playAi('hard')}
-                                    className="flex-1 py-3 px-4 rounded-xl font-bold text-white transition-all duration-200 hover:scale-105 bg-red-700 hover:bg-red-600 border border-red-500/50"
-                                >
-                                    🔴 Hard
-                                </button>
+                                <button onClick={() => playAi('easy')} className="flex-1 py-3 px-4 rounded-xl font-bold text-white transition-all duration-200 hover:scale-105 bg-green-700 hover:bg-green-600 border border-green-500/50">🟢 Easy</button>
+                                <button onClick={() => playAi('hard')} className="flex-1 py-3 px-4 rounded-xl font-bold text-white transition-all duration-200 hover:scale-105 bg-red-700 hover:bg-red-600 border border-red-500/50">🔴 Hard</button>
                             </div>
                         )}
-                        <button onClick={() => navigate('/zombie-land')} className="text-gray-600 hover:text-gray-300 text-sm transition-colors">
-                            ← Back
-                        </button>
+                        <button onClick={() => navigate('/zombie-land')} className="text-gray-600 hover:text-gray-300 text-sm transition-colors">← Back</button>
                     </div>
                 )}
 
                 {screen === 'IN_QUEUE' && (
-                    <div
-                        className="bg-black/70 backdrop-blur-xl border border-green-500/30 rounded-2xl p-10 flex flex-col items-center gap-6 w-full max-w-sm"
-                        style={{ boxShadow: '0 0 30px rgba(74,222,128,0.1)' }}
-                    >
-                        <div className="flex gap-3">
-                            {['🧟', '🧠', '💀'].map((e, i) => (
-                                <span key={i} className="text-2xl animate-bounce" style={{ animationDelay: `${i * 0.2}s` }}>{e}</span>
-                            ))}
-                        </div>
+                    <div className="bg-black/70 backdrop-blur-xl border border-green-500/30 rounded-2xl p-10 flex flex-col items-center gap-6 w-full max-w-sm" style={{ boxShadow: '0 0 30px rgba(74,222,128,0.1)' }}>
+                        <div className="flex gap-3">{['🧟', '🧠', '💀'].map((e, i) => <span key={i} className="text-2xl animate-bounce" style={{ animationDelay: `${i * 0.2}s` }}>{e}</span>)}</div>
                         <p className="text-green-400 font-bold text-xl tracking-wide">Hunting for prey…</p>
                         <p className="text-green-700 text-sm">Sniffing out survivors</p>
-                        <button
-                            onClick={leaveQueue}
-                            className="text-red-500 hover:text-red-300 text-sm font-semibold border border-red-700/40 rounded-lg px-4 py-2 hover:bg-red-950/40 transition-all"
-                        >
-                            ✗ Retreat
-                        </button>
+                        <button onClick={leaveQueue} className="text-red-500 hover:text-red-300 text-sm font-semibold border border-red-700/40 rounded-lg px-4 py-2 hover:bg-red-950/40 transition-all">✗ Retreat</button>
                     </div>
                 )}
 
                 {screen === 'READY_CHECK' && (
-                    <div
-                        className="bg-black/70 backdrop-blur-xl border border-yellow-600/40 rounded-2xl p-10 flex flex-col items-center gap-6 w-full max-w-sm"
-                        style={{ boxShadow: '0 0 30px rgba(202,138,4,0.2)' }}
-                    >
+                    <div className="bg-black/70 backdrop-blur-xl border border-yellow-600/40 rounded-2xl p-10 flex flex-col items-center gap-6 w-full max-w-sm" style={{ boxShadow: '0 0 30px rgba(202,138,4,0.2)' }}>
                         <div className="text-5xl animate-bounce">🧟</div>
                         <p className="text-yellow-400 font-extrabold text-2xl tracking-wide">Target Spotted!</p>
-                        <p className="text-gray-400 text-sm">
-                            You are on the{' '}
-                            <span className={`font-bold ${side === 'left' ? 'text-green-400' : 'text-red-400'}`}>
-                                {side.toUpperCase()}
-                            </span>{' '}
-                            side
-                        </p>
+                        <p className="text-gray-400 text-sm">You are on the <span className={`font-bold ${side === 'left' ? 'text-green-400' : 'text-red-400'}`}>{side.toUpperCase()}</span> side</p>
                         {opponentUser && (
                             <div className="flex items-center gap-3 bg-slate-900/60 border border-slate-700/40 rounded-xl px-4 py-3">
-                                <img
-                                    src={opponentAvatarSrc}
-                                    alt={opponentUser.username}
-                                    className="w-10 h-10 rounded-full border-2 border-red-400 object-cover"
-                                    onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/avatar.webp'; }}
-                                />
+                                <img src={opponentAvatarSrc} alt={opponentUser.username} className="w-10 h-10 rounded-full border-2 border-red-400 object-cover" onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/avatar.webp'; }} />
                                 <span className="text-gray-300 text-sm">vs <span className="font-bold text-white">{opponentUser.username}</span></span>
                             </div>
                         )}
                         <p className="text-gray-600 text-xs text-center">Both survivors must confirm within 30 seconds</p>
-                        <button
-                            onClick={confirmReady}
-                            className="w-full bg-yellow-500 hover:bg-yellow-400 text-black font-extrabold py-4 rounded-xl hover:scale-105 transition-all duration-200 text-lg"
-                            style={{ boxShadow: '0 0 20px rgba(202,138,4,0.4)' }}
-                        >
-                            🪓 I'M READY
-                        </button>
+                        <button onClick={confirmReady} className="w-full bg-yellow-500 hover:bg-yellow-400 text-black font-extrabold py-4 rounded-xl hover:scale-105 transition-all duration-200 text-lg" style={{ boxShadow: '0 0 20px rgba(202,138,4,0.4)' }}>🪓 I'M READY</button>
                     </div>
                 )}
 
                 {screen === 'IN_GAME' && socketRef.current && (
                     <div className="relative w-full max-w-5xl flex flex-col gap-3">
                         {opponentUser && (
-                            <div
-                                className="w-full bg-black/70 backdrop-blur-xl border border-green-500/20 rounded-2xl p-4 flex items-center justify-between gap-4"
-                                style={{ boxShadow: '0 0 20px rgba(74,222,128,0.08)' }}
-                            >
+                            <div className="w-full bg-black/70 backdrop-blur-xl border border-green-500/20 rounded-2xl p-4 flex items-center justify-between gap-4" style={{ boxShadow: '0 0 20px rgba(74,222,128,0.08)' }}>
                                 {side === 'left' ? MyCard : OppCard}
                                 <div className="flex flex-col items-center flex-shrink-0">
-                                    <span
-                                        className="text-2xl font-extrabold text-green-400"
-                                        style={{ textShadow: '0 0 8px rgba(74,222,128,0.6)' }}
-                                    >☠</span>
+                                    <span className="text-2xl font-extrabold text-green-400" style={{ textShadow: '0 0 8px rgba(74,222,128,0.6)' }}>☠</span>
                                     <span className="text-[10px] font-bold text-green-700 mt-1 tracking-widest uppercase">Zombie Land</span>
                                 </div>
                                 {side === 'left' ? OppCard : MyCard}
                             </div>
                         )}
-
-                        <div
-                            className="aspect-video min-h-[250px] sm:min-h-[350px] md:min-h-[450px] rounded-2xl overflow-hidden border-2 border-green-500/20"
-                            style={{ boxShadow: '0 0 40px rgba(74,222,128,0.2)' }}
-                        >
-                            <ZombieLandHockey
-                                side={side}
-                                socket={socketRef.current}
-                                onGameOver={handleGameOver}
-                                onGameAborted={handleGameAborted}
-                            />
+                        <div className="aspect-video min-h-[250px] sm:min-h-[350px] md:min-h-[450px] rounded-2xl overflow-hidden border-2 border-green-500/20" style={{ boxShadow: '0 0 40px rgba(74,222,128,0.2)' }}>
+                            <ZombieLandHockey side={side} socket={socketRef.current} onGameOver={handleGameOver} onGameAborted={handleGameAborted} />
                         </div>
-
-                        <button
-                            onClick={exitGame}
-                            className="w-full bg-red-950/60 hover:bg-red-900/70 border border-red-800/50 text-red-400 hover:text-red-300 font-bold py-3 rounded-xl transition-all text-sm tracking-wide flex items-center justify-center gap-2"
-                        >
+                        <button onClick={exitGame} className="w-full bg-red-950/60 hover:bg-red-900/70 border border-red-800/50 text-red-400 hover:text-red-300 font-bold py-3 rounded-xl transition-all text-sm tracking-wide flex items-center justify-center gap-2">
                             Flee Arena <span className="text-xs text-red-700 font-normal">(opponent wins)</span>
                         </button>
                     </div>
                 )}
 
                 {screen === 'GAME_OVER' && gameOverData && (
-                    <div
-                        className="bg-black/80 backdrop-blur-xl rounded-2xl p-10 flex flex-col items-center gap-6 w-full max-w-sm"
-                        style={{
-                            border: `2px solid ${iWon ? 'rgba(74,222,128,0.4)' : 'rgba(248,113,113,0.4)'}`,
-                            boxShadow: `0 0 40px ${iWon ? 'rgba(74,222,128,0.15)' : 'rgba(248,113,113,0.15)'}`,
-                        }}
-                    >
+                    <div className="bg-black/80 backdrop-blur-xl rounded-2xl p-10 flex flex-col items-center gap-6 w-full max-w-sm" style={{ border: `2px solid ${iWon ? 'rgba(74,222,128,0.4)' : 'rgba(248,113,113,0.4)'}`, boxShadow: `0 0 40px ${iWon ? 'rgba(74,222,128,0.15)' : 'rgba(248,113,113,0.15)'}` }}>
                         <div className="text-7xl">{iWon ? '🏆' : '💀'}</div>
-                        <h2
-                            className={`text-5xl font-extrabold tracking-wide ${iWon ? 'text-green-400' : 'text-red-400'}`}
-                            style={{ textShadow: `0 0 20px ${iWon ? 'rgba(74,222,128,0.6)' : 'rgba(248,113,113,0.6)'}` }}
-                        >
-                            {iWon ? 'Survived!' : 'Infected!'}
-                        </h2>
-
+                        <h2 className={`text-5xl font-extrabold tracking-wide ${iWon ? 'text-green-400' : 'text-red-400'}`} style={{ textShadow: `0 0 20px ${iWon ? 'rgba(74,222,128,0.6)' : 'rgba(248,113,113,0.6)'}` }}>{iWon ? 'Survived!' : 'Infected!'}</h2>
                         <div className="w-full bg-slate-900/60 border border-slate-700/40 rounded-xl p-4 flex items-center justify-around">
                             <div className="flex flex-col items-center gap-1">
-                                <img src={myAvatarSrc} alt={myName}
-                                    className="w-12 h-12 rounded-full border-2 border-green-400 object-cover"
-                                    onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/avatar.webp'; }} />
+                                <img src={myAvatarSrc} alt={myName} className="w-12 h-12 rounded-full border-2 border-green-400 object-cover" onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/avatar.webp'; }} />
                                 <span className="text-sm font-bold text-white">{myName}</span>
                                 <span className="text-3xl font-extrabold text-green-400">{myScore}</span>
                             </div>
                             <span className="text-2xl text-gray-600">☠</span>
                             <div className="flex flex-col items-center gap-1">
-                                <img src={opponentAvatarSrc} alt={opponentUser?.username || 'Opponent'}
-                                    className="w-12 h-12 rounded-full border-2 border-red-400 object-cover"
-                                    onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/avatar.webp'; }} />
+                                <img src={opponentAvatarSrc} alt={opponentUser?.username || 'Opponent'} className="w-12 h-12 rounded-full border-2 border-red-400 object-cover" onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/avatar.webp'; }} />
                                 <span className="text-sm font-bold text-red-300">{opponentUser?.username || 'Opponent'}</span>
                                 <span className="text-3xl font-extrabold text-red-400">{opponentScore}</span>
                             </div>
                         </div>
-
-                        <button
-                            onClick={playAgain}
-                            className="w-full bg-green-500 hover:bg-green-400 text-black font-extrabold py-4 rounded-xl hover:scale-105 transition-all text-lg"
-                            style={{ boxShadow: '0 0 20px rgba(74,222,128,0.4)' }}
-                        >
-                            🧟 Hunt Again
-                        </button>
-                        <button onClick={() => navigate('/zombie-land')} className="text-gray-600 hover:text-gray-300 text-sm transition-colors">
-                            ←  RETURN TO SAFE ZONE
-                        </button>
+                        <button onClick={playAgain} className="w-full bg-green-500 hover:bg-green-400 text-black font-extrabold py-4 rounded-xl hover:scale-105 transition-all text-lg" style={{ boxShadow: '0 0 20px rgba(74,222,128,0.4)' }}>🧟 Hunt Again</button>
+                        <button onClick={() => navigate('/zombie-land')} className="text-gray-600 hover:text-gray-300 text-sm transition-colors">← RETURN TO SAFE ZONE</button>
                     </div>
                 )}
 
                 {screen === 'GAME_ABORTED' && (
-                    <div
-                        className="bg-black/80 backdrop-blur-xl border border-red-900/50 rounded-2xl p-10 flex flex-col items-center gap-6 w-full max-w-sm"
-                        style={{ boxShadow: '0 0 40px rgba(248,113,113,0.1)' }}
-                    >
+                    <div className="bg-black/80 backdrop-blur-xl border border-red-900/50 rounded-2xl p-10 flex flex-col items-center gap-6 w-full max-w-sm" style={{ boxShadow: '0 0 40px rgba(248,113,113,0.1)' }}>
                         <div className="text-7xl animate-bounce">☠️</div>
-                        <h2
-                            className="text-3xl font-extrabold text-red-400 tracking-wide"
-                            style={{ textShadow: '0 0 12px rgba(248,113,113,0.6)' }}
-                        >
-                            Zone Cleared
-                        </h2>
+                        <h2 className="text-3xl font-extrabold text-red-400 tracking-wide" style={{ textShadow: '0 0 12px rgba(248,113,113,0.6)' }}>Zone Cleared</h2>
                         <p className="text-red-700 text-xs tracking-widest uppercase">The coward fled</p>
-
                         {opponentUser && (
                             <div className="w-full bg-red-950/30 border border-red-800/30 rounded-xl p-4 flex items-center gap-4">
-                                <img src={opponentAvatarSrc} alt={opponentUser.username}
-                                    className="w-12 h-12 rounded-full border-2 border-red-700 object-cover grayscale"
-                                    onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/avatar.webp'; }} />
-                                <div className="flex flex-col">
-                                    <span className="text-red-700 text-xs uppercase tracking-widest">Fled the horde</span>
-                                    <span className="text-white font-bold text-lg">{opponentUser.username}</span>
-                                </div>
+                                <img src={opponentAvatarSrc} alt={opponentUser.username} className="w-12 h-12 rounded-full border-2 border-red-700 object-cover grayscale" onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/avatar.webp'; }} />
+                                <div className="flex flex-col"><span className="text-red-700 text-xs uppercase tracking-widest">Fled the horde</span><span className="text-white font-bold text-lg">{opponentUser.username}</span></div>
                             </div>
                         )}
-
-                        <div className="w-full bg-slate-900/50 border border-slate-700/30 rounded-xl px-4 py-3 text-center">
-                            <p className="text-gray-500 text-sm">{abortData?.reason || 'A survivor abandoned the zone.'}</p>
-                        </div>
-
-                        <div
-                            className="w-full bg-green-950/40 border border-green-500/30 rounded-xl px-4 py-3 text-center"
-                            style={{ boxShadow: '0 0 10px rgba(74,222,128,0.1)' }}
-                        >
+                        <div className="w-full bg-slate-900/50 border border-slate-700/30 rounded-xl px-4 py-3 text-center"><p className="text-gray-500 text-sm">{abortData?.reason || 'A survivor abandoned the zone.'}</p></div>
+                        <div className="w-full bg-green-950/40 border border-green-500/30 rounded-xl px-4 py-3 text-center" style={{ boxShadow: '0 0 10px rgba(74,222,128,0.1)' }}>
                             <p className="text-green-400 font-bold text-sm">🏆 You survived the zone!</p>
                         </div>
-
-                        <button
-                            onClick={playAgain}
-                            className="w-full bg-green-500 hover:bg-green-400 text-black font-extrabold py-4 rounded-xl hover:scale-105 transition-all text-lg"
-                            style={{ boxShadow: '0 0 20px rgba(74,222,128,0.4)' }}
-                        >
-                            ⚔️ Fight Again
-                        </button>
-                        <button
-                            onClick={() => navigate('/zombie-land')}
-                            className="w-full bg-slate-900/60 hover:bg-slate-800/60 border border-slate-700/40 text-gray-500 hover:text-white font-bold py-3 rounded-xl transition-all text-sm"
-                        >
-                            Leave Arena
-                        </button>
+                        <button onClick={playAgain} className="w-full bg-green-500 hover:bg-green-400 text-black font-extrabold py-4 rounded-xl hover:scale-105 transition-all text-lg" style={{ boxShadow: '0 0 20px rgba(74,222,128,0.4)' }}>⚔️ Fight Again</button>
+                        <button onClick={() => navigate('/zombie-land')} className="w-full bg-slate-900/60 hover:bg-slate-800/60 border border-slate-700/40 text-gray-500 hover:text-white font-bold py-3 rounded-xl transition-all text-sm">Leave Arena</button>
                     </div>
                 )}
-
             </div>
         </div>
     );
