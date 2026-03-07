@@ -23,7 +23,7 @@ export default function Contact() {
             name: 'Ahmed',
             role: 'Frontend Developer',
             initial: 'A',
-            image: 'https://cdn.intra.42.fr/users/b9194c07687160b366fee873e7cbc49d/hdrahm.jpeg',
+            image: 'https://cdn.intra.42.fr/users/98fecf4ba3d2e483d5bc0e0b53cdd03a/aahlaqqa.jpeg',
             linkedin: 'https://www.linkedin.com/in/houdaifa-drahm/',
             bgColor: 'bg-red-700',
             btnHover: 'hover:bg-red-600',
@@ -54,7 +54,7 @@ export default function Contact() {
             role: 'Devops',
             initial: 'M',
             image: 'https://cdn.intra.42.fr/users/a9e4a636cad2fc137fb178f9db2f5b7a/momazouz.jpeg',
-            linkedin: 'https://www.linkedin.com/in/m-undefined-406117360/',
+            linkedin: 'https://github.com/mohamedmazouz7',
             bgColor: 'bg-purple-500',
             btnHover: 'hover:bg-purple-400',
             hoverBorder: 'hover:border-purple-500/50'
