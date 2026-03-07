@@ -53,6 +53,7 @@ export default function GamePlay() {
     const [abortData, setAbortData] = useState<GameAbortedData | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [profileError, setProfileError] = useState<string | null>(null);
+    const [showAiPicker, setShowAiPicker] = useState(false);
 
 
 
@@ -173,6 +174,15 @@ export default function GamePlay() {
                 if (!isMounted) return;
                 setSide(data.side);
 
+                if (data.opponentId === '__AI_OPPONENT__') {
+                    setOpponentUser({ id: data.opponentId, username: 'AI Bot', avatarUrl: null });
+                    setOpponentAvatarSrc('/images/avatar.webp');
+                    setOpponentStats({ total: 0, wins: 0, losses: 0, winRate: 0 });
+                    setIsFriend(false);
+                    setScreen('READY_CHECK');
+                    return;
+                }
+
                 try {
                     const oppUser = await getUserById(data.opponentId);
                     setOpponentUser({ id: data.opponentId, username: oppUser.username, avatarUrl: oppUser.avatarUrl });
@@ -227,6 +237,15 @@ export default function GamePlay() {
         }
         socketRef.current.emit('joinQueue', { mode: 'ZOMBIE_LAND' as BackendGameMode });
         setScreen('IN_QUEUE');
+    }, []);
+
+    const playAi = useCallback((difficulty: 'easy' | 'hard') => {
+        if (!socketRef.current) {
+            setError('Could not connect to game server. Please try again.');
+            return;
+        }
+        setShowAiPicker(false);
+        socketRef.current.emit('playAi', { mode: 'ZOMBIE_LAND' as BackendGameMode, difficulty });
     }, []);
 
     const leaveQueue = useCallback(() => {
@@ -393,11 +412,28 @@ export default function GamePlay() {
                             🧟 FIND MATCH
                         </button>
                         <button
+                            onClick={() => setShowAiPicker(!showAiPicker)}
                             className="group relative w-full bg-transparent hover:bg-slate-800/60 text-gray-300 hover:text-white font-extrabold py-4 px-8 rounded-xl transition-all duration-200 text-lg hover:scale-105 border border-slate-600/50 hover:border-slate-400/60 overflow-hidden"
                         >
                             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
                             🏒  vs AI
                         </button>
+                        {showAiPicker && (
+                            <div className="flex gap-3 w-full">
+                                <button
+                                    onClick={() => playAi('easy')}
+                                    className="flex-1 py-3 px-4 rounded-xl font-bold text-white transition-all duration-200 hover:scale-105 bg-green-700 hover:bg-green-600 border border-green-500/50"
+                                >
+                                    🟢 Easy
+                                </button>
+                                <button
+                                    onClick={() => playAi('hard')}
+                                    className="flex-1 py-3 px-4 rounded-xl font-bold text-white transition-all duration-200 hover:scale-105 bg-red-700 hover:bg-red-600 border border-red-500/50"
+                                >
+                                    🔴 Hard
+                                </button>
+                            </div>
+                        )}
                         <button onClick={() => navigate('/zombie-land')} className="text-gray-600 hover:text-gray-300 text-sm transition-colors">
                             ← Back
                         </button>
