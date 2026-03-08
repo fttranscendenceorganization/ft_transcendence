@@ -55,6 +55,7 @@ export default function GameKitty() {
     const [error, setError] = useState<string | null>(null);
     const [profileError, setProfileError] = useState<string | null>(null);
     const [showAiPicker, setShowAiPicker] = useState(false);
+    const [blocked, setBlocked] = useState(false);
 
     useEffect(() => {
         const video = videoRef.current;
@@ -137,6 +138,17 @@ export default function GameKitty() {
         let isMounted = true;
 
         (async () => {
+            try {
+                const res = await authFetch('/api/game/active-session', { method: 'GET' });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.active) {
+                        if (isMounted) setBlocked(true);
+                        return;
+                    }
+                }
+            } catch {}
+
             const socket = await getGameSocket();
             if (!socket || !isMounted) {
                 if (!socket) navigate('/login');
@@ -305,6 +317,20 @@ export default function GameKitty() {
             </div>
         </div>
     ) : null;
+
+    if (blocked) {
+        return (
+            <div className="relative h-[100svh] overflow-hidden">
+                <div className="absolute inset-0 bg-slate-900" />
+                <div className="relative z-10 h-full flex flex-col items-center justify-center p-6 gap-6">
+                    <div className="text-6xl">🚫</div>
+                    <h2 className="text-3xl font-extrabold text-pink-400" style={{ textShadow: '0 0 20px rgba(255,105,180,0.6)' }}>Game Already Active</h2>
+                    <p className="text-gray-400 text-center max-w-md">You already have an active game running in another session. Please finish or leave it before starting a new one.</p>
+                    <button onClick={() => navigate('/kitty-cat')} className="mt-4 bg-pink-600 hover:bg-pink-500 text-white font-bold py-3 px-8 rounded-xl transition-all hover:scale-105" style={{ boxShadow: '0 0 20px rgba(255,105,180,0.3)' }}>← Go Back</button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="relative h-[100svh] overflow-hidden">

@@ -102,6 +102,11 @@ export class GameController {
         }
     }
 
+    @Get('active-session')
+    getActiveSession(@CurrentUser('id') userId: string) {
+        return this.gameService.isPlayerActive(userId);
+    }
+
     @Get(':id')
     async getGameById(
         @CurrentUser('id') userId: string,
