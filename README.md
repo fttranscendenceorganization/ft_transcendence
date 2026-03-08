@@ -242,8 +242,8 @@ The team used **GitHub with a branch-per-feature workflow**. Each team member wo
 | Friend requests | Send, accept, reject friend requests; view friends list with online status | Houdaifa Drahm |
 | User blocking | Block/unblock users; blocked users filtered from chat and friend list | Houdaifa Drahm |
 | Online presence | Real-time presence tracking via socket connection/disconnection events | Houdaifa Drahm |
-| Global chat | Public chat room with real-time messaging, reactions, and pagination | Houdaifa Drahm |
-| Direct messages | Private DM conversations between two users with message history | Houdaifa Drahm |
+| Global chat | Public chat room with real-time messaging, reactions, and pagination | Ahmed Ahlaqqach |
+| Direct messages | Private DM conversations between two users with message history | Ahmed Ahlaqqach |
 | Message reactions | Emoji reactions on messages with real-time updates to all participants | Houdaifa Drahm |
 | Message replies | Reply-to threading with reference to original message | Houdaifa Drahm |
 | Typing indicators | Real-time typing indicator visible to other participants | Ahmed Ahlaqqach |
@@ -259,10 +259,10 @@ The team used **GitHub with a branch-per-feature workflow**. Each team member wo
 | Match history | Per-user match history with mode, opponent, score, date, result | Ahmed Ahlaqqach |
 | Contact page | Contact form with frontend UI and backend handler | Youssef Akhadad |
 | Health checks | GET /health (liveness + DB) and GET /health/ready (DB + external pings + memory + disk) via Terminus | Houdaifa Drahm |
-| Prometheus metrics | Custom counters/gauges for logins, registrations, active games, messages, queue size | Houdaifa Drahm |
+| Prometheus metrics | Custom counters/gauges for logins, registrations, active games, messages, queue size | Mohamed Mazouz |
 | Grafana dashboards | Custom dashboards visualizing all Prometheus metrics with alerting rules | Mohamed Mazouz |
 | ELK logging | Backend logs shipped to Logstash → Elasticsearch, visualized in Kibana | Mohamed Mazouz |
-| Docker deployment | Single-command deployment via docker-compose for dev, prod, and monitoring stacks | Mohamed Mazouz |
+| Docker deployment | Single-command deployment via docker compose for dev, prod, and monitoring stacks | Mohamed Mazouz |
 | Nginx reverse proxy | TLS termination, SPA serving, /api and /socket.io proxying | Mohamed Mazouz |
 | Advanced search | User and leaderboard search with filters, sorting, and pagination | Houdaifa Drahm |
 | Multi-browser support | Tested and compatible with Chrome, Firefox, and Safari | Ahmed Ahlaqqach |
@@ -279,12 +279,12 @@ The team used **GitHub with a branch-per-feature workflow**. Each team member wo
 | 3 | **Frontend + Backend frameworks** | Major | 2 | Ahmed Ahlaqqach, Houdaifa Drahm | Frontend: React 18 (component architecture, hooks, routing, state management, ecosystem). Backend: NestJS 11 (modular architecture, DI, decorators, guards, interceptors). Both are full frameworks per subject definition. |
 | 4 | **Real-time features (WebSockets)** | Major | 2 | Houdaifa Drahm | socket.io gateways handle: chat messages, emoji reactions, presence updates, matchmaking events, game state streaming, ready checks, and forfeit. All events broadcast efficiently to relevant rooms. Connection/disconnection handled gracefully with cleanup. |
 | 5 | **User interaction (chat + profiles + friends)** | Major | 2 | Houdaifa Drahm, Ahmed Ahlaqqach | Complete social layer: global chat room, DM conversations, user profile pages with stats, friend request system (send/accept/reject), friends list with online status. All three minimum requirements (chat, profiles, friends) fully implemented. |
-| 6 | **Standard user management** | Major | 2 | Houdaifa Drahm, Youssef Akhadad | Users can update profile information (username, firstname, lastname via Youssef's edit page), upload avatars with default fallback, add friends and view their online status, and view profile pages with all stats. All four requirements met. |
+| 6 | **Standard user management** | Major | 2 | Youssef Akhadad | Users can update profile information (username, firstname, lastname via Youssef's edit page), upload avatars with default fallback, add friends and view their online status, and view profile pages with all stats. All four requirements met. |
 | 7 | **ELK Stack** | Major | 2 | Mohamed Mazouz | Elasticsearch stores and indexes all backend logs with ILM retention policies. Logstash collects logs from the NestJS pino logger and transforms them. Kibana provides visualization dashboards. All components secured and deployed via Docker Compose in infra/elk. |
 | 8 | **Prometheus & Grafana** | Major | 2 | Mohamed Mazouz, Houdaifa Drahm | Prometheus scrapes /metrics endpoint (implemented by Houdaifa) collecting: login counter, registration counter, active games gauge, queue size gauge, messages sent counter, completed games counter, chat WebSocket connections gauge. Grafana (Mohamed) provides custom dashboards and alerting rules with secured access. |
 | 9 | **AI Opponent** | Major | 2 | Youssef Akhadad | Implemented in game.service.ts: physics-based AI paddle that tracks puck trajectory with reaction time variance to simulate human behavior. Easy mode: slower reaction, higher error margin. Hard mode: faster reaction, tighter tracking. AI can win matches. Fully explained and demonstrable. |
 | 10 | **Advanced chat features** | Minor | 1 | Houdaifa Drahm, Ahmed Ahlaqqach | Block users from messaging (filter applied in chat gateway), invite users to play directly from chat, game/tournament notifications in chat, access to user profiles from chat interface, chat history persistence in Postgres, typing indicators and message read state. All six features implemented. |
-| 11 | **Gamification system** | Minor | 1 | Houdaifa Drahm | XP/level system (tracked in User entity, updated on game completion), leaderboard ranked by points (persistent in DB), win rate tracking (calculated and stored). Three features fully implemented and persistent. Visual feedback provided via leaderboard page and profile stats display. |
+| 11 | **Gamification system** | Minor | 1 | Houdaifa Drahm, Ahmed Ahlaqqach | XP/level system (tracked in User entity, updated on game completion), leaderboard ranked by points (persistent in DB), win rate tracking (calculated and stored). Three features fully implemented and persistent. Visual feedback provided via leaderboard page and profile stats display. |
 | 12 | **ORM (TypeORM)** | Minor | 1 | Houdaifa Drahm | TypeORM used for all database interactions: entity definitions, repository pattern, relations (one-to-many, many-to-many), query builder for complex queries. Eliminates raw SQL, provides type safety, and integrates natively with NestJS. |
 | 13 | **Advanced search functionality** | Minor | 1 | Houdaifa Drahm | User search with filters (by username, stats), sorting (by points, level, winrate), and pagination (cursor-based infinite scroll on leaderboard). Implemented in UserService with TypeORM query builder. |
 | 14 | **Additional browser support** | Minor | 1 | Ahmed Ahlaqqach | Application tested and verified compatible on Google Chrome (primary), Mozilla Firefox, and Safari. CSS layout, canvas rendering, WebSocket connections, and OAuth flows validated across all three browsers. Browser-specific quirks documented. |
