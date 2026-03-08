@@ -39,22 +39,23 @@ export class GameService implements OnModuleDestroy {
     private notifyCallback: ((socketId: string, event: string, data: any) => void) | null = null;
     private lastTickTime: number = Date.now();
 
-    registerPlayer(userId: string, socketId: string) {
+    registerPlayer(userId: string, socketId: string): { rejected: boolean } {
         const existingPlayer = this.players.get(userId);
 
         if (existingPlayer) {
-            existingPlayer.socketId = socketId;
-            existingPlayer.lastSeenAt = new Date();
-        } else {
-            const newPlayer: PlayerSessionType = {
-                userId: userId,
-                socketId: socketId,
-                status: PlayerStatusEnum.IDLE,
-                currentGameId: null,
-                lastSeenAt: new Date()
-            };
-            this.players.set(userId, newPlayer);
+            this.logger.warn('Player already has an active connection, rejecting new one', { context: 'GameService', userId });
+            return { rejected: true };
         }
+
+        const newPlayer: PlayerSessionType = {
+            userId: userId,
+            socketId: socketId,
+            status: PlayerStatusEnum.IDLE,
+            currentGameId: null,
+            lastSeenAt: new Date()
+        };
+        this.players.set(userId, newPlayer);
+        return { rejected: false };
     }
 
     unregisterPlayer(userId: string) {
@@ -642,6 +643,14 @@ export class GameService implements OnModuleDestroy {
 
     getSocketId(userId: string): string | undefined {
         return this.players.get(userId)?.socketId;
+    }
+
+    isPlayerActive(userId: string): { active: boolean; status: string } {
+        const player = this.players.get(userId);
+        if (!player) {
+            return { active: false, status: 'IDLE' };
+        }
+        return { active: true, status: player.status };
     }
 
     forfeitGame(userId: string) {
