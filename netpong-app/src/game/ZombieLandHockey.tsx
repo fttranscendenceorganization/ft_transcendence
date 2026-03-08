@@ -254,7 +254,7 @@ function draw(
     ctx.clearRect(0, 0, w, h);
     drawTable(ctx, w, h);
 
-    ctx.fillStyle = 'rgba(238, 11, 11, 0.2)';
+    ctx.fillStyle = 'rgba(238, 11, 11, 0.8)';
     ctx.font = 'bold 80px sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText(`${playerScore}`, w / 4, h / 2 + 30);
