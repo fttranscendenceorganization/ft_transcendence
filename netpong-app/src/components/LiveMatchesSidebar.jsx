@@ -1,14 +1,14 @@
 const liveMatches = [
-    { type: 'last', title: 'Last Match', description: 'Ahmed vs Mohammed - Zombie Land', badge: 'Winner Chicken Dinner !!', badgeColor: 'green' },
-    { type: 'recent', title: 'Recent Match', description: 'Houdaifa wins Barbie Pink tournament', badge: 'Winner Chicken Dinner !!', badgeColor: 'orange' },
-    { type: 'top', title: 'Top Player', description: 'Youssef - 10 wins streak', badge: 'MVP', badgeColor: 'yellow' },
+    { type: 'last', title: 'Win Match', description: 'In any game mode', badge: 'Scores 10 Goals to wins !!', badgeColor: 'green' },
+    { type: 'recent', title: 'Left the match', description: 'In case of surrendering', badge: 'automatically the opponent player wins !!', badgeColor: 'orange' },
+    { type: 'top', title: 'Lose the match', description: 'In case of losing', badge: 'MVP to the opponent player !!', badgeColor: 'yellow' },
 ];
 
 export default function LiveMatchesSidebar() {
     return (
         <div className="hidden xl:flex xl:w-80 bg-slate-800 border-l border-slate-700 flex-col">
             <div className="p-4 border-b border-slate-700">
-                <h2 className="text-white font-bold text-lg">Live Matches</h2>
+                <h2 className="text-white font-bold text-lg">Game Rules</h2>
             </div>
 
             <div className="relative h-48 bg-slate-900">
@@ -18,8 +18,8 @@ export default function LiveMatchesSidebar() {
             </div>
 
             <div className="p-4 border-b border-slate-700">
-                <h3 className="text-white font-bold text-sm mb-2">Tournament Highlights</h3>
-                <p className="text-gray-400 text-xs">Watch the best moments from recent matches</p>
+                <h3 className="text-white font-bold text-sm mb-2">Matche Rules</h3>
+                <p className="text-gray-400 text-xs">Here is the 3 simple rules to win or lose a match</p>
             </div>
 
             <div className="flex-1 overflow-y-auto p-4 space-y-3">
