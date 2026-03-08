@@ -69,7 +69,14 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
             }
 
             client.data.user = { id: userId, username: payload.username };
-            this.gameService.registerPlayer(userId, client.id);
+            const result = this.gameService.registerPlayer(userId, client.id);
+            if (result.rejected) {
+                this.logger.warn('Duplicate game connection rejected', { context: 'GameGateway', userId });
+                client.data.user = null;
+                client.emit('alreadyInGame', { message: 'You already have an active game session in another window.' });
+                client.disconnect(true);
+                return;
+            }
             this.logger.log('Player connected to game', { context: 'GameGateway', userId });
         } catch (error) {
             this.logger.warn('Unauthorized game WebSocket connection attempt', { context: 'GameGateway' });
