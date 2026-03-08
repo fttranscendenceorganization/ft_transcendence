@@ -1,7 +1,7 @@
 const liveMatches = [
-    { type: 'last', title: 'Win Match', description: 'In any game mode', badge: 'How Scores 10 Goals wins !!', badgeColor: 'green' },
-    { type: 'recent', title: 'Left the match', description: 'In case of surrendering', badge: 'automatically opponent player wins !!', badgeColor: 'orange' },
-    { type: 'top', title: 'Lose the match', description: 'YIn case of losing', badge: 'MVP to the opponent player', badgeColor: 'yellow' },
+    { type: 'last', title: 'Win Match', description: 'In any game mode', badge: 'Scores 10 Goals to wins !!', badgeColor: 'green' },
+    { type: 'recent', title: 'Left the match', description: 'In case of surrendering', badge: 'automatically the opponent player wins !!', badgeColor: 'orange' },
+    { type: 'top', title: 'Lose the match', description: 'In case of losing', badge: 'MVP to the opponent player !!', badgeColor: 'yellow' },
 ];
 
 export default function LiveMatchesSidebar() {
