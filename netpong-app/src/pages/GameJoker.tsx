@@ -387,7 +387,7 @@ export default function GameJoker() {
 
             <div className="relative z-10 h-full flex flex-col items-center justify-center p-4 sm:p-6 gap-4 sm:gap-6 overflow-hidden">
 
-                <div className="text-center space-y-1 landscape:scale-75 sm:landscape:scale-100 transition-transform">
+                <div className="text-center space-y-1">
                     <h1
                         className="text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-fuchsia-500 to-green-400"
                         style={{ filter: 'drop-shadow(0 0 30px rgba(168,85,247,0.9))' }}
@@ -395,12 +395,13 @@ export default function GameJoker() {
                         JOKER
                     </h1>
                     <p
-                        className="text-green-400 text-base md:text-lg font-bold tracking-[0.4em] uppercase landscape:hidden sm:landscape:block"
+                        className="text-green-400 text-base md:text-lg font-bold tracking-[0.4em] uppercase"
                         style={{ textShadow: '0 0 15px rgba(34,197,94,0.8)' }}
                     >
                         THE GAME MAKER
                     </p>
                 </div>
+
 
                 {error && (
                     <div className="bg-purple-950/80 border border-fuchsia-600 text-fuchsia-300 rounded-xl px-6 py-3 text-sm font-semibold">
@@ -490,7 +491,7 @@ export default function GameJoker() {
                                 {side === 'left' ? OppCard : MyCard}
                             </div>
                         )}
-                        <div className="aspect-video min-h-[200px] max-h-[70vh] sm:min-h-[360px] md:min-h-[450px] rounded-2xl overflow-hidden border-2 border-purple-500/30" style={{ boxShadow: '0 0 60px rgba(168,85,247,0.3)' }}>
+                        <div className="aspect-video min-h-[250px] sm:min-h-[350px] md:min-h-[450px] rounded-2xl overflow-hidden border-2 border-purple-500/30" style={{ boxShadow: '0 0 60px rgba(168,85,247,0.3)' }}>
                             <JokerHockey side={side} socket={socketRef.current} onGameOver={handleGameOver} onGameAborted={handleGameAborted} />
                         </div>
                         <button onClick={exitGame} className="w-full bg-fuchsia-950/60 hover:bg-fuchsia-900/70 border border-fuchsia-800/50 text-fuchsia-400 hover:text-fuchsia-300 font-bold py-3 rounded-xl transition-all text-sm tracking-wide flex items-center justify-center gap-2">
@@ -545,16 +546,6 @@ export default function GameJoker() {
                         <button onClick={() => navigate('/joker')} className="w-full bg-slate-900/60 hover:bg-slate-800/60 border border-slate-700/40 text-gray-500 hover:text-white font-bold py-3 rounded-xl transition-all text-sm">Leave the Stage</button>
                     </div>
                 )}
-            </div>
-
-            <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black/95 p-6 text-center sm:hidden landscape:flex">
-                <div className="text-6xl mb-4 animate-bounce">🃏</div>
-                <h2 className="text-2xl font-bold text-purple-400 mb-2">Why so sideways?</h2>
-                <p className="text-gray-300 max-w-xs">
-                    The Joker's stage is too narrow for this view.
-                    Please rotate your phone to <span className="text-green-400 font-bold">Portrait</span> mode to play.
-                </p>
-                <div className="mt-8 w-12 h-16 border-4 border-purple-500 rounded-lg animate-[spin_3s_linear_infinite]" />
             </div>
 
             <style>{`
