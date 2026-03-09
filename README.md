@@ -1,8 +1,20 @@
-*This project has been created as part of the 42 curriculum by houdaifa-drahm, youssef-akhadad, ahmed-ahlaqqach, mohamed-mazouz.*
+*This project has been created as part of the 42 curriculum by mohamed-mazouz, houdaifa-drahm, ahmed-ahlaqqach, youssef-akhadad.*
 
-# NetPong — ft_transcendence
+<h1 align="center">🏒 NetPong — ft_transcendence</h1>
 
-> A full-stack real-time air-hockey platform with themed game modes, live multiplayer, AI opponent, chat, leaderboards, and OAuth-secured accounts.
+<p align="center">
+  <em>A full-stack real-time air-hockey platform with themed game modes, live multiplayer, AI opponent, chat, leaderboards, and OAuth-secured accounts.</em>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/42-ft__transcendence-gold?style=for-the-badge" alt="42 Badge"/>
+  <img src="https://img.shields.io/badge/Points-26%2F7-brightgreen?style=for-the-badge" alt="Points"/>
+  <img src="https://img.shields.io/badge/NestJS-11-E0234E?style=for-the-badge&logo=nestjs&logoColor=white" alt="NestJS"/>
+  <img src="https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React"/>
+  <img src="https://img.shields.io/badge/PostgreSQL-17-336791?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL"/>
+  <img src="https://img.shields.io/badge/Docker-Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker"/>
+  <img src="https://img.shields.io/badge/socket.io-real--time-010101?style=for-the-badge&logo=socket.io&logoColor=white" alt="socket.io"/>
+</p>
 
 ---
 
@@ -45,55 +57,177 @@
 
 ## Architecture Overview
 
-The platform follows a microservices-inspired architecture with clear separation between layers:
+> 🖱️ **Pan** by clicking and dragging &nbsp;·&nbsp; 🔍 **Zoom** with mouse wheel &nbsp;·&nbsp; ⌨️ Use arrow keys to navigate &nbsp;·&nbsp; GitHub renders this diagram fully interactively.
 
+```mermaid
+%%{init: {
+  "theme": "base",
+  "themeVariables": {
+    "background":        "#0d1117",
+    "primaryColor":      "#161b22",
+    "primaryTextColor":  "#e6edf3",
+    "primaryBorderColor":"#30363d",
+    "lineColor":         "#8b949e",
+    "secondaryColor":    "#161b22",
+    "tertiaryColor":     "#1c2128",
+    "edgeLabelBackground":"#161b22",
+    "clusterBkg":        "#161b22",
+    "clusterBorder":     "#30363d",
+    "titleColor":        "#e6edf3",
+    "fontFamily":        "ui-monospace, SFMono-Regular, SF Mono, Menlo, monospace"
+  }
+}}%%
+
+flowchart LR
+
+    %% ── CLIENT ──────────────────────────────────────
+    Browser(["🌐 **Browser**\nChrome · Firefox · Safari"])
+
+    %% ── EDGE ─────────────────────────────────────────
+    Nginx["🔒 **Nginx**\nTLS :443 · Reverse Proxy\nStatic SPA · WS Upgrade\n:80 → :443 redirect"]
+
+    %% ── EXTERNAL ─────────────────────────────────────
+    OAuth(["🌍 **OAuth2 Providers**\nGoogle · GitHub · 42 Intra"])
+    Discord(["🔔 **Discord**\nCI alerts · Backup alerts\nAlert webhook"])
+
+    %% ── APPLICATION LAYER ────────────────────────────
+    subgraph AppLayer ["🟢  Application Layer — internal_net"]
+        direction TB
+        Frontend["⚛️ **Frontend**\nReact 18 + Vite\nHTML5 Canvas · 4 Game Modes\nsocket.io-client"]
+        Backend["⚡ **Backend — NestJS 11**\nREST API · JWT Guards\nValidationPipe · CORS\n:3000 · /metrics endpoint"]
+        GameGW["🎮 **Game Gateway**\nsocket.io /game ns\n60 Hz server tick\nServer-authoritative physics"]
+        ChatGW["💬 **Chat Gateway**\nsocket.io /chat ns\nRooms · DMs · Presence\nReactions · Typing"]
+        AuthMod["🔑 **Auth Module**\nPassport.js strategies\nLocal · JWT · OAuth2\nRefresh token rotation"]
+        StatusSvc["🟢 **Status Service**\nTerminus health checks\nGET /health · /health/ready"]
+    end
+
+    %% ── DATA LAYER ───────────────────────────────────
+    subgraph DataLayer ["🟡  Data Layer"]
+        direction TB
+        PG[("🗄️ **PostgreSQL 17**\n:5432\nUsers · Games · Conversations\nMessages · Reactions\nFriendRequests · Blocks")]
+        Volumes["📁 **Docker Volumes**\nDB persistent data\nAvatar file storage"]
+    end
+
+    %% ── MONITORING ───────────────────────────────────
+    subgraph MonStack ["🟠  Monitoring — monitoring_net"]
+        direction TB
+        Prometheus["📡 **Prometheus**\n:9090\nScrape /metrics every 15s\nlogins · games · queue · msgs"]
+        Grafana["📊 **Grafana**\n:3001\nCustom dashboards\nAlerting rules"]
+        Alertmgr["🚨 **Alertmanager**\n:9093\nAlert routing\nDiscord webhook"]
+        NodeExp["🖥️ **Node Exporter**\n:9100\nHost CPU · memory · disk"]
+        CAdvisor["🐳 **cAdvisor**\n:8080\nPer-container metrics"]
+    end
+
+    %% ── ELK ──────────────────────────────────────────
+    subgraph ELKStack ["🟡  ELK Stack — elk_net"]
+        direction LR
+        Logstash["📝 **Logstash**\nDocker JSON log driver\nNginx access logs\nNestJS pino parsing"]
+        ES["🔍 **Elasticsearch 8.12**\n:9200\nLog index · ILM policies\nGeoIP enrichment"]
+        Kibana["📋 **Kibana**\n:5601\nLog search · Lens\nVisualization dashboards"]
+    end
+
+    %% ── CI/CD ────────────────────────────────────────
+    subgraph CICD ["🩷  CI/CD — GitHub Actions"]
+        direction LR
+        GHActions["⚙️ **GitHub Actions**\nValidate · Parallel builds\nfrontend · backend · nginx\nstatus · backup images"]
+        GHCR["📦 **GHCR**\nghcr.io registry\n:sha-commit · :latest tags\nAll 5 service images"]
+        VPS["🖥️ **VPS / Production**\nSSH deploy\ngit pull · docker compose up\nmake prod"]
+    end
+
+    %% ── BACKUP ───────────────────────────────────────
+    subgraph BackupDR ["🔵  Backup & Disaster Recovery"]
+        direction LR
+        BkCron["⏰ **Backup Cron**\n02:00 UTC daily\npg_dump + gzip\npostgres:17-alpine"]
+        LocalStore["💾 **Local Storage**\n/opt/netpong/backups/\npostgres/\n7-day retention"]
+        DOSpaces["☁️ **DigitalOcean Spaces**\nS3-compatible · rclone\n30-day retention\nGeo-redundant"]
+    end
+
+    %% ════════════ CONNECTIONS ════════════════════════
+
+    %% Client → Nginx
+    Browser ===>|"HTTPS :443"| Nginx
+
+    %% Nginx → App
+    Nginx -->|"static SPA files"| Frontend
+    Nginx -->|"/api/* proxy"| Backend
+    Nginx -.->|"WSS /socket.io/* upgrade"| Backend
+
+    %% Backend internal
+    Backend --> GameGW
+    Backend --> ChatGW
+    Backend --> AuthMod
+    AuthMod -.->|"OAuth2 redirect & callback"| OAuth
+
+    %% App → Data
+    Backend -->|"TypeORM / SQL queries"| PG
+    ChatGW -->|"persist messages & reactions"| PG
+    GameGW -->|"save game results & XP"| PG
+    PG --- Volumes
+
+    %% Monitoring scraping
+    Prometheus -.->|"scrape /metrics"| Backend
+    Prometheus -.->|"scrape :9100"| NodeExp
+    Prometheus -.->|"scrape :8080"| CAdvisor
+    Prometheus -->|"PromQL queries"| Grafana
+    Prometheus -.->|"fire alert rules"| Alertmgr
+    Alertmgr -->|"webhook"| Discord
+
+    %% Log pipeline
+    Backend -.->|"stdout · pino JSON\nDocker log driver"| Logstash
+    Nginx -.->|"access logs JSON\nDocker log driver"| Logstash
+    Logstash --> ES
+    ES --> Kibana
+
+    %% CI/CD
+    GHActions -->|"push :sha + :latest"| GHCR
+    GHActions -->|"SSH · git pull · make prod"| VPS
+    GHActions -.->|"build status notify"| Discord
+
+    %% Backup
+    PG -.->|"pg_dump"| BkCron
+    BkCron -->|"gzip compress"| LocalStore
+    LocalStore -->|"rclone sync"| DOSpaces
+    DOSpaces -.->|"success / failure notify"| Discord
+
+    %% ════════════ STYLES ═════════════════════════════
+
+    classDef clientStyle  fill:#0c2233,stroke:#38bdf8,stroke-width:2px,color:#bae6fd,rx:10
+    classDef edgeStyle    fill:#1e1b4b,stroke:#818cf8,stroke-width:2px,color:#c7d2fe
+    classDef appStyle     fill:#052e16,stroke:#4ade80,stroke-width:2px,color:#bbf7d0
+    classDef dataStyle    fill:#292524,stroke:#f59e0b,stroke-width:2px,color:#fde68a
+    classDef obsStyle     fill:#2d1a07,stroke:#fb923c,stroke-width:2px,color:#fed7aa
+    classDef elkStyle     fill:#2d2a00,stroke:#eab308,stroke-width:2px,color:#fef08a
+    classDef cicdStyle    fill:#2d0a1e,stroke:#f472b6,stroke-width:2px,color:#fbcfe8
+    classDef backupStyle  fill:#082035,stroke:#60a5fa,stroke-width:2px,color:#bfdbfe
+    classDef extStyle     fill:#1a1f2e,stroke:#64748b,stroke-width:1px,color:#94a3b8
+
+    class Browser clientStyle
+    class Nginx edgeStyle
+    class Frontend,Backend,GameGW,ChatGW,AuthMod,StatusSvc appStyle
+    class PG,Volumes dataStyle
+    class Prometheus,Grafana,Alertmgr,NodeExp,CAdvisor obsStyle
+    class Logstash,ES,Kibana elkStyle
+    class GHActions,GHCR,VPS cicdStyle
+    class BkCron,LocalStore,DOSpaces backupStyle
+    class OAuth,Discord extStyle
 ```
-┌─────────────┐     ┌─────────────┐     ┌─────────────────────────────────────┐
-│   Browser   │────▶│    Nginx    │────▶│         Application Layer           │
-│  (Client)   │     │  TLS :443   │     │  ┌──────────┐  ┌─────────────────┐  │
-└─────────────┘     │  Reverse    │     │  │ Frontend │  │     Backend     │  │
-                    │  Proxy      │     │  │ React 18 │  │   NestJS 11     │  │
-                    └─────────────┘     │  └──────────┘  │  ┌───────────┐  │  │
-                                        │                │  │Game GW    │  │  │
-                                        │                │  │Chat GW    │  │  │
-                                        │                │  │Auth Module│  │  │
-                                        │                │  └───────────┘  │  │
-                                        │                └─────────────────┘  │
-                                        └──────────────────────┬──────────────┘
-                                                               │
-                    ┌──────────────────────────────────────────┼──────────────────────────────────┐
-                    │                                          ▼                                  │
-                    │  ┌─────────────┐     ┌─────────────────────────────────┐                   │
-                    │  │ PostgreSQL  │◀────│        Observability            │                   │
-                    │  │    :5432    │     │  Prometheus → Grafana           │                   │
-                    │  │             │     │  Logstash → Elasticsearch       │                   │
-                    │  │  Users      │     │           → Kibana              │                   │
-                    │  │  Games      │     │  Alertmanager → Discord         │                   │
-                    │  │  Chat       │     └─────────────────────────────────┘                   │
-                    │  └──────┬──────┘                                                           │
-                    │         │                                                                  │
-                    │         ▼                                                                  │
-                    │  ┌─────────────┐     ┌─────────────┐     ┌─────────────┐                   │
-                    │  │   Backup    │────▶│   Local     │────▶│ DO Spaces   │                   │
-                    │  │   Cron      │     │  Storage    │     │   (S3)      │                   │
-                    │  │  02:00 UTC  │     │  7-day      │     │  30-day     │                   │
-                    │  └─────────────┘     └─────────────┘     └─────────────┘                   │
-                    │                                                                            │
-                    │                        CI/CD Pipeline                                      │
-                    │  ┌─────────────┐     ┌─────────────┐     ┌─────────────┐                   │
-                    │  │   GitHub    │────▶│    GHCR     │────▶│  VPS/Prod   │                   │
-                    │  │   Actions   │     │   Images    │     │  SSH Deploy │                   │
-                    │  └─────────────┘     └─────────────┘     └─────────────┘                   │
-                    └───────────────────────────────────────────────────────────────────────────┘
-```
 
-**Docker Networks:**
-- `public_net` — Nginx (exposed to internet)
-- `internal_net` — Backend, Frontend, Database, Status Service
-- `monitoring_net` — Prometheus, Grafana, Alertmanager
-- `elk_net` — Elasticsearch, Logstash, Kibana
+<details>
+<summary>📌 Layer Legend</summary>
 
-📊 **[View Interactive Architecture Diagram](infra/docs/architecture.html)** *(open locally or via GitHub Pages)*
+| Color | Layer | Docker Network |
+|-------|-------|----------------|
+| 🔵 Sky Blue | Client (Browser) | — |
+| 🟣 Indigo | Edge / Nginx | public_net |
+| 🟢 Green | Application Layer | internal_net |
+| 🟡 Amber | Data Layer | internal_net |
+| 🟠 Orange | Monitoring Stack | monitoring_net |
+| 🟡 Yellow | ELK Stack | elk_net |
+| 🩷 Pink | CI/CD Pipeline | external |
+| 💙 Blue | Backup & DR | internal_net + internet |
+| ⬜ Slate | External Services | internet |
+
+</details>
 
 ---
 
@@ -120,6 +254,7 @@ The team communicated via **Discord** with dedicated channels for backend, front
 The team used **GitHub with a branch-per-feature workflow**. Each team member worked on their own branch named after the feature they were implementing. Branches were merged into the main branch once the feature was complete and reviewed by at least one other team member.
 
 ### Task Distribution
+
 | Domain | Responsible |
 |--------|------------|
 | Core backend, auth, APIs, database | Houdaifa Drahm |
@@ -132,6 +267,7 @@ The team used **GitHub with a branch-per-feature workflow**. Each team member wo
 ## Technical Stack
 
 ### Backend
+
 | Technology | Version | Why chosen |
 |-----------|---------|-----------|
 | **NestJS** | 11 | Provides a structured, modular architecture with built-in dependency injection, guards, interceptors, and decorators — ideal for a large-scale project requiring clear separation of concerns. Chosen over plain Express for its TypeScript-first design and enterprise-grade patterns. |
@@ -143,6 +279,7 @@ The team used **GitHub with a branch-per-feature workflow**. Each team member wo
 | **class-validator** | latest | Declarative DTO validation using decorators, integrated with NestJS ValidationPipe for automatic whitelist enforcement on all incoming requests. |
 
 ### Frontend
+
 | Technology | Version | Why chosen |
 |-----------|---------|-----------|
 | **React 18** | 18 | Component-based UI framework with hooks for state and side-effects, large ecosystem, and strong community. Considered a framework in this context per subject definition. |
@@ -151,6 +288,7 @@ The team used **GitHub with a branch-per-feature workflow**. Each team member wo
 | **HTML5 Canvas** | native | Used for rendering the four themed game modes (Joker, Kitty Cat, Soul Society, Zombie Land) with custom animated backgrounds and physics-accurate paddle/puck rendering. |
 
 ### DevOps & Infrastructure
+
 | Technology | Why chosen |
 |-----------|-----------|
 | **Docker + Docker Compose** | Single-command deployment of all services (backend, frontend, Postgres, Nginx, ELK, Prometheus, Grafana). Guarantees identical environments across dev and prod. |
@@ -169,6 +307,7 @@ The team used **GitHub with a branch-per-feature workflow**. Each team member wo
 ## Database Schema
 
 ### User
+
 | Field | Type | Constraints | Description |
 |-------|------|-------------|-------------|
 | id | uuid | PK, generated | Unique user identifier |
@@ -207,6 +346,7 @@ The team used **GitHub with a branch-per-feature workflow**. Each team member wo
 ---
 
 ### Game
+
 | Field | Type | Constraints | Description |
 |-------|------|-------------|-------------|
 | id | uuid | PK, generated | Unique game identifier |
@@ -229,6 +369,7 @@ The team used **GitHub with a branch-per-feature workflow**. Each team member wo
 ---
 
 ### Conversation
+
 | Field | Type | Constraints | Description |
 |-------|------|-------------|-------------|
 | id | uuid | PK, generated | Unique conversation identifier |
@@ -243,6 +384,7 @@ The team used **GitHub with a branch-per-feature workflow**. Each team member wo
 ---
 
 ### Message
+
 | Field | Type | Constraints | Description |
 |-------|------|-------------|-------------|
 | id | uuid | PK, generated | Unique message identifier |
@@ -261,6 +403,7 @@ The team used **GitHub with a branch-per-feature workflow**. Each team member wo
 ---
 
 ### MessageReaction
+
 | Field | Type | Constraints | Description |
 |-------|------|-------------|-------------|
 | id | uuid | PK, generated | Unique reaction identifier |
@@ -272,6 +415,7 @@ The team used **GitHub with a branch-per-feature workflow**. Each team member wo
 ---
 
 ### FriendRequest
+
 | Field | Type | Constraints | Description |
 |-------|------|-------------|-------------|
 | id | uuid | PK, generated | Unique request identifier |
@@ -283,6 +427,7 @@ The team used **GitHub with a branch-per-feature workflow**. Each team member wo
 ---
 
 ### Block
+
 | Field | Type | Constraints | Description |
 |-------|------|-------------|-------------|
 | id | uuid | PK, generated | Unique block identifier |
@@ -464,7 +609,7 @@ cp infra/env/database.env.example infra/env/database.env
 ```
 
 **Required variables in `backend.env`:**
-```
+```env
 JWT_ACCESS_SECRET=<your-secret>
 JWT_REFRESH_SECRET=<your-secret>
 JWT_ACCESS_EXPIRES=15m
@@ -490,7 +635,7 @@ RESEND_FROM=noreply@yourdomain.com
 ```
 
 **Required variables in `database.env`:**
-```
+```env
 POSTGRES_DB=netpong
 POSTGRES_USER=netpong
 POSTGRES_PASSWORD=<your-password>
@@ -506,7 +651,7 @@ docker compose -f infra/compose/docker-compose.dev.yml \
   up --build
 ```
 
-Access the app at: `http://localhost:8080`  
+Access the app at: `http://localhost:8080`
 Backend API available at: `http://localhost:8080/api`
 
 ### Run — Production
@@ -518,7 +663,7 @@ docker compose -f infra/compose/docker-compose.prod.yml \
   up -d --build
 ```
 
-Ensure TLS certificates are placed under `infra/nginx/certs/` before running production.  
+Ensure TLS certificates are placed under `infra/nginx/certs/` before running production.
 Access the app at: `https://yourdomain.com`
 
 ### Run — Monitoring Stack (Prometheus + Grafana + ELK)
@@ -527,9 +672,11 @@ Access the app at: `https://yourdomain.com`
 docker compose -f infra/compose/docker-compose.monitoring.yml up -d
 ```
 
-- Grafana: `http://localhost:3001`
-- Kibana: `http://localhost:5601`
-- Prometheus: `http://localhost:9090`
+| Service | URL |
+|---------|-----|
+| Grafana | `http://localhost:3001` |
+| Kibana | `http://localhost:5601` |
+| Prometheus | `http://localhost:9090` |
 
 ### Local Development (without Docker)
 
@@ -537,7 +684,6 @@ docker compose -f infra/compose/docker-compose.monitoring.yml up -d
 ```bash
 cd backend_srcs
 npm install
-# Start a local Postgres instance or use the Docker one
 npm run start:dev
 ```
 
@@ -555,8 +701,6 @@ npm run dev -- --host --port 5173
 The project includes a complete continuous integration and deployment pipeline implemented using **GitHub Actions** (`.github/workflows/ci.yml`).
 
 ### Pipeline Overview
-
-The CI/CD workflow automates the entire build and deployment lifecycle:
 
 | Job | Description | Trigger |
 |-----|-------------|---------|
@@ -696,15 +840,9 @@ pg_dump -h "$DB_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" "$POSTGRES_DB" \
 | Local VM (`/opt/netpong/backups/`) | 7 days | Fast local recovery |
 | DigitalOcean Spaces | 30 days | Off-site disaster recovery |
 
-**Remote storage benefits:**
-- Protection against complete server failure
-- Scalable S3-compatible object storage
-- Quick restoration on a new machine
-- Automated lifecycle retention policies
-
 ### Backup Automation
 
-Backups are scheduled via cron or container orchestration:
+Backups are scheduled via cron inside the backup container:
 
 ```
 0 2 * * * /opt/netpong/scripts/backup.sh
@@ -720,8 +858,6 @@ Backups are scheduled via cron or container orchestration:
 
 ### Monitoring & Alerts
 
-All backup operations are logged and monitored:
-
 - **Log file:** `/var/log/netpong-backup.log`
 - **Discord alerts:** Immediate notification on backup failure
 - **Success confirmation:** Daily success reports to team channel
@@ -735,46 +871,31 @@ Error: Connection to database refused
 
 ### Disaster Recovery Procedure
 
-If the production VM is lost or corrupted, follow these steps:
-
 #### 1. Provision New VM
 
-Install required dependencies:
 ```bash
-# Install Docker
 curl -fsSL https://get.docker.com | sh
-
-# Install Docker Compose
 sudo apt install docker-compose-plugin
-
-# Install rclone for backup retrieval
 curl https://rclone.org/install.sh | sudo bash
 ```
 
 #### 2. Retrieve Backups from DigitalOcean Spaces
 
 ```bash
-# Configure rclone with Spaces credentials
 rclone config
-
-# Download backups
 rclone copy spaces:netpong-backup /opt/netpong/backups
 ```
 
 #### 3. Restore PostgreSQL Database
 
 ```bash
-# Decompress backup
 gunzip /opt/netpong/backups/postgres/netpong-db-YYYY-MM-DD_HH-MM.sql.gz
-
-# Restore to new database
 psql -U postgres -d netpong < backup.sql
 ```
 
 #### 4. Restore Elasticsearch (if needed)
 
 ```bash
-# Using Elasticsearch Snapshot API
 curl -X POST "localhost:9200/_snapshot/netpong_backup/snapshot_name/_restore" \
   -H "Content-Type: application/json"
 ```
@@ -806,6 +927,7 @@ A disaster simulation was performed to validate the recovery procedure:
 
 **Result:** Platform successfully recovered using only remote backups.
 
+---
 
 ## Security & Compliance
 
@@ -848,3 +970,9 @@ AI tools (primarily Claude and GitHub Copilot) were used during development for 
 - **Algorithm ideas:** Brainstorming the AI opponent puck-prediction algorithm, which was then implemented, tested, and significantly modified by the team.
 
 All AI-generated content was reviewed, tested, and validated by the team before inclusion. No AI-generated code was used without full understanding of its behavior.
+
+---
+
+<p align="center">
+  <i>Made with ❤️ by mohamed-mazouz, houdaifa-drahm, ahmed-ahlaqqach, youssef-akhadad</i>
+</p>
