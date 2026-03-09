@@ -458,9 +458,12 @@ export class GameService implements OnModuleDestroy {
         if (!game) return;
         if (game.status === GameStatusEnum.FINISHED || game.status === GameStatusEnum.ABORTED) return;
 
+        const wasInProgress = game.status === GameStatusEnum.IN_PROGRESS;
         game.status = GameStatusEnum.ABORTED;
         this.logger.warn('Game aborted', { context: 'GameService', gameId, reason });
-        this.metricsService.decrementActiveGames();
+        if (wasInProgress) {
+            this.metricsService.decrementActiveGames();
+        }
 
         if (this.notifyCallback) {
             const leftSocketId = this.getSocketId(game.playerLeft.userId);
@@ -507,7 +510,39 @@ export class GameService implements OnModuleDestroy {
 
         const game = this.games.get(player.currentGameId);
         if (!game) return;
+        if (game.status === GameStatusEnum.READY_CHECK) {
+            const remainingUserId = game.playerLeft.userId === player.userId
+                ? game.playerRight.userId
+                : game.playerLeft.userId;
 
+            this.logger.warn('Player disconnected during ready check, aborting game', {
+                context: 'GameService',
+                gameId: game.id,
+                disconnectedUserId: player.userId,
+                remainingUserId,
+            });
+
+            await this.abortGame(player.currentGameId, 'Opponent disconnected before the game started');
+            const remainingPlayer = this.players.get(remainingUserId);
+            if (remainingPlayer && remainingPlayer.status === PlayerStatusEnum.IDLE) {
+                this.joinQueue(remainingUserId, game.mode);
+                this.logger.log('Remaining player re-queued after opponent abandoned ready check', {
+                    context: 'GameService',
+                    userId: remainingUserId,
+                    mode: game.mode,
+                });
+                if (this.notifyCallback) {
+                    const socketId = this.getSocketId(remainingUserId);
+                    if (socketId) {
+                        this.notifyCallback(socketId, 'queueJoined', { mode: game.mode });
+                        this.notifyCallback(socketId, 'opponentAbandonedReadyCheck', {
+                            message: 'Your opponent left before the match started. You have been re-queued.',
+                        });
+                    }
+                }
+            }
+            return;
+        }
         const winnerId = game.playerLeft.userId === player.userId
             ? game.playerRight.userId
             : game.playerLeft.userId;
