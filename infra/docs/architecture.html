@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>NetPong — Architecture Map</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background: #0a0e1a;
+    font-family: 'JetBrains Mono', monospace;
+    min-height: 100vh;
+    overflow-x: auto;
+  }
+  .title-bar {
+    padding: 14px 24px;
+    border-bottom: 1px solid #1e2d4a;
+    display: flex; align-items: center; gap: 12px;
+    background: #080b12;
+  }
+  .title-bar h1 { font-size:15px; color:#e2e8f0; font-weight:700; }
+  .title-bar span { font-size:11px; color:#475569; }
+
+  /* legend */
+  .legend {
+    display: flex; gap: 16px; flex-wrap: wrap;
+    padding: 10px 24px;
+    border-bottom: 1px solid #1a2540;
+    background: #080b12;
+  }
+  .li { display:flex; align-items:center; gap:6px; font-size:10px; color:#64748b; }
+  .ld { width:10px; height:10px; border-radius:3px; }
+
+  /* diagram canvas area */
+  .diagram {
+    position: relative;
+    width: 1600px;
+    height: 1000px;
+    margin: 0 auto;
+  }
+
+  /* SVG arrows layer */
+  .arrows-svg {
+    position: absolute;
+    top:0; left:0;
+    width:100%; height:100%;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* zone backgrounds */
+  .zone {
+    position: absolute;
+    border-radius: 12px;
+    border: 1px solid;
+    z-index: 2;
+  }
+  .zone-label {
+    position: absolute;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    top: 8px; left: 12px;
+  }
+
+  /* nodes */
+  .node {
+    position: absolute;
+    border-radius: 8px;
+    border: 1px solid;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    z-index: 10;
+    cursor: default;
+    transition: filter 0.15s, transform 0.15s;
+    padding: 8px 10px;
+  }
+  .node:hover {
+    filter: brightness(1.3);
+    transform: scale(1.04);
+    z-index: 20;
+  }
+  .node .icon { font-size: 18px; line-height:1; margin-bottom:4px; }
+  .node .name { font-size: 10px; font-weight: 700; line-height: 1.2; color: #e2e8f0; }
+  .node .sub  { font-size: 9px; color: #64748b; margin-top:2px; line-height:1.2; }
+
+  /* color themes */
+  .c-client  { background:rgba(0,212,255,0.08);  border-color:rgba(0,212,255,0.45);  }
+  .c-edge    { background:rgba(167,139,250,0.1); border-color:rgba(167,139,250,0.5); }
+  .c-app     { background:rgba(52,211,153,0.08); border-color:rgba(52,211,153,0.45); }
+  .c-db      { background:rgba(251,191,36,0.08); border-color:rgba(251,191,36,0.45); }
+  .c-observe { background:rgba(249,115,22,0.08); border-color:rgba(249,115,22,0.45); }
+  .c-elk     { background:rgba(250,204,21,0.07); border-color:rgba(250,204,21,0.4);  }
+  .c-cicd    { background:rgba(236,72,153,0.08); border-color:rgba(236,72,153,0.45); }
+  .c-backup  { background:rgba(96,165,250,0.08); border-color:rgba(96,165,250,0.45); }
+  .c-ext     { background:rgba(148,163,184,0.07);border-color:rgba(148,163,184,0.3); }
+
+  /* zone fills */
+  .z-app     { background:rgba(52,211,153,0.03);  border-color:rgba(52,211,153,0.12);  }
+  .z-observe { background:rgba(249,115,22,0.03);  border-color:rgba(249,115,22,0.12);  }
+  .z-elk     { background:rgba(250,204,21,0.03);  border-color:rgba(250,204,21,0.1);   }
+  .z-cicd    { background:rgba(236,72,153,0.03);  border-color:rgba(236,72,153,0.12);  }
+  .z-backup  { background:rgba(96,165,250,0.03);  border-color:rgba(96,165,250,0.12);  }
+</style>
+</head>
+<body>
+
+<div class="title-bar">
+  <h1>🏒 NetPong — Architecture Overview</h1>
+  <span>Full-stack real-time multiplayer air-hockey · Docker · NestJS · React</span>
+</div>
+<div class="legend">
+  <div class="li"><div class="ld" style="background:#00d4ff"></div>Client</div>
+  <div class="li"><div class="ld" style="background:#a78bfa"></div>Edge / Nginx</div>
+  <div class="li"><div class="ld" style="background:#34d399"></div>Application</div>
+  <div class="li"><div class="ld" style="background:#fbbf24"></div>Database</div>
+  <div class="li"><div class="ld" style="background:#f97316"></div>Monitoring</div>
+  <div class="li"><div class="ld" style="background:#facc15"></div>ELK Logging</div>
+  <div class="li"><div class="ld" style="background:#ec4899"></div>CI/CD</div>
+  <div class="li"><div class="ld" style="background:#60a5fa"></div>Backup</div>
+  <div class="li"><div class="ld" style="background:#94a3b8"></div>External</div>
+</div>
+
+<div style="overflow:auto; padding:20px;">
+<div class="diagram">
+
+<!-- ═══════ ZONE BACKGROUNDS ═══════ -->
+<!-- App zone -->
+<div class="zone z-app" style="left:460px;top:200px;width:390px;height:540px;">
+  <div class="zone-label" style="color:#34d399">Application Layer · internal_net</div>
+</div>
+<!-- DB zone -->
+<div class="zone" style="left:880px;top:200px;width:180px;height:540px; background:rgba(251,191,36,0.03); border-color:rgba(251,191,36,0.12);">
+  <div class="zone-label" style="color:#fbbf24">Data Layer</div>
+</div>
+<!-- Monitoring zone -->
+<div class="zone z-observe" style="left:1100px;top:60px;width:450px;height:420px;">
+  <div class="zone-label" style="color:#f97316">Monitoring · monitoring_net</div>
+</div>
+<!-- ELK zone -->
+<div class="zone z-elk" style="left:1100px;top:510px;width:450px;height:230px;">
+  <div class="zone-label" style="color:#facc15">ELK Stack · elk_net</div>
+</div>
+<!-- CI/CD zone -->
+<div class="zone z-cicd" style="left:60px;top:760px;width:420px;height:200px;">
+  <div class="zone-label" style="color:#ec4899">CI/CD · GitHub Actions</div>
+</div>
+<!-- Backup zone -->
+<div class="zone z-backup" style="left:520px;top:780px;width:520px;height:180px;">
+  <div class="zone-label" style="color:#60a5fa">Backup & DR</div>
+</div>
+
+<!-- ═══════ NODES ═══════ -->
+
+<!-- CLIENT -->
+<div class="node c-client" style="left:40px;top:300px;width:110px;height:80px;" id="n-client">
+  <div class="icon">🌐</div>
+  <div class="name">Browser</div>
+  <div class="sub">Chrome/Firefox<br>Safari</div>
+</div>
+
+<!-- NGINX -->
+<div class="node c-edge" style="left:220px;top:280px;width:130px;height:90px;" id="n-nginx">
+  <div class="icon">🔒</div>
+  <div class="name">Nginx</div>
+  <div class="sub">TLS :443<br>Reverse Proxy<br>WS Upgrade</div>
+</div>
+
+<!-- FRONTEND -->
+<div class="node c-app" style="left:480px;top:230px;width:130px;height:75px;" id="n-fe">
+  <div class="icon">⚛️</div>
+  <div class="name">Frontend</div>
+  <div class="sub">React 18 + Vite<br>Canvas Game</div>
+</div>
+
+<!-- BACKEND -->
+<div class="node c-app" style="left:480px;top:360px;width:130px;height:90px;" id="n-be">
+  <div class="icon">⚡</div>
+  <div class="name">Backend</div>
+  <div class="sub">NestJS 11<br>REST + JWT<br>:3000</div>
+</div>
+
+<!-- GAME GATEWAY -->
+<div class="node c-app" style="left:640px;top:330px;width:120px;height:75px;" id="n-game">
+  <div class="icon">🎮</div>
+  <div class="name">Game Gateway</div>
+  <div class="sub">socket.io<br>/game ns</div>
+</div>
+
+<!-- CHAT GATEWAY -->
+<div class="node c-app" style="left:640px;top:430px;width:120px;height:75px;" id="n-chat">
+  <div class="icon">💬</div>
+  <div class="name">Chat Gateway</div>
+  <div class="sub">socket.io<br>/chat ns</div>
+</div>
+
+<!-- AUTH MODULE -->
+<div class="node c-app" style="left:480px;top:500px;width:130px;height:75px;" id="n-auth">
+  <div class="icon">🔑</div>
+  <div class="name">Auth Module</div>
+  <div class="sub">Passport.js<br>OAuth2 + JWT</div>
+</div>
+
+<!-- STATUS SERVICE -->
+<div class="node c-app" style="left:640px;top:530px;width:120px;height:65px;" id="n-status">
+  <div class="icon">🟢</div>
+  <div class="name">Status Service</div>
+  <div class="sub">Health checks</div>
+</div>
+
+<!-- POSTGRESQL -->
+<div class="node c-db" style="left:895px;top:280px;width:120px;height:85px;" id="n-pg">
+  <div class="icon">🗄️</div>
+  <div class="name">PostgreSQL 17</div>
+  <div class="sub">Users · Games<br>Chat · Friends<br>:5432</div>
+</div>
+
+<!-- AVATARS VOLUME -->
+<div class="node c-db" style="left:895px;top:410px;width:120px;height:65px;" id="n-vol">
+  <div class="icon">📁</div>
+  <div class="name">Volumes</div>
+  <div class="sub">DB + Avatars<br>Docker mounts</div>
+</div>
+
+<!-- OAUTH EXTERNAL -->
+<div class="node c-ext" style="left:220px;top:500px;width:130px;height:85px;" id="n-oauth">
+  <div class="icon">🌍</div>
+  <div class="name">OAuth2 Providers</div>
+  <div class="sub">Google · GitHub<br>42 Intra</div>
+</div>
+
+<!-- ── MONITORING ── -->
+<div class="node c-observe" style="left:1120px;top:90px;width:120px;height:75px;" id="n-prom">
+  <div class="icon">📡</div>
+  <div class="name">Prometheus</div>
+  <div class="sub">Scrape /metrics<br>every 15s · :9090</div>
+</div>
+
+<div class="node c-observe" style="left:1270px;top:90px;width:110px;height:75px;" id="n-graf">
+  <div class="icon">📊</div>
+  <div class="name">Grafana</div>
+  <div class="sub">Dashboards<br>:3001</div>
+</div>
+
+<div class="node c-observe" style="left:1420px;top:90px;width:110px;height:75px;" id="n-alert">
+  <div class="icon">🚨</div>
+  <div class="name">Alertmanager</div>
+  <div class="sub">Discord alerts<br>:9093</div>
+</div>
+
+<div class="node c-observe" style="left:1120px;top:220px;width:110px;height:65px;" id="n-node">
+  <div class="icon">🖥️</div>
+  <div class="name">Node Exporter</div>
+  <div class="sub">CPU/mem/disk · :9100</div>
+</div>
+
+<div class="node c-observe" style="left:1260px;top:220px;width:100px;height:65px;" id="n-cadv">
+  <div class="icon">🐳</div>
+  <div class="name">cAdvisor</div>
+  <div class="sub">Container<br>metrics :8080</div>
+</div>
+
+<div class="node c-observe" style="left:1400px;top:220px;width:110px;height:65px;" id="n-disc">
+  <div class="icon">🔔</div>
+  <div class="name">Discord</div>
+  <div class="sub">Alert webhook<br>External</div>
+</div>
+
+<!-- ── ELK ── -->
+<div class="node c-elk" style="left:1120px;top:540px;width:120px;height:75px;" id="n-logstash">
+  <div class="icon">📝</div>
+  <div class="name">Logstash</div>
+  <div class="sub">Docker logs<br>Nginx + pino</div>
+</div>
+
+<div class="node c-elk" style="left:1270px;top:540px;width:120px;height:75px;" id="n-es">
+  <div class="icon">🔍</div>
+  <div class="name">Elasticsearch</div>
+  <div class="sub">Logs index<br>ILM · :9200</div>
+</div>
+
+<div class="node c-elk" style="left:1420px;top:540px;width:100px;height:75px;" id="n-kib">
+  <div class="icon">📋</div>
+  <div class="name">Kibana</div>
+  <div class="sub">Log search<br>:5601</div>
+</div>
+
+<!-- ── CI/CD ── -->
+<div class="node c-cicd" style="left:80px;top:800px;width:120px;height:75px;" id="n-gh">
+  <div class="icon">⚙️</div>
+  <div class="name">GitHub Actions</div>
+  <div class="sub">Build · Test<br>Push · Deploy</div>
+</div>
+
+<div class="node c-cicd" style="left:230px;top:800px;width:110px;height:75px;" id="n-ghcr">
+  <div class="icon">📦</div>
+  <div class="name">GHCR</div>
+  <div class="sub">Docker images<br>:sha + :latest</div>
+</div>
+
+<div class="node c-cicd" style="left:360px;top:800px;width:100px;height:75px;" id="n-vps">
+  <div class="icon">🖥️</div>
+  <div class="name">VPS / Prod</div>
+  <div class="sub">SSH deploy<br>docker compose</div>
+</div>
+
+<!-- ── BACKUP ── -->
+<div class="node c-backup" style="left:540px;top:815px;width:110px;height:75px;" id="n-bk">
+  <div class="icon">⏰</div>
+  <div class="name">Backup Cron</div>
+  <div class="sub">02:00 daily<br>pg_dump</div>
+</div>
+
+<div class="node c-backup" style="left:680px;top:815px;width:110px;height:75px;" id="n-local">
+  <div class="icon">💾</div>
+  <div class="name">Local Storage</div>
+  <div class="sub">/opt/netpong<br>7-day retain</div>
+</div>
+
+<div class="node c-backup" style="left:820px;top:815px;width:110px;height:75px;" id="n-do">
+  <div class="icon">☁️</div>
+  <div class="name">DO Spaces</div>
+  <div class="sub">S3 · rclone<br>30-day retain</div>
+</div>
+
+<!-- ═══════ SVG ARROWS ═══════ -->
+<svg class="arrows-svg" viewBox="0 0 1600 1000" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- arrowheads per color -->
+    <marker id="a-client"  markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#00d4ff"/></marker>
+    <marker id="a-edge"    markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#a78bfa"/></marker>
+    <marker id="a-app"     markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#34d399"/></marker>
+    <marker id="a-db"      markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#fbbf24"/></marker>
+    <marker id="a-obs"     markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#f97316"/></marker>
+    <marker id="a-elk"     markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#facc15"/></marker>
+    <marker id="a-cicd"    markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#ec4899"/></marker>
+    <marker id="a-backup"  markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#60a5fa"/></marker>
+    <marker id="a-muted"   markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#475569"/></marker>
+    <marker id="a-oauth"   markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#94a3b8"/></marker>
+  </defs>
+
+  <!-- ── Client → Nginx (HTTPS) ── -->
+  <line x1="152" y1="340" x2="218" y2="330" stroke="#00d4ff" stroke-width="2" marker-end="url(#a-client)"/>
+  <text x="162" y="324" font-size="9" fill="#00d4ff" font-family="JetBrains Mono">HTTPS</text>
+
+  <!-- ── Nginx → Frontend (static) ── -->
+  <path d="M350 305 Q420 280 478 268" stroke="#a78bfa" stroke-width="1.5" fill="none" marker-end="url(#a-edge)" stroke-dasharray="4,3"/>
+  <text x="380" y="275" font-size="9" fill="#a78bfa" font-family="JetBrains Mono">static</text>
+
+  <!-- ── Nginx → Backend (API) ── -->
+  <line x1="350" y1="335" x2="478" y2="400" stroke="#a78bfa" stroke-width="2" marker-end="url(#a-edge)"/>
+  <text x="375" y="358" font-size="9" fill="#a78bfa" font-family="JetBrains Mono">/api/*</text>
+
+  <!-- ── Nginx → Backend (WS) ── -->
+  <path d="M350 345 Q400 390 478 415" stroke="#a78bfa" stroke-width="1.5" fill="none" stroke-dasharray="3,3" marker-end="url(#a-edge)"/>
+  <text x="363" y="395" font-size="9" fill="#a78bfa" font-family="JetBrains Mono">WSS</text>
+
+  <!-- ── Backend → Game Gateway ── -->
+  <line x1="612" y1="385" x2="638" y2="368" stroke="#34d399" stroke-width="1.5" marker-end="url(#a-app)"/>
+
+  <!-- ── Backend → Chat Gateway ── -->
+  <line x1="612" y1="410" x2="638" y2="458" stroke="#34d399" stroke-width="1.5" marker-end="url(#a-app)"/>
+
+  <!-- ── Backend → Auth Module ── -->
+  <line x1="545" y1="452" x2="545" y2="498" stroke="#34d399" stroke-width="1.5" marker-end="url(#a-app)"/>
+
+  <!-- ── Auth → OAuth Providers ── -->
+  <path d="M478 535 Q350 560 352 543" stroke="#94a3b8" stroke-width="1.5" fill="none" marker-end="url(#a-oauth)" stroke-dasharray="4,3"/>
+  <text x="385" y="548" font-size="9" fill="#94a3b8" font-family="JetBrains Mono">OAuth2</text>
+
+  <!-- ── Backend → PostgreSQL ── -->
+  <line x1="612" y1="405" x2="893" y2="328" stroke="#fbbf24" stroke-width="2" marker-end="url(#a-db)"/>
+  <text x="730" y="358" font-size="9" fill="#fbbf24" font-family="JetBrains Mono">TypeORM / SQL</text>
+
+  <!-- ── Chat Gateway → PostgreSQL ── -->
+  <line x1="762" y1="462" x2="893" y2="360" stroke="#fbbf24" stroke-width="1.5" stroke-dasharray="3,3" marker-end="url(#a-db)"/>
+
+  <!-- ── PostgreSQL → Volume ── -->
+  <line x1="955" y1="365" x2="955" y2="408" stroke="#fbbf24" stroke-width="1.5" marker-end="url(#a-db)"/>
+
+  <!-- ══ MONITORING SCRAPE ARROWS ══ -->
+  <!-- Prometheus → Backend /metrics -->
+  <path d="M1120 140 Q1050 140 780 400 Q700 430 615 415" stroke="#f97316" stroke-width="1.5" fill="none" stroke-dasharray="4,3" marker-end="url(#a-obs)"/>
+  <text x="820" y="368" font-size="9" fill="#f97316" font-family="JetBrains Mono">scrape /metrics</text>
+
+  <!-- Prometheus → Node Exporter -->
+  <line x1="1180" y1="165" x2="1175" y2="218" stroke="#f97316" stroke-width="1.5" marker-end="url(#a-obs)"/>
+  <!-- Prometheus → cAdvisor -->
+  <line x1="1210" y1="148" x2="1280" y2="218" stroke="#f97316" stroke-width="1.5" marker-end="url(#a-obs)"/>
+
+  <!-- Prometheus → Grafana -->
+  <line x1="1242" y1="130" x2="1268" y2="130" stroke="#f97316" stroke-width="2" marker-end="url(#a-obs)"/>
+  <text x="1248" y="124" font-size="9" fill="#f97316" font-family="JetBrains Mono">PromQL</text>
+
+  <!-- Prometheus → Alertmanager -->
+  <line x1="1242" y1="135" x2="1418" y2="135" stroke="#f97316" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#a-obs)"/>
+
+  <!-- Alertmanager → Discord -->
+  <line x1="1478" y1="145" x2="1465" y2="218" stroke="#f97316" stroke-width="1.5" marker-end="url(#a-obs)"/>
+
+  <!-- ══ ELK LOG PIPELINE ══ -->
+  <!-- Backend logs → Logstash -->
+  <path d="M545 452 Q545 760 1050 580 Q1090 570 1118 575" stroke="#facc15" stroke-width="1.5" fill="none" stroke-dasharray="4,3" marker-end="url(#a-elk)"/>
+  <text x="700" y="730" font-size="9" fill="#facc15" font-family="JetBrains Mono">Docker stdout logs</text>
+
+  <!-- Nginx logs → Logstash -->
+  <path d="M285 372 Q285 640 900 640 Q1050 640 1118 590" stroke="#facc15" stroke-width="1.5" fill="none" stroke-dasharray="3,3" marker-end="url(#a-elk)"/>
+
+  <!-- Logstash → Elasticsearch -->
+  <line x1="1242" y1="578" x2="1268" y2="578" stroke="#facc15" stroke-width="2" marker-end="url(#a-elk)"/>
+
+  <!-- Elasticsearch → Kibana -->
+  <line x1="1392" y1="578" x2="1418" y2="578" stroke="#facc15" stroke-width="2" marker-end="url(#a-elk)"/>
+
+  <!-- ══ CI/CD ══ -->
+  <!-- GitHub Actions → GHCR -->
+  <line x1="202" y1="840" x2="228" y2="840" stroke="#ec4899" stroke-width="2" marker-end="url(#a-cicd)"/>
+  <text x="208" y="833" font-size="9" fill="#ec4899" font-family="JetBrains Mono">push</text>
+
+  <!-- GHCR → VPS deploy -->
+  <line x1="342" y1="840" x2="358" y2="840" stroke="#ec4899" stroke-width="2" marker-end="url(#a-cicd)"/>
+  <text x="342" y="833" font-size="9" fill="#ec4899" font-family="JetBrains Mono">SSH</text>
+
+  <!-- GitHub → VPS (also direct deploy arrow) -->
+  <path d="M140 876 Q280 920 358 875" stroke="#ec4899" stroke-width="1.5" fill="none" stroke-dasharray="3,3" marker-end="url(#a-cicd)"/>
+
+  <!-- ══ BACKUP ══ -->
+  <!-- Backup cron → Local -->
+  <line x1="652" y1="855" x2="678" y2="855" stroke="#60a5fa" stroke-width="2" marker-end="url(#a-backup)"/>
+  <text x="654" y="848" font-size="9" fill="#60a5fa" font-family="JetBrains Mono">gzip</text>
+
+  <!-- Local → DO Spaces -->
+  <line x1="792" y1="855" x2="818" y2="855" stroke="#60a5fa" stroke-width="2" marker-end="url(#a-backup)"/>
+  <text x="793" y="848" font-size="9" fill="#60a5fa" font-family="JetBrains Mono">rclone</text>
+
+  <!-- PostgreSQL → Backup -->
+  <path d="M955 453 Q955 720 710 800 Q670 810 650 813" stroke="#60a5fa" stroke-width="1.5" fill="none" stroke-dasharray="4,3" marker-end="url(#a-backup)"/>
+  <text x="850" y="780" font-size="9" fill="#60a5fa" font-family="JetBrains Mono">pg_dump</text>
+
+  <!-- DO Spaces → Discord notification -->
+  <path d="M930 840 Q1000 840 1430 430 Q1455 385 1455 300" stroke="#60a5fa" stroke-width="1.2" fill="none" stroke-dasharray="2,4" marker-end="url(#a-backup)"/>
+  <text x="1050" y="690" font-size="9" fill="#60a5fa" font-family="JetBrains Mono">notify Discord</text>
+
+  <!-- ── edge labels on key lines ── -->
+  <!-- Client↔Backend WS label -->
+  <text x="155" y="380" font-size="9" fill="#475569" font-family="JetBrains Mono">WSS upgrade</text>
+
+</svg>
+
+</div><!-- diagram -->
+</div><!-- overflow scroll -->
+
+</body>
+</html>
