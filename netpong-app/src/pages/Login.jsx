@@ -130,7 +130,9 @@ export default function Login() {
               <div className="relative mb-6">
                 <input
                   type="text"
+                  name="identifier"
                   value={identifier}
+                  autoComplete="username"
                   onChange={(e) => setIdentifier(e.target.value)}
                   required
                   disabled={isLoading}
@@ -148,9 +150,11 @@ export default function Login() {
               <div className="relative mb-8">
                 <input
                   type={showPassword ? 'text' : 'password'}
+                  name="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  autoComplete="current-password"
                   disabled={isLoading}
                   placeholder=" "
                   className="w-full bg-white/10 text-zinc-100 p-2 pl-10 md:pl-12 pr-12

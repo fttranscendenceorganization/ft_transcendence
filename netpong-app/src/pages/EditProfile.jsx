@@ -73,11 +73,10 @@ function AvatarModal({ isOpen, onClose, onUploadFile, onSubmitUrl }) {
                 <div className="flex gap-2 mb-6">
                     <button
                         onClick={() => setTab('upload')}
-                        className={`flex-1 py-2.5 px-4 rounded-lg font-bold text-sm transition-all duration-300 ${
-                            tab === 'upload'
-                                ? 'bg-orange-600 text-white shadow-lg shadow-orange-600/30'
-                                : 'bg-slate-700 text-gray-300 hover:bg-slate-600'
-                        }`}
+                        className={`flex-1 py-2.5 px-4 rounded-lg font-bold text-sm transition-all duration-300 ${tab === 'upload'
+                            ? 'bg-orange-600 text-white shadow-lg shadow-orange-600/30'
+                            : 'bg-slate-700 text-gray-300 hover:bg-slate-600'
+                            }`}
                     >
                         <span className="flex items-center justify-center gap-2">
                             <svg className="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
@@ -88,11 +87,10 @@ function AvatarModal({ isOpen, onClose, onUploadFile, onSubmitUrl }) {
                     </button>
                     <button
                         onClick={() => setTab('url')}
-                        className={`flex-1 py-2.5 px-4 rounded-lg font-bold text-sm transition-all duration-300 ${
-                            tab === 'url'
-                                ? 'bg-violet-600 text-white shadow-lg shadow-violet-600/30'
-                                : 'bg-slate-700 text-gray-300 hover:bg-slate-600'
-                        }`}
+                        className={`flex-1 py-2.5 px-4 rounded-lg font-bold text-sm transition-all duration-300 ${tab === 'url'
+                            ? 'bg-violet-600 text-white shadow-lg shadow-violet-600/30'
+                            : 'bg-slate-700 text-gray-300 hover:bg-slate-600'
+                            }`}
                     >
                         <span className="flex items-center justify-center gap-2">
                             <svg className="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
@@ -106,11 +104,10 @@ function AvatarModal({ isOpen, onClose, onUploadFile, onSubmitUrl }) {
                 {tab === 'upload' && (
                     <div>
                         <div
-                            className={`border-2 border-dashed rounded-xl p-8 text-center transition-all duration-300 cursor-pointer ${
-                                dragActive
-                                    ? 'border-orange-500 bg-orange-500/10'
-                                    : 'border-slate-600 hover:border-orange-500/50 hover:bg-slate-800/50'
-                            }`}
+                            className={`border-2 border-dashed rounded-xl p-8 text-center transition-all duration-300 cursor-pointer ${dragActive
+                                ? 'border-orange-500 bg-orange-500/10'
+                                : 'border-slate-600 hover:border-orange-500/50 hover:bg-slate-800/50'
+                                }`}
                             onClick={() => fileInputRef.current?.click()}
                             onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
                             onDragLeave={() => setDragActive(false)}
@@ -410,7 +407,9 @@ export default function EditProfile() {
                             <div className="space-y-6">
 
                                 <div>
-                                    <label className="flex items-center gap-2 text-white font-bold text-sm mb-2">
+                                    <label
+                                        htmlFor="firstName"
+                                        className="flex items-center gap-2 text-white font-bold text-sm mb-2">
                                         <svg className="w-4 h-4 text-orange-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
                                         </svg>
@@ -418,6 +417,8 @@ export default function EditProfile() {
                                         <span className="ml-auto text-xs text-green-400 font-normal">✓ Editable</span>
                                     </label>
                                     <input
+                                        id="firstName"
+                                        name="firstName"
                                         type="text"
                                         value={profileData.firstName}
                                         onChange={handleFirstNameChange}
@@ -428,7 +429,9 @@ export default function EditProfile() {
                                 </div>
 
                                 <div>
-                                    <label className="flex items-center gap-2 text-white font-bold text-sm mb-2">
+                                    <label
+                                        htmlFor="lastName"
+                                        className="flex items-center gap-2 text-white font-bold text-sm mb-2">
                                         <svg className="w-4 h-4 text-orange-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
                                         </svg>
@@ -436,6 +439,8 @@ export default function EditProfile() {
                                         <span className="ml-auto text-xs text-green-400 font-normal">✓ Editable</span>
                                     </label>
                                     <input
+                                        id="lastName"
+                                        name="lastName"
                                         type="text"
                                         value={profileData.lastName}
                                         onChange={handleLastNameChange}
@@ -446,7 +451,9 @@ export default function EditProfile() {
                                 </div>
 
                                 <div>
-                                    <label className="flex items-center gap-2 text-white font-bold text-sm mb-2">
+                                    <label
+                                        htmlFor="email"
+                                        className="flex items-center gap-2 text-white font-bold text-sm mb-2">
                                         <svg className="w-4 h-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
                                         </svg>
@@ -454,6 +461,8 @@ export default function EditProfile() {
                                         <span className="ml-auto text-xs text-gray-400 font-normal">(Cannot be changed)</span>
                                     </label>
                                     <input
+                                        id="email"
+                                        name="email"
                                         type="email"
                                         value={profileData.email}
                                         disabled
@@ -462,7 +471,9 @@ export default function EditProfile() {
                                 </div>
 
                                 <div>
-                                    <label className="flex items-center gap-2 text-white font-bold text-sm mb-2">
+                                    <label
+                                        htmlFor="username"
+                                        className="flex items-center gap-2 text-white font-bold text-sm mb-2">
                                         <svg className="w-4 h-4 text-orange-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
                                         </svg>
@@ -470,6 +481,8 @@ export default function EditProfile() {
                                         <span className="ml-auto text-xs text-green-400 font-normal">✓ Editable</span>
                                     </label>
                                     <input
+                                        id="username"
+                                        name="username"
                                         type="text"
                                         value={profileData.username}
                                         onChange={handleUsernameChange}
