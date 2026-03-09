@@ -39,12 +39,12 @@ export class GameService implements OnModuleDestroy {
     private notifyCallback: ((socketId: string, event: string, data: any) => void) | null = null;
     private lastTickTime: number = Date.now();
 
-    registerPlayer(userId: string, socketId: string): { rejected: boolean } {
+    registerPlayer(userId: string, socketId: string): { rejected: boolean; oldSocketId?: string } {
         const existingPlayer = this.players.get(userId);
 
         if (existingPlayer) {
             this.logger.warn('Player already has an active connection, rejecting new one', { context: 'GameService', userId });
-            return { rejected: true };
+            return { rejected: true, oldSocketId: existingPlayer.socketId };
         }
 
         const newPlayer: PlayerSessionType = {

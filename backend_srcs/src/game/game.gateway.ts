@@ -71,11 +71,19 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
             client.data.user = { id: userId, username: payload.username };
             const result = this.gameService.registerPlayer(userId, client.id);
             if (result.rejected) {
-                this.logger.warn('Duplicate game connection rejected', { context: 'GameGateway', userId });
-                client.data.user = null;
-                client.emit('alreadyInGame', { message: 'You already have an active game session in another window.' });
-                client.disconnect(true);
-                return;
+                const oldSocket = result.oldSocketId
+                    ? this.server.sockets.sockets.get(result.oldSocketId)
+                    : null;
+                if (oldSocket && oldSocket.connected) {
+                    this.logger.warn('Duplicate game connection rejected', { context: 'GameGateway', userId });
+                    client.data.user = null;
+                    client.emit('alreadyInGame', { message: 'You already have an active game session in another window.' });
+                    client.disconnect(true);
+                    return;
+                }
+                this.logger.log('Replacing stale player session', { context: 'GameGateway', userId });
+                this.gameService.unregisterPlayer(userId);
+                this.gameService.registerPlayer(userId, client.id);
             }
             this.logger.log('Player connected to game', { context: 'GameGateway', userId });
         } catch (error) {
