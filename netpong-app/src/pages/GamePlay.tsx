@@ -138,17 +138,6 @@ export default function GamePlay() {
         let isMounted = true;
 
         (async () => {
-            try {
-                const res = await authFetch('/api/game/active-session', { method: 'GET' });
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data.active) {
-                        if (isMounted) setBlocked(true);
-                        return;
-                    }
-                }
-            } catch {}
-
             const socket = await getGameSocket();
             if (!socket || !isMounted) {
                 if (!socket) navigate('/login');
@@ -156,6 +145,13 @@ export default function GamePlay() {
             }
 
             socketRef.current = socket;
+
+            socket.on('alreadyInGame', () => {
+                if (!isMounted) return;
+                setBlocked(true);
+                disconnectGameSocket();
+                socketRef.current = null;
+            });
 
             socket.on('connect', () => {
                 if (!isMounted) return;
