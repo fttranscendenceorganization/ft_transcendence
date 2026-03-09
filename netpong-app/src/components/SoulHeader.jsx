@@ -101,9 +101,9 @@ export default function SoulHeader() {
 
                         <div className="p-2">
                             {gameModesData.map((mode, index) => (
-                                <a
+                                <Link
                                     key={mode.path}
-                                    href={mode.path}
+                                    to={mode.path}
                                     className={`flex items-center gap-3 px-4 py-3 rounded-xl ${mode.hoverBg} transition-all duration-300 group/item relative overflow-hidden`}
                                     style={{
                                         animationDelay: `${index * 50}ms`,
@@ -129,7 +129,7 @@ export default function SoulHeader() {
                                     </svg>
 
                                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover/item:translate-x-full transition-transform duration-700"></div>
-                                </a>
+                                </Link>
                             ))}
                         </div>
 
