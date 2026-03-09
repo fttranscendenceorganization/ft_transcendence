@@ -237,6 +237,7 @@ export default function SignUp() {
                                         onChange={handleChange}
                                         disabled={isLoading}
                                         required
+                                        autoComplete="given-name"
                                         placeholder=" "
                                         className={`w-full bg-white/10 text-zinc-100 p-2 pl-10 md:pl-12 rounded-xl border-2 backdrop-blur-sm h-14 md:h-16 shadow-xl hover:bg-white/15 focus:outline-none focus:bg-white/15 peer transition-all disabled:opacity-50 ${errors.firstName ? 'border-red-500' : 'border-purple-500/50 hover:border-purple-400 focus:border-purple-400'
                                             }`}
@@ -260,6 +261,7 @@ export default function SignUp() {
                                         onChange={handleChange}
                                         disabled={isLoading}
                                         required
+                                        autoComplete="family-name"
                                         placeholder=" "
                                         className={`w-full bg-white/10 text-zinc-100 p-2 pl-10 md:pl-12 rounded-xl border-2 backdrop-blur-sm shadow-xl h-14 md:h-16 hover:bg-white/15 focus:outline-none focus:bg-white/15 peer transition-all disabled:opacity-50 ${errors.lastName ? 'border-red-500' : 'border-purple-500/50 hover:border-purple-400 focus:border-purple-400'
                                             }`}
@@ -284,6 +286,7 @@ export default function SignUp() {
                                     onChange={handleChange}
                                     disabled={isLoading}
                                     required
+                                    autoComplete="username"
                                     placeholder=" "
                                     className={`w-full bg-white/10 text-zinc-100 p-2 pl-10 md:pl-12 rounded-xl border-2 backdrop-blur-sm shadow-xl h-14 md:h-16 hover:bg-white/15 focus:outline-none focus:bg-white/15 peer transition-all disabled:opacity-50 ${errors.username ? 'border-red-500' : 'border-purple-500/50 hover:border-purple-400 focus:border-purple-400'
                                         }`}
@@ -307,6 +310,7 @@ export default function SignUp() {
                                     onChange={handleChange}
                                     disabled={isLoading}
                                     required
+                                    autoComplete="email"
                                     placeholder=" "
                                     className={`w-full bg-white/10 text-zinc-100 p-2 pl-10 md:pl-12 rounded-xl border-2 backdrop-blur-sm shadow-xl h-14 md:h-16 hover:bg-white/15 focus:outline-none focus:bg-white/15 peer transition-all disabled:opacity-50 ${errors.email ? 'border-red-500' : 'border-purple-500/50 hover:border-purple-400 focus:border-purple-400'
                                         }`}
@@ -330,6 +334,7 @@ export default function SignUp() {
                                     onChange={handleChange}
                                     disabled={isLoading}
                                     required
+                                    autoComplete="new-password"
                                     placeholder=" "
                                     className={`w-full bg-white/10 text-zinc-100 p-2 pl-10 md:pl-12 rounded-xl border-2 backdrop-blur-sm shadow-xl h-14 md:h-16 hover:bg-white/15 focus:outline-none focus:bg-white/15 peer transition-all disabled:opacity-50 ${errors.password ? 'border-red-500' : 'border-purple-500/50 hover:border-purple-400 focus:border-purple-400'
                                         }`}

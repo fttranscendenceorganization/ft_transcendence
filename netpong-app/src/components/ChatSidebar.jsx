@@ -51,11 +51,16 @@ export default function ChatSidebar({
 
                 <div className="px-4 pt-3 pb-2 border-b border-slate-700">
                     <form onSubmit={onSendFriendRequest} className="space-y-1">
-                        <label className="block text-xs text-gray-400 font-semibold">Add friend by username</label>
+                        <label
+                            htmlFor="friendUsername"
+                            className="block text-xs text-gray-400 font-semibold">Add friend by username</label>
                         <div className="flex gap-2">
                             <div className="relative flex-1">
                                 <input
+                                    id="friendUsername"
+                                    name="friendUsername"
                                     type="text"
+                                    autoComplete="username"
                                     value={friendUsername}
                                     onChange={(e) => setFriendUsername(e.target.value)}
                                     placeholder="Enter username"

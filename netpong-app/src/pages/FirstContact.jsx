@@ -40,7 +40,7 @@ export default function FirstContact() {
         },
         {
             name: 'Mohammed',
-            role: 'Devops',
+            role: 'DevOps Engineer',
             initial: 'M',
             image: 'https://cdn.intra.42.fr/users/a9e4a636cad2fc137fb178f9db2f5b7a/momazouz.jpeg',
             linkedin: 'https://www.linkedin.com/in/mohamed-mazouz-b66b543b5/',
