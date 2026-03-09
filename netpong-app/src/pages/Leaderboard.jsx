@@ -5,13 +5,15 @@ import { authFetch } from '../utils/api';
 const MODE_ICON = {
     ZOMBIE_LAND: '🧟',
     SOUL_SOCIETY: '⚔️',
-    KITTY_CAT: '🐱',
+    KITTY_CAT: '😻',
+    BARBIE_PINK: '🎀',
     JOKER: '🃏',
 };
 const MODE_LABEL = {
     ZOMBIE_LAND: 'Zombie Land',
     SOUL_SOCIETY: 'Soul Society',
     KITTY_CAT: 'Kitty Cat',
+    BARBIE_PINK: 'Kitty Cat',
     JOKER: 'Joker',
 };
 
