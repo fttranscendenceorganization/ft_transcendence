@@ -9,6 +9,7 @@
 ## Table of Contents
 
 - [Description](#description)
+- [Architecture Overview](#architecture-overview)
 - [Team Information](#team-information)
 - [Project Management](#project-management)
 - [Technical Stack](#technical-stack)
@@ -17,6 +18,8 @@
 - [Modules](#modules)
 - [Individual Contributions](#individual-contributions)
 - [Instructions](#instructions)
+- [CI/CD — GitHub Actions](#cicd--github-actions)
+- [Backup & Disaster Recovery](#backup--disaster-recovery)
 - [Security & Compliance](#security--compliance)
 - [Resources](#resources)
 
@@ -35,6 +38,62 @@
 - OAuth2 login via Google, GitHub, and 42 Intra
 - XP/level/points system with leaderboard and match history
 - Full DevOps stack: Docker Compose, Nginx, Prometheus, Grafana, ELK
+- CI/CD pipeline with GitHub Actions, GHCR image registry, and automated deployments
+- Automated backup system with disaster recovery procedures
+
+---
+
+## Architecture Overview
+
+The platform follows a microservices-inspired architecture with clear separation between layers:
+
+```
+┌─────────────┐     ┌─────────────┐     ┌─────────────────────────────────────┐
+│   Browser   │────▶│    Nginx    │────▶│         Application Layer           │
+│  (Client)   │     │  TLS :443   │     │  ┌──────────┐  ┌─────────────────┐  │
+└─────────────┘     │  Reverse    │     │  │ Frontend │  │     Backend     │  │
+                    │  Proxy      │     │  │ React 18 │  │   NestJS 11     │  │
+                    └─────────────┘     │  └──────────┘  │  ┌───────────┐  │  │
+                                        │                │  │Game GW    │  │  │
+                                        │                │  │Chat GW    │  │  │
+                                        │                │  │Auth Module│  │  │
+                                        │                │  └───────────┘  │  │
+                                        │                └─────────────────┘  │
+                                        └──────────────────────┬──────────────┘
+                                                               │
+                    ┌──────────────────────────────────────────┼──────────────────────────────────┐
+                    │                                          ▼                                  │
+                    │  ┌─────────────┐     ┌─────────────────────────────────┐                   │
+                    │  │ PostgreSQL  │◀────│        Observability            │                   │
+                    │  │    :5432    │     │  Prometheus → Grafana           │                   │
+                    │  │             │     │  Logstash → Elasticsearch       │                   │
+                    │  │  Users      │     │           → Kibana              │                   │
+                    │  │  Games      │     │  Alertmanager → Discord         │                   │
+                    │  │  Chat       │     └─────────────────────────────────┘                   │
+                    │  └──────┬──────┘                                                           │
+                    │         │                                                                  │
+                    │         ▼                                                                  │
+                    │  ┌─────────────┐     ┌─────────────┐     ┌─────────────┐                   │
+                    │  │   Backup    │────▶│   Local     │────▶│ DO Spaces   │                   │
+                    │  │   Cron      │     │  Storage    │     │   (S3)      │                   │
+                    │  │  02:00 UTC  │     │  7-day      │     │  30-day     │                   │
+                    │  └─────────────┘     └─────────────┘     └─────────────┘                   │
+                    │                                                                            │
+                    │                        CI/CD Pipeline                                      │
+                    │  ┌─────────────┐     ┌─────────────┐     ┌─────────────┐                   │
+                    │  │   GitHub    │────▶│    GHCR     │────▶│  VPS/Prod   │                   │
+                    │  │   Actions   │     │   Images    │     │  SSH Deploy │                   │
+                    │  └─────────────┘     └─────────────┘     └─────────────┘                   │
+                    └───────────────────────────────────────────────────────────────────────────┘
+```
+
+**Docker Networks:**
+- `public_net` — Nginx (exposed to internet)
+- `internal_net` — Backend, Frontend, Database, Status Service
+- `monitoring_net` — Prometheus, Grafana, Alertmanager
+- `elk_net` — Elasticsearch, Logstash, Kibana
+
+📊 **[View Interactive Architecture Diagram](infra/docs/architecture.html)** *(open locally or via GitHub Pages)*
 
 ---
 
@@ -44,7 +103,7 @@
 |------|------|-----------------|
 | **Houdaifa Drahm** | Tech Lead | Designed and built the entire NestJS backend architecture: authentication system (JWT, refresh cookies, guards, strategies), TypeORM database entities and relations, all REST API controllers and services, WebSocket gateways, input validation pipeline, and CORS/security configuration. Owned the backend structure from day one. |
 | **Ahmed Ahlaqqach** | Product Owner (PO) | Built all frontend pages and components using React 18 + Vite: themed game canvas renderers, chat UI, auth flows (login/signup/OAuth callbacks), profile screens, leaderboard, match history, password reset flows, and 404 page. Defined the user experience and validated all frontend-facing features. |
-| **Mohamed Mazouz** | DevOps Engineer + Project Manager (PM) | Owned the entire infrastructure: Docker and docker-compose files (dev/prod/monitoring), Nginx reverse proxy with TLS termination, Prometheus metrics scraping, Grafana dashboards and alerting, ELK stack (Elasticsearch, Logstash, Kibana) setup, automated backups, and all environment configuration. Also coordinated team tasks, tracked progress, and organized weekly syncs. |
+| **Mohamed Mazouz** | DevOps Engineer + Project Manager (PM) | Owned the entire infrastructure: Docker and docker-compose files (dev/prod/monitoring/ELK), Nginx reverse proxy with TLS termination, Prometheus metrics scraping, Grafana dashboards and alerting, ELK stack (Elasticsearch, Logstash, Kibana) setup, CI/CD pipeline with GitHub Actions (automated builds, GHCR image pushes, SSH deployments, Discord notifications), automated PostgreSQL backups with disaster recovery procedures, and all environment configuration. Also coordinated team tasks, tracked progress, and organized weekly syncs. |
 | **Youssef Akhadad** | Developer | Implemented the AI opponent logic in game.service.ts (physics-based paddle AI with easy/hard modes), the user profile edit feature (username, first name, last name, avatar upload) on both frontend and backend, and the contact page on both frontend and backend. |
 
 ---
@@ -65,7 +124,7 @@ The team used **GitHub with a branch-per-feature workflow**. Each team member wo
 |--------|------------|
 | Core backend, auth, APIs, database | Houdaifa Drahm |
 | Frontend pages, components, game UI | Ahmed Ahlaqqach |
-| DevOps, Docker, Nginx, monitoring, ELK | Mohamed Mazouz |
+| DevOps, Docker, Nginx, monitoring, ELK, CI/CD, backups | Mohamed Mazouz |
 | AI opponent, profile edit, contact page | Youssef Akhadad |
 
 ---
@@ -77,7 +136,7 @@ The team used **GitHub with a branch-per-feature workflow**. Each team member wo
 |-----------|---------|-----------|
 | **NestJS** | 11 | Provides a structured, modular architecture with built-in dependency injection, guards, interceptors, and decorators — ideal for a large-scale project requiring clear separation of concerns. Chosen over plain Express for its TypeScript-first design and enterprise-grade patterns. |
 | **TypeORM** | latest | Integrates natively with NestJS and TypeScript, provides entity-based schema definition, and supports complex relations (one-to-many, many-to-many) with a clean decorator syntax. Chosen over Prisma for its mature ecosystem and NestJS integration. |
-| **PostgreSQL** | 16 | Relational database with strong consistency guarantees, excellent support for complex joins and transactions — critical for chat threading, friend relations, and game records. Chosen over MongoDB for its relational integrity. |
+| **PostgreSQL** | 17 | Relational database with strong consistency guarantees, excellent support for complex joins and transactions — critical for chat threading, friend relations, and game records. Chosen over MongoDB for its relational integrity. |
 | **socket.io** | latest | Provides reliable real-time bidirectional communication with automatic reconnection, room management, and fallback transport — essential for live game state streaming and chat presence. |
 | **Passport.js** | latest | Pluggable authentication middleware for NestJS supporting local (email/password), JWT, and multiple OAuth2 strategies (Google, GitHub, 42) with a unified interface. |
 | **nestjs-pino** | latest | Structured JSON logging with automatic request context, log levels, and sensitive field redaction — production-ready logging with minimal configuration. |
@@ -99,6 +158,11 @@ The team used **GitHub with a branch-per-feature workflow**. Each team member wo
 | **Prometheus** | Pull-based metrics collection with a custom `/metrics` endpoint exposing counters and gauges for logins, active games, messages, queue size, and registrations. |
 | **Grafana** | Visualization layer for Prometheus metrics with custom dashboards and alerting rules. Chosen for its rich dashboard ecosystem and Prometheus-native integration. |
 | **ELK Stack** | Elasticsearch stores and indexes backend logs, Logstash collects and transforms them, Kibana provides visualization — full log observability in production. |
+| **GitHub Actions** | CI/CD pipeline for automated builds, image pushes to GHCR, and production deployments via SSH. Integrated Discord notifications for build status. |
+| **GitHub Container Registry (GHCR)** | Stores versioned Docker images (frontend, backend, nginx, status, backup) with SHA tags and `latest` for easy rollback and deployment. |
+| **DigitalOcean Spaces** | S3-compatible object storage for off-site backup storage. Provides geo-redundant backup protection outside the production server. |
+| **Alertmanager** | Handles Prometheus alerts with Discord webhook integration for real-time team notifications on infrastructure issues. |
+| **Node Exporter & cAdvisor** | System and container metrics collection for comprehensive infrastructure monitoring (CPU, memory, disk, network, container stats). |
 
 ---
 
@@ -264,6 +328,11 @@ The team used **GitHub with a branch-per-feature workflow**. Each team member wo
 | ELK logging | Backend logs shipped to Logstash → Elasticsearch, visualized in Kibana | Mohamed Mazouz |
 | Docker deployment | Single-command deployment via docker compose for dev, prod, and monitoring stacks | Mohamed Mazouz |
 | Nginx reverse proxy | TLS termination, SPA serving, /api and /socket.io proxying | Mohamed Mazouz |
+| CI/CD pipeline | GitHub Actions workflow for automated builds, GHCR image pushes, and SSH-based production deployment | Mohamed Mazouz |
+| Automated backups | Scheduled PostgreSQL database backups with pg_dump, compressed and stored locally and remotely | Mohamed Mazouz |
+| Disaster recovery | Remote backup storage in DigitalOcean Spaces with documented recovery procedures | Mohamed Mazouz |
+| Discord CI notifications | Automated build status alerts sent to Discord channel via webhook integration | Mohamed Mazouz |
+| Infrastructure alerting | Prometheus Alertmanager with Discord webhook for real-time infrastructure alerts | Mohamed Mazouz |
 | Advanced search | User and leaderboard search with filters, sorting, and pagination | Houdaifa Drahm |
 | Multi-browser support | Tested and compatible with Chrome, Firefox, and Safari | Ahmed Ahlaqqach |
 | Privacy Policy & ToS | Accessible pages from app footer with relevant content | Ahmed Ahlaqqach |
@@ -290,7 +359,7 @@ The team used **GitHub with a branch-per-feature workflow**. Each team member wo
 | 14 | **Additional browser support** | Minor | 1 | Ahmed Ahlaqqach | Application tested and verified compatible on Google Chrome (primary), Mozilla Firefox, and Safari. CSS layout, canvas rendering, WebSocket connections, and OAuth flows validated across all three browsers. Browser-specific quirks documented. |
 | 15 | **OAuth 2.0 remote authentication** | Minor | 1 | Houdaifa Drahm | Three OAuth2 providers implemented via Passport.js strategies: Google (passport-google-oauth20), GitHub (passport-github2), and 42 Intra (passport-42). Each strategy creates or links a user account and issues JWT tokens on success. Callback URLs configurable via env. |
 | 16 | **Game statistics and match history** | Minor | 1 | Houdaifa Drahm, Ahmed Ahlaqqach | Game records persisted in Game entity with mode, scores, winner, XP earned, timestamps. Stats endpoint returns wins, losses, level, XP, winrate, favorite mode. Match history endpoint returns paginated list of past games with opponent info. Leaderboard integrated with stats. |
-| 17 | **Health check & status page** | Minor | 1 | Mohamed Mazouz | Terminus health checks at GET /health (liveness: app up + DB reachable) and GET /health/ready (DB connection, Google/GitHub external pings, memory heap < 300MB, disk usage < 90%). Automated database backups configured in DevOps stack with disaster recovery procedures documented. |
+| 17 | **Health check & status page & Automated Backups and Disaster recovery procedures** | Minor | 1 | Mohamed Mazouz | Terminus health checks at GET /health (liveness: app up + DB reachable) and GET /health/ready (DB connection, Google/GitHub external pings, memory heap < 300MB, disk usage < 90%). Automated database backups configured in DevOps stack with disaster recovery procedures documented. |
 
 ### Point Calculation
 
@@ -341,17 +410,22 @@ The team used **GitHub with a branch-per-feature workflow**. Each team member wo
 ### Mohamed Mazouz — Project Manager (PM) + DevOps Engineer
 
 **Files and configurations owned:**
-- `infra/compose/docker-compose.dev.yml` — development stack with hot reload
-- `infra/compose/docker-compose.prod.yml` — production stack with TLS
-- `infra/compose/docker-compose.monitoring.yml` — Prometheus + Grafana + Alertmanager stack
+- `.github/workflows/ci.yml` — complete CI/CD pipeline: Docker Compose validation, parallel image builds (frontend, backend, nginx, status, backup), GHCR push, Discord notifications, SSH-based production deployment
+- `infra/compose/docker-compose.dev.yml` — development stack with hot reload and local builds
+- `infra/compose/docker-compose.prod.yml` — production stack with GHCR images and TLS
+- `infra/compose/docker-compose.monitoring.yml` — Prometheus + Grafana + Alertmanager + Node Exporter + cAdvisor stack
+- `infra/compose/docker-compose.elk.yml` — Elasticsearch 8.12.0 + Logstash + Kibana stack
 - `infra/nginx/` — Nginx config with TLS termination, SPA serving, /api and /socket.io proxying
-- `infra/elk/` — Elasticsearch ILM policy, Logstash pipeline config, Kibana dashboards
-- `infra/env/` — all .env.example files for backend, database, nginx, game, monitoring
-- All Dockerfiles for backend and frontend services
-- Prometheus alerting rules and Grafana dashboard JSON exports
-- Automated backup scripts and disaster recovery procedures
+- `infra/elk/` — Elasticsearch ILM policy, Logstash pipeline config with nginx and backend log parsing, GeoIP enrichment
+- `infra/monitoring/prometheus/prometheus.yml` — Prometheus scrape configs for backend, node-exporter, cadvisor, status-service
+- `infra/monitoring/prometheus/rules/` — Alert rules for backend, containers, nodes, and service health
+- `infra/monitoring/alertmanager/alertmanager.yml` — Alertmanager config with Discord webhook routing
+- `infra/backup/backup.sh` — PostgreSQL backup script using pg_dump with gzip compression
+- `infra/backup/Dockerfile` — Backup container based on postgres:17-alpine with scheduling support
+- `infra/env/` — all environment files: backend.env, database.env, nginx.env, game.env, backup.env
+- All Dockerfiles: `infra/backend/Dockerfile`, `infra/frontend/Dockerfile`, `infra/nginx/Dockerfile`, `infra/status/Dockerfile`, `infra/backup/Dockerfile`
 
-**Modules implemented:** ELK Stack, Prometheus & Grafana (infrastructure), Health check (DevOps side), containerization/deployment
+**Modules implemented:** ELK Stack, Prometheus & Grafana (infrastructure), Health check (DevOps side), containerization/deployment, CI/CD pipeline, backup & disaster recovery
 
 **Challenges:** Configuring Logstash to correctly parse NestJS pino JSON logs and forward them to Elasticsearch required custom grok patterns and field mappings. Setting up Nginx to correctly proxy WebSocket upgrade requests (socket.io) alongside regular HTTP traffic required specific proxy_set_header and proxy_http_version directives.
 
@@ -475,6 +549,263 @@ npm run dev -- --host --port 5173
 ```
 
 ---
+
+## CI/CD — GitHub Actions
+
+The project includes a complete continuous integration and deployment pipeline implemented using **GitHub Actions** (`.github/workflows/ci.yml`).
+
+### Pipeline Overview
+
+The CI/CD workflow automates the entire build and deployment lifecycle:
+
+| Job | Description | Trigger |
+|-----|-------------|---------|
+| `validate` | Validates all Docker Compose configurations | Every push/PR |
+| `frontend` | Builds and pushes frontend image to GHCR | After validation |
+| `backend` | Builds and pushes backend image to GHCR | After validation |
+| `nginx` | Builds and pushes nginx image to GHCR | After validation |
+| `status_service` | Builds and pushes status service image to GHCR | After validation |
+| `backup` | Builds and pushes backup image to GHCR | After validation |
+| `notify` | Sends build status to Discord | Always (success or failure) |
+| `deploy` | Deploys to production via SSH | Only on `main` branch |
+
+### Image Registry
+
+All Docker images are stored in **GitHub Container Registry (GHCR)**:
+
+```
+ghcr.io/fttranscendenceorganization/ft_frontend
+ghcr.io/fttranscendenceorganization/ft_backend
+ghcr.io/fttranscendenceorganization/ft_nginx
+ghcr.io/fttranscendenceorganization/ft_status_service
+ghcr.io/fttranscendenceorganization/ft_backup
+```
+
+Each image is tagged with:
+- **SHA tag:** `<image>:<commit-sha>` for exact version tracking
+- **Latest tag:** `<image>:latest` for production deployments
+
+### Build Process
+
+The pipeline uses **Docker Buildx** for efficient multi-platform builds:
+
+1. **Checkout** — Clone the repository
+2. **Setup Buildx** — Enable Docker BuildKit features
+3. **Login to GHCR** — Authenticate with GitHub Container Registry
+4. **Build & Push** — Build image and push both SHA and latest tags
+
+### Deployment
+
+On pushes to `main`, the workflow automatically deploys to production:
+
+```yaml
+- name: Deploy via SSH
+  uses: appleboy/ssh-action@v1.0.0
+  with:
+    host: ${{ secrets.SERVER_HOST }}
+    username: ${{ secrets.SERVER_USER }}
+    key: ${{ secrets.SSH_PRIVATE_KEY }}
+    script: |
+      cd ${{ secrets.SERVER_PATH }}
+      git pull origin main
+      docker login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
+      make prod
+```
+
+### Discord Notifications
+
+Every pipeline run sends a status notification to the team Discord:
+
+- **Success:** ✅ Green notification with commit details
+- **Failure:** ❌ Red alert with author and branch info
+- **Role mention:** Tags the CI role for immediate attention
+
+### Required Secrets
+
+| Secret | Purpose |
+|--------|---------|
+| `GITHUB_TOKEN` | Authenticate with GHCR (automatic) |
+| `DISCORD_CI_WEBHOOK` | Discord webhook URL for notifications |
+| `DISCORD_CI_ROLE_ID` | Discord role ID to mention on alerts |
+| `SERVER_HOST` | Production server hostname/IP |
+| `SERVER_USER` | SSH username for deployment |
+| `SSH_PRIVATE_KEY` | SSH private key for deployment |
+| `SERVER_PATH` | Path to project on production server |
+
+---
+
+## Backup & Disaster Recovery
+
+The platform includes an **automated backup and disaster recovery system** to protect against data loss or server failure.
+
+### Backup Architecture
+
+```
+┌─────────────────┐     ┌──────────────────┐     ┌─────────────────────┐
+│   PostgreSQL    │────▶│  Backup Service  │────▶│  Local Storage      │
+│   Database      │     │  (pg_dump)       │     │  /opt/netpong/      │
+└─────────────────┘     └──────────────────┘     │  backups/postgres/  │
+                                │                └─────────────────────┘
+                                │
+                                ▼
+                        ┌─────────────────────┐
+                        │  DigitalOcean       │
+                        │  Spaces (S3)        │
+                        │  (remote storage)   │
+                        └─────────────────────┘
+```
+
+### Backup Targets
+
+| Component | Backup Method | Frequency | Location |
+|-----------|---------------|-----------|----------|
+| PostgreSQL database | `pg_dump` logical backups | Daily | Local + Remote |
+| Elasticsearch logs | Snapshot API | Daily | Local + Remote |
+| Monitoring data (Grafana + Prometheus) | Compressed archive | Daily | Local + Remote |
+| Application configuration | File archive | Daily | Local + Remote |
+
+### Backup Service
+
+The backup system runs as a Docker container (`infra/backup/`):
+
+**Dockerfile:**
+```dockerfile
+FROM postgres:17-alpine
+RUN apk add --no-cache postgresql-client bash gzip tzdata
+WORKDIR /backup
+COPY backup.sh .
+RUN chmod +x backup.sh
+CMD ["./backup.sh"]
+```
+
+**backup.sh:**
+```bash
+#!/bin/bash
+set -e
+DATE=$(date +"%Y-%m-%d_%H-%M")
+BACKUP_NAME="netpong-db-${DATE}.sql.gz"
+
+pg_dump -h "$DB_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" "$POSTGRES_DB" \
+  | gzip > "${BACKUP_DIR}/${BACKUP_NAME}"
+```
+
+### Storage Strategy
+
+| Location | Retention | Purpose |
+|----------|-----------|---------|
+| Local VM (`/opt/netpong/backups/`) | 7 days | Fast local recovery |
+| DigitalOcean Spaces | 30 days | Off-site disaster recovery |
+
+**Remote storage benefits:**
+- Protection against complete server failure
+- Scalable S3-compatible object storage
+- Quick restoration on a new machine
+- Automated lifecycle retention policies
+
+### Backup Automation
+
+Backups are scheduled via cron or container orchestration:
+
+```
+0 2 * * * /opt/netpong/scripts/backup.sh
+```
+
+**Backup workflow:**
+1. Create PostgreSQL database dump using `pg_dump`
+2. Compress with gzip
+3. Store locally under `/opt/netpong/backups/postgres/`
+4. Upload to DigitalOcean Spaces using `rclone`
+5. Send success/failure notification to Discord
+6. Prune old backups based on retention policy
+
+### Monitoring & Alerts
+
+All backup operations are logged and monitored:
+
+- **Log file:** `/var/log/netpong-backup.log`
+- **Discord alerts:** Immediate notification on backup failure
+- **Success confirmation:** Daily success reports to team channel
+
+Example failure alert:
+```
+🚨 DATABASE BACKUP FAILED on NetPong VM
+Timestamp: 2026-03-09 02:15:00
+Error: Connection to database refused
+```
+
+### Disaster Recovery Procedure
+
+If the production VM is lost or corrupted, follow these steps:
+
+#### 1. Provision New VM
+
+Install required dependencies:
+```bash
+# Install Docker
+curl -fsSL https://get.docker.com | sh
+
+# Install Docker Compose
+sudo apt install docker-compose-plugin
+
+# Install rclone for backup retrieval
+curl https://rclone.org/install.sh | sudo bash
+```
+
+#### 2. Retrieve Backups from DigitalOcean Spaces
+
+```bash
+# Configure rclone with Spaces credentials
+rclone config
+
+# Download backups
+rclone copy spaces:netpong-backup /opt/netpong/backups
+```
+
+#### 3. Restore PostgreSQL Database
+
+```bash
+# Decompress backup
+gunzip /opt/netpong/backups/postgres/netpong-db-YYYY-MM-DD_HH-MM.sql.gz
+
+# Restore to new database
+psql -U postgres -d netpong < backup.sql
+```
+
+#### 4. Restore Elasticsearch (if needed)
+
+```bash
+# Using Elasticsearch Snapshot API
+curl -X POST "localhost:9200/_snapshot/netpong_backup/snapshot_name/_restore" \
+  -H "Content-Type: application/json"
+```
+
+#### 5. Restore Configuration Files
+
+```bash
+tar -xzf /opt/netpong/backups/config_backup.tar.gz -C /etc/netpong/
+```
+
+#### 6. Start Application Stack
+
+```bash
+cd /opt/netpong
+docker compose -f infra/compose/docker-compose.prod.yml up -d
+```
+
+### Disaster Simulation
+
+A disaster simulation was performed to validate the recovery procedure:
+
+1. ✅ Provisioned fresh Ubuntu server
+2. ✅ Installed Docker and rclone
+3. ✅ Downloaded backups from DigitalOcean Spaces
+4. ✅ Restored PostgreSQL database
+5. ✅ Restored configuration files
+6. ✅ Started application stack
+7. ✅ Verified all services operational
+
+**Result:** Platform successfully recovered using only remote backups.
+
 
 ## Security & Compliance
 
