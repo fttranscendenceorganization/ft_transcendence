@@ -55,7 +55,6 @@ export default function GameJoker() {
     const [error, setError] = useState<string | null>(null);
     const [profileError, setProfileError] = useState<string | null>(null);
     const [showAiPicker, setShowAiPicker] = useState(false);
-    const [blocked, setBlocked] = useState(false);
 
     useEffect(() => {
         const video = videoRef.current;
@@ -140,17 +139,6 @@ export default function GameJoker() {
         let isMounted = true;
 
         (async () => {
-            try {
-                const res = await authFetch('/api/game/active-session', { method: 'GET' });
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data.active) {
-                        if (isMounted) setBlocked(true);
-                        return;
-                    }
-                }
-            } catch {}
-
             const socket = await getGameSocket();
             if (!socket || !isMounted) {
                 if (!socket) navigate('/login');
@@ -361,20 +349,6 @@ export default function GameJoker() {
         </div>
     ) : null;
 
-    if (blocked) {
-        return (
-            <div className="relative h-[100svh] overflow-hidden">
-                <div className="absolute inset-0 bg-slate-900" />
-                <div className="relative z-10 h-full flex flex-col items-center justify-center p-6 gap-6">
-                    <div className="text-6xl">🚫</div>
-                    <h2 className="text-3xl font-extrabold text-fuchsia-400" style={{ textShadow: '0 0 20px rgba(168,85,247,0.6)' }}>Game Already Active</h2>
-                    <p className="text-gray-400 text-center max-w-md">You already have an active game running in another session. Please finish or leave it before starting a new one.</p>
-                    <button onClick={() => navigate('/joker')} className="mt-4 bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 px-8 rounded-xl transition-all hover:scale-105" style={{ boxShadow: '0 0 20px rgba(168,85,247,0.3)' }}>← Go Back</button>
-                </div>
-            </div>
-        );
-    }
-
     return (
         <div className="relative h-[100svh] overflow-hidden">
             <video ref={videoRef} autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover brightness-75 contrast-125 saturate-150">
@@ -391,7 +365,7 @@ export default function GameJoker() {
 
             <div className="relative z-10 h-full flex flex-col items-center justify-center p-4 sm:p-6 gap-4 sm:gap-6 overflow-hidden">
 
-                <div className="text-center space-y-1 landscape:scale-75 sm:landscape:scale-100 transition-transform">
+                <div className="text-center space-y-1">
                     <h1
                         className="text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-fuchsia-500 to-green-400"
                         style={{ filter: 'drop-shadow(0 0 30px rgba(168,85,247,0.9))' }}
@@ -399,7 +373,7 @@ export default function GameJoker() {
                         JOKER
                     </h1>
                     <p
-                        className="text-green-400 text-base md:text-lg font-bold tracking-[0.4em] uppercase landscape:hidden sm:landscape:block"
+                        className="text-green-400 text-base md:text-lg font-bold tracking-[0.4em] uppercase"
                         style={{ textShadow: '0 0 15px rgba(34,197,94,0.8)' }}
                     >
                         THE GAME MAKER
@@ -494,7 +468,7 @@ export default function GameJoker() {
                                 {side === 'left' ? OppCard : MyCard}
                             </div>
                         )}
-                        <div className="aspect-video min-h-[200px] max-h-[70vh] sm:min-h-[360px] md:min-h-[450px] rounded-2xl overflow-hidden border-2 border-purple-500/30" style={{ boxShadow: '0 0 60px rgba(168,85,247,0.3)' }}>
+                        <div className="aspect-video min-h-[250px] sm:min-h-[350px] md:min-h-[450px] rounded-2xl overflow-hidden border-2 border-purple-500/30" style={{ boxShadow: '0 0 60px rgba(168,85,247,0.3)' }}>
                             <JokerHockey side={side} socket={socketRef.current} onGameOver={handleGameOver} onGameAborted={handleGameAborted} />
                         </div>
                         <button onClick={exitGame} className="w-full bg-fuchsia-950/60 hover:bg-fuchsia-900/70 border border-fuchsia-800/50 text-fuchsia-400 hover:text-fuchsia-300 font-bold py-3 rounded-xl transition-all text-sm tracking-wide flex items-center justify-center gap-2">
@@ -549,16 +523,6 @@ export default function GameJoker() {
                         <button onClick={() => navigate('/joker')} className="w-full bg-slate-900/60 hover:bg-slate-800/60 border border-slate-700/40 text-gray-500 hover:text-white font-bold py-3 rounded-xl transition-all text-sm">Leave the Stage</button>
                     </div>
                 )}
-            </div>
-
-            <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black/95 p-6 text-center sm:hidden landscape:flex">
-                <div className="text-6xl mb-4 animate-bounce">🃏</div>
-                <h2 className="text-2xl font-bold text-purple-400 mb-2">Why so sideways?</h2>
-                <p className="text-gray-300 max-w-xs">
-                    The Joker's stage is too narrow for this view.
-                    Please rotate your phone to <span className="text-green-400 font-bold">Portrait</span> mode to play.
-                </p>
-                <div className="mt-8 w-12 h-16 border-4 border-purple-500 rounded-lg animate-[spin_3s_linear_infinite]" />
             </div>
 
             <style>{`
