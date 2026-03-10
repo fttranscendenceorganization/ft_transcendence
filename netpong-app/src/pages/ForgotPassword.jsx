@@ -123,16 +123,21 @@ export default function ForgotPassword() {
 
                                         <form onSubmit={handleSubmit} className="space-y-6">
                                             <div className="relative group/input">
-                                                <label className="block text-sm font-semibold text-zinc-300 mb-2 ml-1">
+                                                <label
+                                                    htmlFor="email"
+                                                    className="block text-sm font-semibold text-zinc-300 mb-2 ml-1">
                                                     Email Address
                                                 </label>
                                                 <div className="relative">
                                                     <div className="absolute inset-0 bg-gradient-to-r from-violet-500/20 to-purple-500/20 rounded-xl blur-sm opacity-0 group-hover/input:opacity-100 transition-opacity duration-300" />
                                                     <input
+                                                        id="email"
                                                         type="email"
+                                                        name="email"
                                                         value={email}
                                                         onChange={(e) => setEmail(e.target.value)}
                                                         required
+                                                        autoComplete="email"
                                                         disabled={isLoading}
                                                         placeholder="Enter your email"
                                                         className="relative w-full bg-slate-800/50 text-white px-4 pl-12 py-3.5 rounded-xl border border-slate-700 backdrop-blur-sm shadow-lg hover:bg-slate-800/70 hover:border-violet-500/50 focus:outline-none focus:border-violet-500 focus:bg-slate-800/70 focus:ring-2 focus:ring-violet-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed placeholder:text-zinc-500"
