@@ -8,7 +8,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/42-ft__transcendence-gold?style=for-the-badge" alt="42 Badge"/>
-  <img src="https://img.shields.io/badge/Points-28%2F14-brightgreen?style=for-the-badge" alt="Points"/>
+  <img src="https://img.shields.io/badge/Points-29%2F14-brightgreen?style=for-the-badge" alt="Points"/>
   <img src="https://img.shields.io/badge/NestJS-11-E0234E?style=for-the-badge&logo=nestjs&logoColor=white" alt="NestJS"/>
   <img src="https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React"/>
   <img src="https://img.shields.io/badge/PostgreSQL-17-336791?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL"/>
@@ -286,6 +286,7 @@ The team used **GitHub with a branch-per-feature workflow**. Each team member wo
 | **Vite** | latest | Extremely fast dev server with HMR and optimized production builds. Chosen over Create React App for speed and modern ESM-based architecture. |
 | **socket.io-client** | latest | Matches the backend socket.io server for seamless real-time communication in chat and game namespaces. |
 | **HTML5 Canvas** | native | Used for rendering the four themed game modes (Joker, Kitty Cat, Soul Society, Zombie Land) with custom animated backgrounds and physics-accurate paddle/puck rendering. |
+| **tailwindCSS** | latest | Tailwind CSS is a CSS framework that lets you style your website directly inside your HTML/JSX using small utility classes instead of writing traditional CSS files. |
 
 ### DevOps & Infrastructure
 
@@ -501,19 +502,21 @@ The team used **GitHub with a branch-per-feature workflow**. Each team member wo
 | 11 | **Advanced chat features** | Minor | 1 | Houdaifa Drahm, Ahmed Ahlaqqach |
 | 12 | **Gamification system** | Minor | 1 | Houdaifa Drahm, Ahmed Ahlaqqach |
 | 13 | **ORM (TypeORM)** | Minor | 1 | Houdaifa Drahm |
-| 14 | **Advanced search functionality** | Minor | 1 | Houdaifa Drahm |
+| 14 | **User activity analytics and insights dashboard** | Minor | 1 | Houdaifa Drahm, Ahmed Ahlaqqach |
 | 15 | **Additional browser support** | Minor | 1 | Ahmed Ahlaqqach |
 | 16 | **OAuth 2.0 remote authentication** | Minor | 1 | Houdaifa Drahm |
 | 17 | **Game statistics and match history** | Minor | 1 | Houdaifa Drahm, Ahmed Ahlaqqach |
 | 18 | **Health check & status page & Automated Backups and Disaster recovery procedures** | Minor | 1 | Mohamed Mazouz |
+| 19 | **File upload and management system** | Minor | 1 | Youssef Akhadad |
+| 20 | **Custom-made design system with reusable components** | Minor | 1 | Ahmed Ahlaqqach |
 
 ### Point Calculation
 
 | Category | Count | Points each | Subtotal |
 |----------|-------|-------------|---------|
-| Major modules | 9 | 2 pts | 18 pts |
-| Minor modules | 8 | 1 pt | 8 pts |
-| **TOTAL** | **18 modules** | | **28 pts** |
+| Major modules | 10 | 2 pts | 20 pts |
+| Minor modules | 9 | 1 pt | 9 pts |
+| **TOTAL** | **20 modules** | | **29 pts** |
 
 ---
 

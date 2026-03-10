@@ -3,7 +3,15 @@ COMPOSE=docker compose -f ./infra/compose/docker-compose.dev.yml
 TAIL?=100
 SERVICES?=backend_api front_end nginx database
 
-all: up
+all: setup up
+
+setup:
+	@echo "Creating data directories with correct permissions..."
+	@sudo mkdir -p /opt/netpong/monitoring/grafana_data /opt/netpong/monitoring/prometheus_data /opt/netpong/elk/es_data
+	@sudo chown -R 472:472 /opt/netpong/monitoring/grafana_data
+	@sudo chown -R 65534:65534 /opt/netpong/monitoring/prometheus_data
+	@sudo chown -R 1000:1000 /opt/netpong/elk/es_data
+	@echo "Done!"
 
 up:
 	$(COMPOSE)  up -d --build
