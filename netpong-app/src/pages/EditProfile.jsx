@@ -121,6 +121,8 @@ function AvatarModal({ isOpen, onClose, onUploadFile, onSubmitUrl }) {
                         </div>
                         <input
                             ref={fileInputRef}
+                            id="avatarUpload"
+                            name="avatar"
                             type="file"
                             accept="image/*"
                             onChange={handleFileSelect}
@@ -131,10 +133,15 @@ function AvatarModal({ isOpen, onClose, onUploadFile, onSubmitUrl }) {
 
                 {tab === 'url' && (
                     <div>
-                        <label className="block text-sm font-bold text-gray-300 mb-2">Image URL</label>
+                        <label
+                            htmlFor="avatarUrl"
+                            className="block text-sm font-bold text-gray-300 mb-2">Image URL</label>
                         <input
+                            id="avatarUrl"
+                            name="avatarUrl"
                             type="url"
                             value={urlValue}
+                            autoComplete="off"
                             onChange={(e) => { setUrlValue(e.target.value); setUrlError(''); }}
                             placeholder="https://example.com/avatar.webp"
                             className="w-full bg-slate-700 text-white placeholder-gray-500 rounded-lg px-4 py-3 border-2 border-slate-600 focus:outline-none focus:border-violet-500 transition text-sm"
