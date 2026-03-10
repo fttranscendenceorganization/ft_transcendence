@@ -33,6 +33,11 @@ jobs:
           sudo touch /etc/netpong/game.env
           sudo touch /etc/netpong/grafana.env
           sudo touch /etc/netpong/discord.env
+          touch infra/env/backend.env
+          touch infra/env/backup.env
+          touch infra/env/database.env
+          touch infra/env/nginx.env
+          touch infra/env/game.env
 
       - name: Validate docker-compose (dev)
         run: docker compose -f infra/compose/docker-compose.dev.yml config
