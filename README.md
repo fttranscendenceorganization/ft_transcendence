@@ -8,7 +8,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/42-ft__transcendence-gold?style=for-the-badge" alt="42 Badge"/>
-  <img src="https://img.shields.io/badge/Points-29%2F14-brightgreen?style=for-the-badge" alt="Points"/>
+  <img src="https://img.shields.io/badge/Points-28%2F14-brightgreen?style=for-the-badge" alt="Points"/>
   <img src="https://img.shields.io/badge/NestJS-11-E0234E?style=for-the-badge&logo=nestjs&logoColor=white" alt="NestJS"/>
   <img src="https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React"/>
   <img src="https://img.shields.io/badge/PostgreSQL-17-336791?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL"/>
@@ -286,7 +286,6 @@ The team used **GitHub with a branch-per-feature workflow**. Each team member wo
 | **Vite** | latest | Extremely fast dev server with HMR and optimized production builds. Chosen over Create React App for speed and modern ESM-based architecture. |
 | **socket.io-client** | latest | Matches the backend socket.io server for seamless real-time communication in chat and game namespaces. |
 | **HTML5 Canvas** | native | Used for rendering the four themed game modes (Joker, Kitty Cat, Soul Society, Zombie Land) with custom animated backgrounds and physics-accurate paddle/puck rendering. |
-| **tailwindCSS** | latest | Tailwind CSS is a CSS framework that lets you style your website directly inside your HTML/JSX using small utility classes instead of writing traditional CSS files. |
 
 ### DevOps & Infrastructure
 
@@ -307,134 +306,113 @@ The team used **GitHub with a branch-per-feature workflow**. Each team member wo
 
 ## Database Schema
 
-### User
+<details>
+<summary>🟦 <strong>User</strong> — accounts, stats, OAuth identifiers</summary>
 
-| Field | Type | Constraints | Description |
-|-------|------|-------------|-------------|
-| id | uuid | PK, generated | Unique user identifier |
-| email | varchar | UNIQUE, NOT NULL | Login email address |
-| username | varchar(20) | UNIQUE, NOT NULL | Display handle (lowercased) |
-| firstName | varchar | nullable | Profile first name |
-| lastName | varchar | nullable | Profile last name |
-| password | text | nullable, bcrypt | Hashed password (null for OAuth-only users) |
-| googleId | varchar | UNIQUE, nullable | Google OAuth ID |
-| githubId | varchar | UNIQUE, nullable | GitHub OAuth ID |
-| intra42Id | varchar | UNIQUE, nullable | 42 Intra OAuth ID |
-| avatarUrl | text | nullable | Public path to avatar file |
-| wins | int | default 0 | Total game wins |
-| losses | int | default 0 | Total game losses |
-| level | int | default 1 | Current XP level |
-| points | float | default 0 | Ranking points |
-| totalXp | float | default 0 | Cumulative experience points |
-| winrate | float | default 0 | Win percentage |
-| rank | varchar | nullable | Cosmetic rank label |
-| favouriteGame | varchar | nullable | Most played game mode |
-| refreshTokenHash | text | nullable | Hashed refresh token for rotation |
-| resetPasswordTokenHash | text | nullable | Hashed password reset token |
-| resetPasswordExpiresAt | timestamptz | nullable | Reset token expiration |
-| isActive | bool | default true | Soft-active flag |
-| createdAt | timestamptz | auto | Account creation timestamp |
-| updatedAt | timestamptz | auto | Last update timestamp |
+| Column | Type | Notes |
+|--------|------|-------|
+| `id` | uuid | 🔑 PK |
+| `email` | varchar | unique · not null |
+| `username` | varchar(20) | unique · not null |
+| `firstName` / `lastName` | varchar | nullable |
+| `password` | text | nullable · bcrypt (null for OAuth users) |
+| `googleId` / `githubId` / `intra42Id` | varchar | unique · nullable |
+| `avatarUrl` | text | nullable |
+| `wins` / `losses` | int | default 0 |
+| `level` / `points` / `totalXp` / `winrate` | int / float | default 0 / 1 |
+| `rank` / `favouriteGame` | varchar | nullable |
+| `refreshTokenHash` / `resetPasswordTokenHash` | text | nullable |
+| `resetPasswordExpiresAt` | timestamptz | nullable |
+| `isActive` | bool | default true |
+| `createdAt` / `updatedAt` | timestamptz | auto |
 
-**Relations:**
-- One User → Many FriendRequests (as requester and receiver)
-- One User → Many Blocks (as blocker and blocked)
-- One User → Many Messages (as sender)
-- One User → Many MessageReactions
-- One User → Many Games (as playerA, playerB, or winner)
-- Many Users ↔ Many Conversations (participants)
+**Relations:** → many `FriendRequest` (requester & receiver) · → many `Block` (blocker & blocked) · → many `Message` (sender) · → many `MessageReaction` · → many `Game` (playerA / playerB / winner) · ↔ many `Conversation` (participants)
 
----
+</details>
 
-### Game
+<details>
+<summary>🟩 <strong>Game</strong> — match records, scores, XP</summary>
 
-| Field | Type | Constraints | Description |
-|-------|------|-------------|-------------|
-| id | uuid | PK, generated | Unique game identifier |
-| mode | enum (GameModeEnum) | NOT NULL | SOUL_SOCIETY / ZOMBIE_LAND / BARBIE_PINK / JOKER |
-| status | enum (GameStatusEnum) | NOT NULL | FINISHED / ABORTED / etc. |
-| playerA | uuid | FK → User, NOT NULL | First player |
-| playerB | uuid | FK → User, NOT NULL | Second player |
-| winner | uuid | FK → User, nullable | Winner of the game |
-| playerAScore | int | NOT NULL | Player A final score |
-| playerBScore | int | NOT NULL | Player B final score |
-| playerAXpEarned | float | default 0 | XP awarded to player A |
-| playerBXpEarned | float | default 0 | XP awarded to player B |
-| createdAt | timestamptz | auto | Game start timestamp |
+| Column | Type | Notes |
+|--------|------|-------|
+| `id` | uuid | 🔑 PK |
+| `mode` | enum | `SOUL_SOCIETY` · `ZOMBIE_LAND` · `BARBIE_PINK` · `JOKER` |
+| `status` | enum | `FINISHED` · `ABORTED` |
+| `playerA` / `playerB` | uuid | 🔗 FK → User · not null |
+| `winner` | uuid | 🔗 FK → User · nullable |
+| `playerAScore` / `playerBScore` | int | not null |
+| `playerAXpEarned` / `playerBXpEarned` | float | default 0 |
+| `createdAt` | timestamptz | auto |
 
-**Relations:**
-- Many Games → One User (playerA)
-- Many Games → One User (playerB)
-- Many Games → One User (winner)
+**Relations:** → User × 3 (playerA, playerB, winner)
 
----
+</details>
 
-### Conversation
+<details>
+<summary>🟨 <strong>Conversation</strong> — global room &amp; DMs</summary>
 
-| Field | Type | Constraints | Description |
-|-------|------|-------------|-------------|
-| id | uuid | PK, generated | Unique conversation identifier |
-| name | varchar | nullable | Name for global/group conversations |
-| isGroup | bool | default false | True for global room, false for DM |
-| createdAt | timestamptz | auto | Creation timestamp |
+| Column | Type | Notes |
+|--------|------|-------|
+| `id` | uuid | 🔑 PK |
+| `name` | varchar | nullable (global room name) |
+| `isGroup` | bool | default false — true = global room |
+| `createdAt` | timestamptz | auto |
 
-**Relations:**
-- Many Conversations ↔ Many Users (participants, many-to-many)
-- One Conversation → Many Messages (cascade delete)
+**Relations:** ↔ many `User` (participants, M:N) · → many `Message` (cascade delete)
 
----
+</details>
 
-### Message
+<details>
+<summary>🟧 <strong>Message</strong> — chat messages with reply threading</summary>
 
-| Field | Type | Constraints | Description |
-|-------|------|-------------|-------------|
-| id | uuid | PK, generated | Unique message identifier |
-| content | text | NOT NULL | Message body |
-| sender | uuid | FK → User, NOT NULL | Message author |
-| conversation | uuid | FK → Conversation, NOT NULL, cascade delete | Parent conversation |
-| replyTo | uuid | FK → Message, nullable, set null | Reply threading reference |
-| createdAt | timestamptz | auto, indexed | Send timestamp |
+| Column | Type | Notes |
+|--------|------|-------|
+| `id` | uuid | 🔑 PK |
+| `content` | text | not null |
+| `sender` | uuid | 🔗 FK → User |
+| `conversation` | uuid | 🔗 FK → Conversation · cascade delete |
+| `replyTo` | uuid | 🔗 FK → Message · nullable · set null |
+| `createdAt` | timestamptz | auto · indexed |
 
-**Relations:**
-- Many Messages → One Conversation
-- Many Messages → One User (sender)
-- Many Messages → One Message (replyTo, self-referential)
-- One Message → Many MessageReactions (cascade delete)
+**Relations:** → Conversation · → User (sender) · → Message (self-ref reply) · → many `MessageReaction` (cascade delete)
 
----
+</details>
 
-### MessageReaction
+<details>
+<summary>🟥 <strong>MessageReaction</strong> — emoji reactions on messages</summary>
 
-| Field | Type | Constraints | Description |
-|-------|------|-------------|-------------|
-| id | uuid | PK, generated | Unique reaction identifier |
-| emoji | varchar(16) | NOT NULL | Emoji code |
-| message | uuid | FK → Message, cascade delete | Target message |
-| user | uuid | FK → User, cascade delete | Reactor |
-| createdAt | timestamptz | auto | Reaction timestamp |
+| Column | Type | Notes |
+|--------|------|-------|
+| `id` | uuid | 🔑 PK |
+| `emoji` | varchar(16) | not null |
+| `message` | uuid | 🔗 FK → Message · cascade delete |
+| `user` | uuid | 🔗 FK → User · cascade delete |
+| `createdAt` | timestamptz | auto |
 
----
+</details>
 
-### FriendRequest
+<details>
+<summary>🟪 <strong>FriendRequest</strong> — friend system</summary>
 
-| Field | Type | Constraints | Description |
-|-------|------|-------------|-------------|
-| id | uuid | PK, generated | Unique request identifier |
-| requesterId | uuid | FK → User, UNIQUE pair | Request sender |
-| receiverId | uuid | FK → User, UNIQUE pair | Request receiver |
-| status | varchar | default 'PENDING' | PENDING / ACCEPTED / REJECTED |
-| createdAt | timestamptz | auto | Request timestamp |
+| Column | Type | Notes |
+|--------|------|-------|
+| `id` | uuid | 🔑 PK |
+| `requesterId` / `receiverId` | uuid | 🔗 FK → User · unique pair |
+| `status` | varchar | `PENDING` · `ACCEPTED` · `REJECTED` |
+| `createdAt` | timestamptz | auto |
 
----
+</details>
 
-### Block
+<details>
+<summary>⬛ <strong>Block</strong> — user blocking</summary>
 
-| Field | Type | Constraints | Description |
-|-------|------|-------------|-------------|
-| id | uuid | PK, generated | Unique block identifier |
-| blockerId | uuid | FK → User, UNIQUE pair | User who blocked |
-| blockedId | uuid | FK → User, UNIQUE pair | Blocked user |
-| createdAt | timestamptz | auto | Block timestamp |
+| Column | Type | Notes |
+|--------|------|-------|
+| `id` | uuid | 🔑 PK |
+| `blockerId` / `blockedId` | uuid | 🔗 FK → User · unique pair |
+| `createdAt` | timestamptz | auto |
+
+</details>
 
 ---
 
@@ -502,21 +480,19 @@ The team used **GitHub with a branch-per-feature workflow**. Each team member wo
 | 11 | **Advanced chat features** | Minor | 1 | Houdaifa Drahm, Ahmed Ahlaqqach |
 | 12 | **Gamification system** | Minor | 1 | Houdaifa Drahm, Ahmed Ahlaqqach |
 | 13 | **ORM (TypeORM)** | Minor | 1 | Houdaifa Drahm |
-| 14 | **User activity analytics and insights dashboard** | Minor | 1 | Houdaifa Drahm, Ahmed Ahlaqqach |
+| 14 | **Advanced search functionality** | Minor | 1 | Houdaifa Drahm |
 | 15 | **Additional browser support** | Minor | 1 | Ahmed Ahlaqqach |
 | 16 | **OAuth 2.0 remote authentication** | Minor | 1 | Houdaifa Drahm |
 | 17 | **Game statistics and match history** | Minor | 1 | Houdaifa Drahm, Ahmed Ahlaqqach |
 | 18 | **Health check & status page & Automated Backups and Disaster recovery procedures** | Minor | 1 | Mohamed Mazouz |
-| 19 | **File upload and management system** | Minor | 1 | Youssef Akhadad |
-| 20 | **Custom-made design system with reusable components** | Minor | 1 | Ahmed Ahlaqqach |
 
 ### Point Calculation
 
 | Category | Count | Points each | Subtotal |
 |----------|-------|-------------|---------|
-| Major modules | 10 | 2 pts | 20 pts |
-| Minor modules | 9 | 1 pt | 9 pts |
-| **TOTAL** | **20 modules** | | **29 pts** |
+| Major modules | 9 | 2 pts | 18 pts |
+| Minor modules | 8 | 1 pt | 8 pts |
+| **TOTAL** | **18 modules** | | **28 pts** |
 
 ---
 
@@ -598,104 +574,164 @@ The team used **GitHub with a branch-per-feature workflow**. Each team member wo
 ## Instructions
 
 ### Prerequisites
-- Docker Engine 24+
-- Docker Compose v2+
-- OpenSSL (for generating TLS certificates if needed)
-- Node.js 18+ (only needed for local development without Docker)
 
-### Environment Setup
+| Requirement | Version | Notes |
+|-------------|---------|-------|
+| Docker Engine | 24+ | Required |
+| Docker Compose | v2+ | Required |
+| OpenSSL | any | Required — used by `setup.sh` to generate TLS certs |
+| Node.js | 18+ | Only for local dev without Docker |
 
-Copy the example env files and fill in the required values:
+---
+
+### Option A — Automated Setup *(recommended)*
+
+Run the interactive setup script **once**. It will:
+
+- 🔐 Auto-generate all secrets — JWT keys, DB password, Elastic, Kibana, Grafana passwords
+- 🔒 Generate a self-signed SSL certificate for `localhost` (`infra/nginx/certs/`)
+- 📁 Create all required data directories
+- 📝 Write all `.env` files (`infra/env/` and system paths)
+- 🌐 Interactively ask for OAuth credentials — all **skippable**, you can fill them in later
 
 ```bash
-cp infra/env/backend.env.example infra/env/backend.env
-cp infra/env/database.env.example infra/env/database.env
+./setup.sh
 ```
 
-**Required variables in `backend.env`:**
+The script will walk you through these optional credentials:
+
+| Provider | Where to create | Callback URL |
+|----------|-----------------|--------------|
+| **Google** | [console.cloud.google.com](https://console.cloud.google.com) → APIs & Services → OAuth 2.0 | `https://localhost/api/auth/google/callback` |
+| **GitHub** | [github.com/settings/developers](https://github.com/settings/developers) → OAuth Apps | `https://localhost/api/auth/github/callback` |
+| **42 Intra** | [profile.intra.42.fr/oauth/applications](https://profile.intra.42.fr/oauth/applications) | `https://localhost/api/auth/42/callback` |
+| **Resend** | [resend.com/api-keys](https://resend.com/api-keys) | — (email sending) |
+| **Discord** | Server Settings → Integrations → Webhooks | — (alertmanager notifications) |
+
+> **Skipping OAuth keys** keeps placeholder values in `infra/env/backend.env`. The app runs fine — only the corresponding login button won't work until you fill in real credentials.
+
+Once setup completes, start everything:
+
+```bash
+cd infra/compose && docker compose up --build
+```
+
+Open the app: **[https://localhost](https://localhost)**
+
+| Service | URL | Credentials |
+|---------|-----|-------------|
+| App | `https://localhost` | — |
+| Grafana | `https://localhost/grafana` | `admin / <generated>` |
+| Kibana | `https://localhost/kibana` | `elastic / <generated>` |
+| Prometheus | `https://localhost/prometheus` | — |
+
+> Generated passwords are printed at the end of `./setup.sh` — save them.
+
+---
+
+### Option B — Manual Setup
+
+If you prefer to configure everything by hand, copy the example files and fill in values yourself:
+
+```bash
+cp infra/env/backend.env.example  infra/env/backend.env
+cp infra/env/database.env.example infra/env/database.env
+cp infra/env/backup.env.example   infra/env/backup.env
+cp infra/env/nginx.env.example    infra/env/nginx.env
+```
+
+<details>
+<summary>📋 Required variables reference</summary>
+
+**`backend.env`**
 ```env
-JWT_ACCESS_SECRET=<your-secret>
-JWT_REFRESH_SECRET=<your-secret>
-JWT_ACCESS_EXPIRES=15m
-JWT_REFRESH_EXPIRES=7d
-CORS_ORIGINS=https://localhost:8080,http://localhost:8080
-FRONTEND_URL=http://localhost:5173
-DB_HOST=postgres
+# App
+NODE_ENV=production
+
+# Database
+DB_HOST=database
+POSTGRES_DB=ft_transcendence
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=<strong-password>
 POSTGRES_PORT=5432
-POSTGRES_DB=netpong
-POSTGRES_USER=netpong
-POSTGRES_PASSWORD=<your-password>
+
+# JWT  (use: openssl rand -base64 64)
+JWT_ACCESS_SECRET=<secret>
+JWT_ACCESS_EXPIRES=15m
+JWT_REFRESH_SECRET=<secret>
+JWT_REFRESH_EXPIRES=7d
+
+# Google OAuth
 GOOGLE_CLIENT_ID=<your-google-client-id>
 GOOGLE_CLIENT_SECRET=<your-google-client-secret>
-GOOGLE_CALL_BACK_URL=https://localhost:8080/api/auth/google/callback
+GOOGLE_CALL_BACK_URL=https://localhost/api/auth/google/callback
+
+# GitHub OAuth
 GITHUB_CLIENT_ID=<your-github-client-id>
 GITHUB_CLIENT_SECRET=<your-github-client-secret>
-GITHUB_CALL_BACK_URL=https://localhost:8080/api/auth/github/callback
+GITHUB_CALL_BACK_URL=https://localhost/api/auth/github/callback
+
+# 42 Intra OAuth
 INTRA_42_CLIENT_ID=<your-42-client-id>
 INTRA_42_CLIENT_SECRET=<your-42-client-secret>
-INTRA_42_CALL_BACK_URL=https://localhost:8080/api/auth/42/callback
+INTRA_42_CALL_BACK_URL=https://localhost/api/auth/42/callback
+
+# Email (Resend)
 RESEND_API_KEY=<your-resend-api-key>
-RESEND_FROM=noreply@yourdomain.com
+RESEND_FROM=NetPong Support <support@localhost>
+
+# URLs
+FRONTEND_URL=https://localhost
+CORS_ORIGINS=https://localhost
 ```
 
-**Required variables in `database.env`:**
+**`database.env`**
 ```env
-POSTGRES_DB=netpong
-POSTGRES_USER=netpong
-POSTGRES_PASSWORD=<your-password>
+DB_HOST=database
+POSTGRES_DB=ft_transcendence
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=<same-password-as-above>
 POSTGRES_PORT=5432
 ```
 
-### Run — Development
+</details>
+
+Generate a self-signed SSL certificate manually:
 
 ```bash
-docker compose -f infra/compose/docker-compose.dev.yml \
-  --env-file infra/env/backend.env \
-  --env-file infra/env/database.env \
-  up --build
+mkdir -p infra/nginx/certs
+openssl req -x509 -nodes -days 825 -newkey rsa:2048 \
+  -keyout infra/nginx/certs/nginx.key \
+  -out    infra/nginx/certs/nginx.crt \
+  -subj "/CN=localhost" -addext "subjectAltName=DNS:localhost,IP:127.0.0.1"
 ```
 
-Access the app at: `http://localhost:8080`
-Backend API available at: `http://localhost:8080/api`
-
-### Run — Production
+Then bring everything up:
 
 ```bash
-docker compose -f infra/compose/docker-compose.prod.yml \
-  --env-file infra/env/backend.env \
-  --env-file infra/env/database.env \
-  up -d --build
+cd infra/compose && docker compose up --build
 ```
 
-Ensure TLS certificates are placed under `infra/nginx/certs/` before running production.
-Access the app at: `https://yourdomain.com`
+---
 
-### Run — Monitoring Stack (Prometheus + Grafana + ELK)
+### Run — Monitoring Stack *(optional)*
 
 ```bash
-docker compose -f infra/compose/docker-compose.monitoring.yml up -d
+cd infra/compose
+docker compose -f docker-compose.monitoring.yml up -d   # Prometheus + Grafana + Alertmanager
+docker compose -f docker-compose.elk.yml       up -d   # Elasticsearch + Logstash + Kibana
 ```
 
-| Service | URL |
-|---------|-----|
-| Grafana | `http://localhost:3001` |
-| Kibana | `http://localhost:5601` |
-| Prometheus | `http://localhost:9090` |
+---
 
-### Local Development (without Docker)
+### Local Development *(without Docker)*
 
-**Backend:**
 ```bash
-cd backend_srcs
-npm install
-npm run start:dev
-```
+# Backend
+cd backend_srcs && npm install && npm run start:dev
 
-**Frontend:**
-```bash
-cd netpong-app
-npm install
-npm run dev -- --host --port 5173
+# Frontend  (separate terminal)
+cd netpong-app  && npm install && npm run dev
 ```
 
 ---
@@ -980,3 +1016,4 @@ All AI-generated content was reviewed, tested, and validated by the team before 
 <p align="center">
   <i>Made with ❤️ by mohamed-mazouz, houdaifa-drahm, ahmed-ahlaqqach, youssef-akhadad</i>
 </p>
+
