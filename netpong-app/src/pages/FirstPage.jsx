@@ -12,9 +12,6 @@ export default function FirstPage() {
     document.title = "NetPong – Online Air Hockey";
     (async () => {
         try {
-            const existingToken = getToken();
-            if (!existingToken)
-                return;
             const ok = await refreshAccessToken();
             if (ok) navigate('/home', { replace: true });
         } catch {}
