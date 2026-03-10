@@ -281,7 +281,7 @@ export default function TermsPage() {
                         </p>
                         <div className="bg-slate-800/50 rounded-xl p-4 border border-purple-500/20">
                             <p className="text-white font-bold mb-2">NETPONG Support Team</p>
-                            <p className="text-gray-300">Please visit our <a href="/contact" className="text-purple-400 hover:text-purple-300 transition">Contact Page</a></p>
+                            <p className="text-gray-300">Please visit our <a href="/first-contact" className="text-purple-400 hover:text-purple-300 transition">Contact Page</a></p>
                         </div>
                     </section>
                 </div>
