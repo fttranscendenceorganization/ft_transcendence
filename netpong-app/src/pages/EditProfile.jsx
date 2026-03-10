@@ -420,6 +420,7 @@ export default function EditProfile() {
                                         id="firstName"
                                         name="firstName"
                                         type="text"
+                                        autoComplete="given-name"
                                         value={profileData.firstName}
                                         onChange={handleFirstNameChange}
                                         placeholder="Enter your first name"
@@ -442,6 +443,7 @@ export default function EditProfile() {
                                         id="lastName"
                                         name="lastName"
                                         type="text"
+                                        autoComplete="family-name"
                                         value={profileData.lastName}
                                         onChange={handleLastNameChange}
                                         placeholder="Enter your last name"
@@ -464,6 +466,7 @@ export default function EditProfile() {
                                         id="email"
                                         name="email"
                                         type="email"
+                                        autoComplete="email"
                                         value={profileData.email}
                                         disabled
                                         className="w-full bg-slate-700/50 text-gray-400 placeholder-gray-500 rounded-lg px-4 py-3 border-2 border-slate-600/50 cursor-not-allowed text-sm md:text-base"
@@ -484,6 +487,7 @@ export default function EditProfile() {
                                         id="username"
                                         name="username"
                                         type="text"
+                                        autoComplete="username"
                                         value={profileData.username}
                                         onChange={handleUsernameChange}
                                         placeholder="Enter your username"
