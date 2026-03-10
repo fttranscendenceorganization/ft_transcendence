@@ -30,12 +30,15 @@ export default function MessageInput({
 
             <form onSubmit={onSend} className="flex gap-2 md:gap-3 max-w-4xl mx-auto">
                 <input
+                    id="message"
+                    name="message"
                     type="text"
                     value={message}
                     onChange={e => setMessage(e.target.value)}
                     onKeyDown={onKeyPress}
                     ref={inputRef}
                     placeholder="Type your message..."
+                    autoComplete="off"
                     disabled={isBlocked}
                     className="flex-1 bg-slate-700 text-white placeholder-gray-400 rounded-lg px-4 py-2 md:py-3 border-2 border-slate-600 focus:outline-none focus:border-orange-500 transition text-sm md:text-base disabled:opacity-50 disabled:cursor-not-allowed"
                 />
