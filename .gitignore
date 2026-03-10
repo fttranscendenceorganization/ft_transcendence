@@ -1,3 +1,7 @@
 node_modules
 env
 grafana.env
+infra/env/*.env
+infra/nginx/certs/*.pem
+infra/nginx/certs/*.crt
+infra/nginx/certs/*.key
