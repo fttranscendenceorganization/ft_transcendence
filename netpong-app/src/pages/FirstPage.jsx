@@ -8,18 +8,18 @@ export default function FirstPage() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        document.title = "NetPong – Online Air Hockey";
-
-        (async () => {
-            try {
-                const ok = await refreshAccessToken();
-                if (ok) {
-                    navigate('/home', { replace: true });
-                }
-            } catch {
-            }
-        })();
-    }, [navigate]);
+    
+    document.title = "NetPong – Online Air Hockey";
+    (async () => {
+        try {
+            const existingToken = getToken();
+            if (!existingToken)
+                return;
+            const ok = await refreshAccessToken();
+            if (ok) navigate('/home', { replace: true });
+        } catch {}
+    })();
+}, [navigate]);
 
     return (
         <div className="min-h-screen">
