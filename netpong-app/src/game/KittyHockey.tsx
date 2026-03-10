@@ -109,23 +109,6 @@ export default function KittyHockey({
             mouse.y = touch.clientY - canvasRect.top;
         };
 
-        const keys = { up: false, down: false, left: false, right: false };
-        const KEYBOARD_SPEED = 16;
-
-        const onKeyDown = (e: KeyboardEvent) => {
-            if (e.key === 'w' || e.key === 'ArrowUp') keys.up = true;
-            if (e.key === 's' || e.key === 'ArrowDown') keys.down = true;
-            if (e.key === 'a' || e.key === 'ArrowLeft') keys.left = true;
-            if (e.key === 'd' || e.key === 'ArrowRight') keys.right = true;
-        };
-
-        const onKeyUp = (e: KeyboardEvent) => {
-            if (e.key === 'w' || e.key === 'ArrowUp') keys.up = false;
-            if (e.key === 's' || e.key === 'ArrowDown') keys.down = false;
-            if (e.key === 'a' || e.key === 'ArrowLeft') keys.left = false;
-            if (e.key === 'd' || e.key === 'ArrowRight') keys.right = false;
-        };
-
         let paddleWorldX = side === 'left' ? 50 : 950;
         let paddleWorldY = WORLD_H / 2;
         let lastSentX = -1;
@@ -140,8 +123,6 @@ export default function KittyHockey({
 
         window.addEventListener('mousemove', onMouseMove);
         window.addEventListener('touchmove', onTouchMove, { passive: false });
-        window.addEventListener('keydown', onKeyDown);
-        window.addEventListener('keyup', onKeyUp);
 
         const handleGameState = (state: BackendGameState) => {
             const myPaddle = side === 'left' ? state.paddleLeft : state.paddleRight;
@@ -183,17 +164,7 @@ export default function KittyHockey({
         const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
         const loop = () => {
-            if (keys.up) paddleWorldY = Math.max(0, paddleWorldY - KEYBOARD_SPEED);
-            if (keys.down) paddleWorldY = Math.min(WORLD_H, paddleWorldY + KEYBOARD_SPEED);
-            if (keys.left) paddleWorldX = Math.max(0, paddleWorldX - KEYBOARD_SPEED);
-            if (keys.right) paddleWorldX = Math.min(WORLD_W, paddleWorldX + KEYBOARD_SPEED);
-
-            const anyKey = keys.up || keys.down || keys.left || keys.right;
-            if (anyKey) {
-                sendIfMoved(paddleWorldX, paddleWorldY);
-            } else {
-                sendIfMoved(toWorldX(mouse.x), toWorldY(mouse.y));
-            }
+            sendIfMoved(toWorldX(mouse.x), toWorldY(mouse.y));
 
             renderState.puck.x = lerp(renderState.puck.x, drawState.puck.x, LERP_BALL);
             renderState.puck.y = lerp(renderState.puck.y, drawState.puck.y, LERP_BALL);
@@ -222,8 +193,6 @@ export default function KittyHockey({
             window.removeEventListener('resize', resize);
             window.removeEventListener('mousemove', onMouseMove);
             window.removeEventListener('touchmove', onTouchMove);
-            window.removeEventListener('keydown', onKeyDown);
-            window.removeEventListener('keyup', onKeyUp);
             socket.off('gameState', handleGameState);
             socket.off('gameOver', onGameOver);
             socket.off('gameAborted', onGameAborted);
