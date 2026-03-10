@@ -8,6 +8,8 @@ export default function FirstPage() {
     const navigate = useNavigate();
 
     useEffect(() => {
+    
+    document.title = "NetPong – Online Air Hockey";
     (async () => {
         try {
             const existingToken = getToken();
