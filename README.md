@@ -8,7 +8,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/42-ft__transcendence-gold?style=for-the-badge" alt="42 Badge"/>
-  <img src="https://img.shields.io/badge/Points-26%2F7-brightgreen?style=for-the-badge" alt="Points"/>
+  <img src="https://img.shields.io/badge/Points-28%2F14-brightgreen?style=for-the-badge" alt="Points"/>
   <img src="https://img.shields.io/badge/NestJS-11-E0234E?style=for-the-badge&logo=nestjs&logoColor=white" alt="NestJS"/>
   <img src="https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React"/>
   <img src="https://img.shields.io/badge/PostgreSQL-17-336791?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL"/>
@@ -486,25 +486,26 @@ The team used **GitHub with a branch-per-feature workflow**. Each team member wo
 
 ## Modules
 
-| # | Module | Type | Points | Implemented By | Justification |
-|---|--------|------|--------|----------------|---------------|
-| 1 | **Web-based game** | Major | 2 | Ahmed Ahlaqqach, Houdaifa Drahm | Real-time air-hockey game with four themed modes rendered on HTML5 canvas. Players compete in live matches with clear win/loss conditions (first to 5 points). Game state (puck physics, paddle positions, scores) is computed server-side and streamed via WebSocket. Fully satisfies: real-time multiplayer, clear rules, live matches. |
-| 2 | **Remote players** | Major | 2 | Houdaifa Drahm | Two players on separate computers matched via a server-side queue. Game state synchronized via socket.io with server-authoritative physics. Disconnection is handled gracefully (gameAborted event), reconnection logic present. Network latency managed via server-side tick rate. |
-| 3 | **Frontend + Backend frameworks** | Major | 2 | Ahmed Ahlaqqach, Houdaifa Drahm | Frontend: React 18 (component architecture, hooks, routing, state management, ecosystem). Backend: NestJS 11 (modular architecture, DI, decorators, guards, interceptors). Both are full frameworks per subject definition. |
-| 4 | **Real-time features (WebSockets)** | Major | 2 | Houdaifa Drahm | socket.io gateways handle: chat messages, emoji reactions, presence updates, matchmaking events, game state streaming, ready checks, and forfeit. All events broadcast efficiently to relevant rooms. Connection/disconnection handled gracefully with cleanup. |
-| 5 | **User interaction (chat + profiles + friends)** | Major | 2 | Houdaifa Drahm, Ahmed Ahlaqqach | Complete social layer: global chat room, DM conversations, user profile pages with stats, friend request system (send/accept/reject), friends list with online status. All three minimum requirements (chat, profiles, friends) fully implemented. |
-| 6 | **Standard user management** | Major | 2 | Youssef Akhadad | Users can update profile information (username, firstname, lastname via Youssef's edit page), upload avatars with default fallback, add friends and view their online status, and view profile pages with all stats. All four requirements met. |
-| 7 | **ELK Stack** | Major | 2 | Mohamed Mazouz | Elasticsearch stores and indexes all backend logs with ILM retention policies. Logstash collects logs from the NestJS pino logger and transforms them. Kibana provides visualization dashboards. All components secured and deployed via Docker Compose in infra/elk. |
-| 8 | **Prometheus & Grafana** | Major | 2 | Mohamed Mazouz | Prometheus scrapes /metrics endpoint (implemented by Houdaifa) collecting: login counter, registration counter, active games gauge, queue size gauge, messages sent counter, completed games counter, chat WebSocket connections gauge. Grafana (Mohamed) provides custom dashboards and alerting rules with secured access. |
-| 9 | **AI Opponent** | Major | 2 | Youssef Akhadad | Implemented in game.service.ts: physics-based AI paddle that tracks puck trajectory with reaction time variance to simulate human behavior. Easy mode: slower reaction, higher error margin. Hard mode: faster reaction, tighter tracking. AI can win matches. Fully explained and demonstrable. |
-| 10 | **Advanced chat features** | Minor | 1 | Houdaifa Drahm, Ahmed Ahlaqqach | Block users from messaging (filter applied in chat gateway), invite users to play directly from chat, game/tournament notifications in chat, access to user profiles from chat interface, chat history persistence in Postgres, typing indicators and message read state. All six features implemented. |
-| 11 | **Gamification system** | Minor | 1 | Houdaifa Drahm, Ahmed Ahlaqqach | XP/level system (tracked in User entity, updated on game completion), leaderboard ranked by points (persistent in DB), win rate tracking (calculated and stored). Three features fully implemented and persistent. Visual feedback provided via leaderboard page and profile stats display. |
-| 12 | **ORM (TypeORM)** | Minor | 1 | Houdaifa Drahm | TypeORM used for all database interactions: entity definitions, repository pattern, relations (one-to-many, many-to-many), query builder for complex queries. Eliminates raw SQL, provides type safety, and integrates natively with NestJS. |
-| 13 | **Advanced search functionality** | Minor | 1 | Houdaifa Drahm | User search with filters (by username, stats), sorting (by points, level, winrate), and pagination (cursor-based infinite scroll on leaderboard). Implemented in UserService with TypeORM query builder. |
-| 14 | **Additional browser support** | Minor | 1 | Ahmed Ahlaqqach | Application tested and verified compatible on Google Chrome (primary), Mozilla Firefox, and Safari. CSS layout, canvas rendering, WebSocket connections, and OAuth flows validated across all three browsers. Browser-specific quirks documented. |
-| 15 | **OAuth 2.0 remote authentication** | Minor | 1 | Houdaifa Drahm | Three OAuth2 providers implemented via Passport.js strategies: Google (passport-google-oauth20), GitHub (passport-github2), and 42 Intra (passport-42). Each strategy creates or links a user account and issues JWT tokens on success. Callback URLs configurable via env. |
-| 16 | **Game statistics and match history** | Minor | 1 | Houdaifa Drahm, Ahmed Ahlaqqach | Game records persisted in Game entity with mode, scores, winner, XP earned, timestamps. Stats endpoint returns wins, losses, level, XP, winrate, favorite mode. Match history endpoint returns paginated list of past games with opponent info. Leaderboard integrated with stats. |
-| 17 | **Health check & status page & Automated Backups and Disaster recovery procedures** | Minor | 1 | Mohamed Mazouz | Terminus health checks at GET /health (liveness: app up + DB reachable) and GET /health/ready (DB connection, Google/GitHub external pings, memory heap < 300MB, disk usage < 90%). Automated database backups configured in DevOps stack with disaster recovery procedures documented. |
+| # | Module | Type | Points | Implemented By |
+|---|--------|------|--------|----------------|
+| 1 | **Web-based game** | Major | 2 | Ahmed Ahlaqqach, Houdaifa Drahm |
+| 2 | **Remote players** | Major | 2 | Houdaifa Drahm |
+| 3 | **Frontend + Backend frameworks** | Major | 2 | Ahmed Ahlaqqach, Houdaifa Drahm |
+| 4 | **Real-time features (WebSockets)** | Major | 2 | Houdaifa Drahm |
+| 5 | **User interaction (chat + profiles + friends)** | Major | 2 | Houdaifa Drahm, Ahmed Ahlaqqach |
+| 6 | **Standard user management** | Major | 2 | Youssef Akhadad |
+| 7 | **ELK Stack** | Major | 2 | Mohamed Mazouz |
+| 8 | **Prometheus & Grafana** | Major | 2 | Mohamed Mazouz |
+| 9 | **AI Opponent** | Major | 2 | Youssef Akhadad |
+| 10 | **Another game** | Major | 2 | Houdaifa Drahm, Ahmed Ahlaqqach |
+| 11 | **Advanced chat features** | Minor | 1 | Houdaifa Drahm, Ahmed Ahlaqqach |
+| 12 | **Gamification system** | Minor | 1 | Houdaifa Drahm, Ahmed Ahlaqqach |
+| 13 | **ORM (TypeORM)** | Minor | 1 | Houdaifa Drahm |
+| 14 | **Advanced search functionality** | Minor | 1 | Houdaifa Drahm |
+| 15 | **Additional browser support** | Minor | 1 | Ahmed Ahlaqqach |
+| 16 | **OAuth 2.0 remote authentication** | Minor | 1 | Houdaifa Drahm |
+| 17 | **Game statistics and match history** | Minor | 1 | Houdaifa Drahm, Ahmed Ahlaqqach |
+| 18 | **Health check & status page & Automated Backups and Disaster recovery procedures** | Minor | 1 | Mohamed Mazouz |
 
 ### Point Calculation
 
@@ -512,7 +513,7 @@ The team used **GitHub with a branch-per-feature workflow**. Each team member wo
 |----------|-------|-------------|---------|
 | Major modules | 9 | 2 pts | 18 pts |
 | Minor modules | 8 | 1 pt | 8 pts |
-| **TOTAL** | **17 modules** | | **26 pts** |
+| **TOTAL** | **18 modules** | | **28 pts** |
 
 ---
 
