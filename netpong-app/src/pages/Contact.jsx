@@ -54,7 +54,7 @@ export default function Contact() {
             role: 'DevOps Engineer',
             initial: 'M',
             image: 'https://cdn.intra.42.fr/users/a9e4a636cad2fc137fb178f9db2f5b7a/momazouz.jpeg',
-            linkedin: 'https://www.linkedin.com/in/mohamed-mazouz-b66b543b5/',
+            linkedin: 'https://www.linkedin.com/in/mazouz-mohamed/',
             bgColor: 'bg-purple-500',
             btnHover: 'hover:bg-purple-400',
             hoverBorder: 'hover:border-purple-500/50'
